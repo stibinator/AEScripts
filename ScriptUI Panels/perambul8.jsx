@@ -1,8 +1,6 @@
 //@target aftereffects
-/* jshint ignore:start */
-// Code here will be ignored by JSHint.
-#includepath "../(lib)"
-/* jshint ignore:end */
+//@includepath "../(lib)"
+
 
 var scriptName = "perambul8";
 var legs = [];

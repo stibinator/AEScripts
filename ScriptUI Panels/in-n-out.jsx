@@ -1,6 +1,6 @@
 // In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
 // @target aftereffects
-// @includepath ../stib/(lib)/
+// @includepath ../(lib)/
 // @include jsextras.jsx
 
 var fnList = [

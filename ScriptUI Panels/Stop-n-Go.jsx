@@ -1,9 +1,5 @@
-// I use Atom and jshint to do my scripting. Recommend it too.
-// The guff below is set to be ignored by JSHint so it doesn't freak out
-// about C-style compiler directives in a JS file
-/* jshint ignore:start */
 //@target aftereffects
-// @includepath "../stib/(lib)"
+// @includepath "../(lib)"
 // @include getproperties.jsx
 
 //set the message that gets appended to expressons to denote that they're paused

@@ -1,6 +1,6 @@
 //@target aftereffects
 // Code here will be ignored by JSHint.
-// @includepath "../stib/(lib)"
+// @includepath "../(lib)"
 // @include "defaultFor.jsx"
 // @include "timeconversions.jsx"
 // @include "spacetransforms.jsx"

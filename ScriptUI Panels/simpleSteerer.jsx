@@ -1,5 +1,5 @@
 //@target aftereffects
-//@includepath  "../sitb/(lib)/"
+//@includepath  "../(lib)/"
 //@include 'defaultFor.jsx';
 //@include 'timeconversions.jsx';
 //@include 'spacetransforms.jsx';
