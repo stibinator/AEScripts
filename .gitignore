@@ -224,7 +224,6 @@ non-stib scripts
 (support)
 gridder-aftereffects/
 rd_scripts/
-ScriptUI Panels
 Shutdown/
 Startup/
 Walk_3
@@ -247,3 +246,51 @@ Smart Import.jsx
 Sort Layers by In Point.jsx
 template.jsx
 UpgradeLegacyBlurs.jsx
+(disabled)/
+(ffmpeg)/
+aw-Autosaver 1.2/
+Duik Icons/
+KeyTweak_Images/
+MochaImport_Images/
+pngs/
+rd_scripts/
+Tracker2Mask_Images
+40x40 aw_Autosaver icon for ft-Toolbar.png
+About the ScriptUI Panels folder.txt
+aw_Autosaver for ft-Toolbar.jsxbin
+aw_Autosaver.jsxbin
+beamGrid.jsx
+Connect_Point_to_Mask_Vertex.jsx
+Connect_Vertex_to_Point.jsx
+Create Nulls From Paths.jsx
+Dugr.jsx
+Duik.jsx
+Duik.jsx.dist
+Duik_images.jsxinc
+Duik_translations.jsxinc
+Duik_translations_de.jsxinc
+Duik_translations_es.jsxinc
+Duik_translations_fr.jsxinc
+Duik_translations_pl.jsxinc
+Duik_translations_zh_HANS.jsxinc
+FX Console.jsx
+graphicstest.jsx
+Gridder.jsx
+ignore.txt
+KeyTweak.jsx
+KeyTweak.jsxbin
+libduik.jsx
+libduik.jsxinc
+MakeCube-CRGmod.jsx
+MochaImport.jsx
+RotAE1.3.jsx
+Scale Selected Layers.jsx
+Separate_Masks_in_Layers.jsx
+ST Script Launcher.jsx
+stib.7z
+Tracker2Mask.jsx
+Tracker2Mask_CS2.jsx
+TrackerViz.png
+TrackerViz.jsx
+VR Comp Editor.jsx
+Zorro-The Layer Tagger.jsx
