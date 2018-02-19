@@ -2,9 +2,7 @@
 //©2016 Stephen Dixon
 //sequences layers in a variety of ways
 //@target aftereffects
-/* jshint ignore:start */
-// Code here will be ignored by JSHint.
-/* jshint ignore:end */
+
 
 var fnList = [
   'linear',
