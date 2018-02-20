@@ -49,14 +49,14 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
   // recursionLimit < 0 means infinite. We start at recursion level = 0 so if the
   // user has limited it to 0 recursions only dupe the outer layer
   if (infiniteRecursion || recursionDepth <= recursionLimit) {
-    if (originalIsComp) {
+    if (originalIsComp && recursionDepth === 0) {
       oldSource = originalLayer;
       replaceOriginal = false; //can't replacinate a Composition in the project window
     } else {
       oldSource = originalLayer.source;
       otherLayers = originalLayer.containingComp.layers;
     }
-    if (oldSource === null) {
+    if (!isValid(oldSource)) {
       // shape layers have no source - no point duplicating them in nested comps but
       // we will duplicate them in this comp if the user wants to say, duplicate all
       // the layers selected
@@ -72,6 +72,7 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
         if (recurseFootageToo) {
           for (i = 1; i <= newSource.layers.length; i++) {
             //cloninate, recursing, with footage, replacing
+            alert("newSource.layers[i].name " + newSource.layers[i].name);
             cloninate(newSource.layers[i], recursionLimit, infiniteRecursion, true, true, recursionDepth + 1);
           }
         } else {
@@ -86,7 +87,7 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
         }
       } else {
         //the source is a footage layer - but it could be a solid
-        if (oldSource.file === null) { //looks like we got a solid layer.
+        if (!isValid(oldSource.file)) { //looks like we got a solid layer or a camera
           //This next bit is a bit hacky make a new solid
           newLayer = app.project.activeItem.layers.addSolid(oldSource.mainSource.color, oldSource.name, oldSource.width, oldSource.height, oldSource.pixelAspect);
 
@@ -141,7 +142,7 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
       }
 
       //now back to the comp. Duplicate the layer
-      if (!originalIsComp) {
+      if (!(originalIsComp && recursionDepth === 0)) {
         newLayer = originalLayer.duplicate();
       }
       wasLocked = false;
@@ -163,7 +164,7 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
       }
 
       //and set the source of that layer to the newly created project source item
-      if (!originalIsComp) {
+      if (!(originalIsComp && recursionDepth === 0)) {
         newLayer.replaceSource(newSource, fixExpressions = true);
       }
       if (wasLocked) { //close the gate behind us
@@ -314,4 +315,5 @@ function buildUI(thisObj) {
   }
 }
 
-buildUI(this);
+//buildUI(this);
+cloninate(app.project.activeItem, 1, true, true, false, 0, originalIsComp = true);
