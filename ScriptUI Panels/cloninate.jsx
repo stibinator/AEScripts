@@ -1,4 +1,4 @@
-// @target aftereffects
+﻿// @target aftereffects
 //the cloninator clones an item in a comp and creates a
 // new source for it in the project (c)2016 Stephen Dixon
 
@@ -49,13 +49,13 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
   // recursionLimit < 0 means infinite. We start at recursion level = 0 so if the
   // user has limited it to 0 recursions only dupe the outer layer
   if (infiniteRecursion || recursionDepth <= recursionLimit) {
-    if (originalIsComp){
+    if (originalIsComp) {
       oldSource = originalLayer;
       replaceOriginal = false; //can't replacinate a Composition in the project window
     } else {
-    oldSource = originalLayer.source;
-    otherLayers = originalLayer.containingComp.layers;
-  }
+      oldSource = originalLayer.source;
+      otherLayers = originalLayer.containingComp.layers;
+    }
     if (oldSource === null) {
       // shape layers have no source - no point duplicating them in nested comps but
       // we will duplicate them in this comp if the user wants to say, duplicate all
@@ -141,7 +141,9 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
       }
 
       //now back to the comp. Duplicate the layer
-      newLayer = originalLayer.duplicate();
+      if (!originalIsComp) {
+        newLayer = originalLayer.duplicate();
+      }
       wasLocked = false;
 
       //replacing the original layer means duplicating and deleting
@@ -161,7 +163,9 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
       }
 
       //and set the source of that layer to the newly created project source item
-      newLayer.replaceSource(newSource, fixExpressions = true);
+      if (!originalIsComp) {
+        newLayer.replaceSource(newSource, fixExpressions = true);
+      }
       if (wasLocked) { //close the gate behind us
         newLayer.locked = true;
       }
@@ -177,6 +181,7 @@ function buildUI(thisObj) {
   var infiniteRecurseBttn;
   var recursionLevelTextBx;
   var footageTooChkbx;
+  var btnGrp;
   if (thisObj instanceof Panel) {
     pal = thisObj;
   } else {
@@ -184,25 +189,30 @@ function buildUI(thisObj) {
   }
 
   if (pal !== null) {
-    cloninateBttn = pal.add('button', [
-      undefined, undefined, 200, 22
+    btnGrp = pal.add('group', undefined, {orientation: 'row'});
+    cloninateBttn = btnGrp.add('button', [
+      undefined, undefined, 90, 22
     ], 'cloninate');
-    replacinateBttn = pal.add('button', [
-      undefined, undefined, 200, 22
+    replacinateBttn = btnGrp.add('button', [
+      undefined, undefined, 90, 22
     ], 'replacinate');
-    recurseGrp = pal.add('panel', undefined, 'recursion level');
+    recurseGrp = pal.add('panel', undefined, 'recursion level', {alignChildren: "left"});
 
-    levelGroup = recurseGrp.add('group', undefined, {orientation: 'row'});
-    infiniteRecurseBttn = levelGroup.add('checkbox', undefined, 'infinite');
-    recursionLevelTextBx = levelGroup.add('editText', undefined, '1');
-    footageTooChkbx = recurseGrp.add('checkbox', undefined, ' replace footage in subcomps');
-
+    levelGroup = recurseGrp.add('group', undefined, {orientation: 'row',  alignChildren: "left"});
+    infiniteRecurseBttn = levelGroup.add('checkbox',[
+      undefined, undefined, 100, 22
+    ], 'infinite');
+    recursionLevelTextBx = levelGroup.add('editText', [undefined, undefined, 30, 22
+    ], '1');
+    footageTooChkbx = pal.add('checkbox', [
+      undefined, undefined, 180, 22
+    ], ' replace footage in subcomps');
     recurseGrp.orientation = 'column';
     levelGroup.alignChildren = ['left', 'center'];
 
     levelGroup.add('staticText', undefined, 'limit:');
-    recursionLevelTextBx.enabled = false;
-    recursionLevelTextBx.width = 20;
+    recursionLevelTextBx.enabled = true;
+    recursionLevelTextBx.width = 40;
     infiniteRecurseBttn.value = false;
     footageTooChkbx.value = false;
     footageTooChkbx.oldValue = false; // see below
@@ -255,19 +265,19 @@ function buildUI(thisObj) {
     cloninateBttn.onClick = function() {
       // do the hoo-hah
       var originalLayers = app.project.activeItem.selectedLayers;
-      var i, originalIsComp;
+      var i;
       // var layerHistory = [];
       var recursionLevel = parseInt(recursionLevelTextBx.text, 10);
       var infiniteRecursion = infiniteRecurseBttn.value;
 
       app.beginUndoGroup('cloninator');
       if (originalLayers.length === 0) {
-        originalLayers = (app.project.activeItem);
-        originalIsComp = true;
+
+        cloninate(app.project.activeItem, recursionLevel, infiniteRecursion, footageTooChkbx.value, false, recursionLevel = 0, originalIsComp = true);
       } else {
         originalIsComp = false;
         for (i = 0; i < originalLayers.length; i++) {
-          cloninate(originalLayers[i], recursionLevel, infiniteRecursion, footageTooChkbx.value, false, 0, originalIsComp);
+          cloninate(originalLayers[i], recursionLevel, infiniteRecursion, footageTooChkbx.value, false, 0, originalIsComp = false);
           // layerHistory.push({'original': originalLayers[i], 'newLayer': cloninate(originalLayers[i], recursionLevel, footageTooChkbx.value, false, 0)});
         }
       }
