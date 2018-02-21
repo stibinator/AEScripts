@@ -1,4 +1,4 @@
-﻿// @target aftereffects
+// @target aftereffects
 //the cloninator clones an item in a comp and creates a
 // new source for it in the project (c)2016 Stephen Dixon
 
@@ -199,11 +199,15 @@ function buildUI(thisObj) {
     ], 'replacinate');
     recurseGrp = pal.add('panel', undefined, 'recursion level', {alignChildren: "left"});
 
-    levelGroup = recurseGrp.add('group', undefined, {orientation: 'row',  alignChildren: "left"});
-    infiniteRecurseBttn = levelGroup.add('checkbox',[
+    levelGroup = recurseGrp.add('group', undefined, {
+      orientation: 'row',
+      alignChildren: "left"
+    });
+    infiniteRecurseBttn = levelGroup.add('checkbox', [
       undefined, undefined, 100, 22
     ], 'infinite');
-    recursionLevelTextBx = levelGroup.add('editText', [undefined, undefined, 30, 22
+    recursionLevelTextBx = levelGroup.add('editText', [
+      undefined, undefined, 30, 22
     ], '1');
     footageTooChkbx = pal.add('checkbox', [
       undefined, undefined, 180, 22
@@ -315,5 +319,5 @@ function buildUI(thisObj) {
   }
 }
 
-//buildUI(this);
-cloninate(app.project.activeItem, 1, true, true, false, 0, originalIsComp = true);
+buildUI(this);
+// cloninate(app.project.activeItem, 1, true, true, false, 0, originalIsComp = true);
