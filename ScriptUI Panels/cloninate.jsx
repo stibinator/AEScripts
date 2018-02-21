@@ -286,7 +286,6 @@ function buildUI(thisObj) {
           // layerHistory.push({'original': originalLayers[i], 'newLayer': cloninate(originalLayers[i], recursionLevel, footageTooChkbx.value, false, 0)});
         }
       }
-
       app.endUndoGroup();
     };
 
