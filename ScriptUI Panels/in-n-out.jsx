@@ -1,4 +1,4 @@
-// In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
+﻿// In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
 // @target aftereffects
 // @includepath ../(lib)/
 // @include jsextras.jsx
@@ -165,7 +165,7 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
       // var randoz = 1 - regularity;
       var myTime = 0;
       var layerIndex = 0;
-      for (i = 0; i <= numLayers; i++) {
+      for (i = 0; i < numLayers; i++) {
         layerIndex = i;
         if (regularity < 1 && i > 0 && i < (numLayers - 1)) { //always make the first and last keyframe on time
           //although we're using the layer index as the input it doesn't have to be integral. This adds some irregularity
