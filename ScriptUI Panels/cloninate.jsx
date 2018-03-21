@@ -72,7 +72,7 @@ function cloninate(originalLayer, recursionLimit, infiniteRecursion, recurseFoot
         if (recurseFootageToo) {
           for (i = 1; i <= newSource.layers.length; i++) {
             //cloninate, recursing, with footage, replacing
-            alert("newSource.layers[i].name " + newSource.layers[i].name);
+            $.writeLn ("newSource.layers[i].name " + newSource.layers[i].name);
             cloninate(newSource.layers[i], recursionLimit, infiniteRecursion, true, true, recursionDepth + 1);
           }
         } else {
@@ -197,23 +197,25 @@ function buildUI(thisObj) {
     replacinateBttn = btnGrp.add('button', [
       undefined, undefined, 90, 22
     ], 'replacinate');
+
+    footageTooChkbx = pal.add('checkbox', [
+      undefined, undefined, 180, 22
+    ], ' replace footage in subcomps');
+
     recurseGrp = pal.add('panel', undefined, 'recursion level', {alignChildren: "left"});
+    recurseGrp.orientation = 'column';
 
     levelGroup = recurseGrp.add('group', undefined, {
       orientation: 'row',
       alignChildren: "left"
     });
+    levelGroup.alignChildren = ['left', 'center'];
     infiniteRecurseBttn = levelGroup.add('checkbox', [
       undefined, undefined, 100, 22
     ], 'infinite');
     recursionLevelTextBx = levelGroup.add('editText', [
       undefined, undefined, 30, 22
     ], '1');
-    footageTooChkbx = pal.add('checkbox', [
-      undefined, undefined, 180, 22
-    ], ' replace footage in subcomps');
-    recurseGrp.orientation = 'column';
-    levelGroup.alignChildren = ['left', 'center'];
 
     levelGroup.add('staticText', undefined, 'limit:');
     recursionLevelTextBx.enabled = true;
