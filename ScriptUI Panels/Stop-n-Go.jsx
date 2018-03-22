@@ -33,43 +33,43 @@ function buildUI(thisObj) {
     }
     if (pal !== null) {
         ExpressionsText = pal.add("statictext", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], "Expressions:");
 
         pauseExpressionsBtn = pal.add("button", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], pauseAllText);
 
         startExpressionsBtn = pal.add("button", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], startAllText);
 
         removeExpressionsBtn = pal.add("button", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], removeAllText);
 
         freezeExpressionsBtn = pal.add("button", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], freezeText);
         //
         // freezeKeyframeCheckbox = pal.add("checkbox", [
-        //     undefined, undefined, 200, 22
+        //     undefined, undefined, 180, 22
         // ], 'Freeze creates keyframe');
 
         selectedOnlyCheckbox = pal.add("checkbox", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], selectedOnlyLabel);
 
         selectedOnlyCheckbox.value = false;
         selectedOnlyCheckbox.oldValue = false;
         selectedPropsOnlyCheckbox = pal.add("checkbox", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], selectedPropsOnlyLabel);
 
         selectedPropsOnlyCheckbox.value = false;
         selectedPropsOnlyCheckbox.oldValue = false;
         includeLockedCheckBox = pal.add("checkbox", [
-            undefined, undefined, 200, 22
+            undefined, undefined, 180, 22
         ], includeLockedLabel);
 
         includeLockedCheckBox.value = false;
