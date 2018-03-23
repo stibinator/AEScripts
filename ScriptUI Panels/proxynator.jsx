@@ -123,7 +123,7 @@ function buildUI(thisObj) {
       y: undefined,
       width: 180,
       height: 25
-    }, lastFolderText, {truncate: "middle"});
+    }, "no folder selected", {truncate: "middle"});
 
     proxinateBtn = pal.add("button", {
       x: 4,
