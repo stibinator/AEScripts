@@ -215,6 +215,8 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
+################ignore zip files
+*.zip
 
 ###################################
 non-stib scripts
@@ -263,6 +265,7 @@ beamGrid.jsx
 Connect_Point_to_Mask_Vertex.jsx
 Connect_Vertex_to_Point.jsx
 Create Nulls From Paths.jsx
+Duik*
 Dugr.jsx
 Duik.jsx
 Duik.jsx.dist
