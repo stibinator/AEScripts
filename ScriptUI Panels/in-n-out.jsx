@@ -9,7 +9,7 @@ var fnList = [
   'sigmoid',
   'random',
   '-',
-  'align footge Start times',
+  'align footage start times',
   'align footage end times' //,
   // '-',
   // '-'
@@ -91,7 +91,7 @@ function percentToHMSF(percent, comp) {
 }
 
 //here comes the hoo-ha
-function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim) { //}, randoz) {
+function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim, quantise) { //}, randoz) {
   var shouldDoInPoints = doInPoints;
   var i;
   if (!theComp) {
@@ -150,6 +150,15 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
       }
 
       var fDur = theComp.frameDuration;
+      // rounds to nearest frame boundary if quantisation is on
+      roundToFrame = function(t){
+        if (quantise){
+          return Math.round(t / fDur) * fDur;
+        } else {
+          return t;
+        }
+      };
+
       var timeSpan = endTime - firstStartTime;
       var startOffset;
       var outOffset; //the offset between the layer's start time and its in-point, and its active duration
@@ -180,16 +189,17 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
         } else if (ease === 'exponential') {
           myTime = firstStartTime + timeSpan * exponential(layerIndex / (numLayers - 1), Math.pow(easePower, 3) * 8);
         } else if (ease === 'sigmoid') {
-          // easePower *= 4;
-          // if (easePower > 1) {
-          //   easePower = Math.pow(easePower, 3);
-          // }
-          myTime = firstStartTime + timeSpan * sigmoid(layerIndex / (numLayers - 1), easePower);
-        } else if (ease === 'align Start Time') {
-          myTime = firstStartTime + theLayers[i].inpoint - theLayers[i].startTime;
+
+          if (easePower < 0.5) {
+            myTime = firstStartTime + timeSpan * sigmoid(layerIndex / (numLayers - 1), easePower * 2);
+          } else {
+            myTime = firstStartTime + timeSpan * sigmoid(layerIndex / (numLayers - 1), Math.pow(easePower * 2, 3));
+          }
+        } else if (ease === 'align footage start times') {
+          myTime = firstStartTime + theLayers[i].inPoint - theLayers[i].startTime;
           shouldDoInPoints = true;
-        } else if (ease === 'align end Time') {
-          myTime = endTime - theLayers[i].duration + theLayers[i].inPoint;
+        } else if (ease === 'align footage end times') {
+          myTime = endTime - theLayers[i].source.duration; //+ theLayers[i].inPoint;// theLayers[i].startTime;
           shouldDoInPoints = false;
         } else { //kompletlely randoz
           myTime = firstStartTime + timeSpan * Math.random();
@@ -198,16 +208,15 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
         if (moveNotTrim) { //move the layer
           if (shouldDoInPoints) {
             startOffset = theLayers[i].inPoint - theLayers[i].startTime;
-            theLayers[i].startTime = Math.round(myTime / fDur) * fDur - startOffset; //round it to the nearest frame boundary
+            theLayers[i].startTime = roundToFrame(myTime) - startOffset; //round it to the nearest frame boundary
           } else {
-            outOffset = theLayers[i].outPoint - theLayers[i].startTime;
-            theLayers[i].startTime = Math.round(myTime / fDur) * fDur - outOffset; //round it to the nearest frame boundary
+            theLayers[i].startTime = roundToFrame(myTime); //round it to the nearest frame boundary
           }
         } else { //trim the in or out point
-          if (doInPoints) {
-            theLayers[i].inPoint = Math.round(myTime / fDur) * fDur;
+          if (shouldDoInPoints) {
+            theLayers[i].inPoint = roundToFrame(myTime);
           } else {
-            theLayers[i].outPoint = Math.round(myTime / fDur) * fDur;
+            theLayers[i].outPoint = roundToFrame(myTime);
           }
         }
       }
@@ -266,43 +275,36 @@ function buildGUI(thisObj) {
   var fnTypeDropDown = easePnl.add('dropDownList', undefined, fnList);
   var pwrSlider = easePnl.add('slider', undefined, 0.5, 0, 1, 'text:"ease amount"');
   // var pwrEdit = pwrGrp.add('editText', [undefined, undefined, 40, 28], '' + pwrSlider.value);
-  mainGroup.add('staticText', undefined, 'regularity');
-  var regularityGrp = mainGroup.add("group{orientation:'row'}");
-  var regularitySlider = regularityGrp.add('slider', undefined, 100, -200, 100);
+  var regPnl = mainGroup.add('panel{orientation: "column", text:"regularity"}');
+  var regularitySlider = regPnl.add('slider', undefined, 100, -200, 100);
 
-  var inOrOut = mainGroup.add("group{orientation:'row'}");
-  var inChckBox = inOrOut.add('checkbox', undefined, 'inPoints');
-  var outChckBox = inOrOut.add('checkbox', undefined, 'outPoints');
+  var switchPanel = mainGroup.add('panel{orientation: "column", text:  "settings"}');
+  var inOrOut = switchPanel.add("group{orientation:'row'}");
+  var inChckBox = inOrOut.add('radiobutton', undefined, 'inPoints');
+  var outChckBox = inOrOut.add('radiobutton', undefined, 'outPoints');
 
-  var trimOrMove = mainGroup.add("group{orientation:'row'}");
-  var moveChckBox = trimOrMove.add('checkbox', undefined, 'move');
-  var trimChckBox = trimOrMove.add('checkbox', undefined, 'trim');
+  var trimOrMove = switchPanel.add("group{orientation:'row'}");
+  var moveChckBox = trimOrMove.add('radiobutton', undefined, 'move');
+  var trimChckBox = trimOrMove.add('radiobutton', undefined, 'trim');
+
+  var quantizeChkBox = switchPanel.add('checkbox', undefined, 'quantise to frames');
 
   fnTypeDropDown.selection = 1;
-  pwrSlider.size = {
-    width: 200,
-    height: 10
-  };
-  regularitySlider.size = {
-    width: 200,
-    height: 10
-  };
+
   inChckBox.value = true;
-  outChckBox.value = false;
-  trimChckBox.value = false;
+  // outChckBox.value = false;
+  // trimChckBox.value = false;
   moveChckBox.value = true;
+  quantizeChkBox.value = true;
   theWindow.preferredSize = 'width: -1, height: -1';
   theWindow.alignChildren = ['left', 'top'];
   theWindow.margins = [10, 10, 10, 10];
   orderDropDown.selection = 0;
-  firstSlider.size = {
+  sliderSize = {
     width: 170,
     height: 10
   };
-  lastSlider.size = {
-    width: 170,
-    height: 10
-  };
+  firstSlider.size = lastSlider.size = pwrSlider.size = regularitySlider.size = sliderSize;
 
   firstSlider.onChanging = function() {
     //update the edit box,
@@ -345,7 +347,7 @@ function buildGUI(thisObj) {
       firstHmsfText.text = percentToHMSF(firstSlider.value, theComp);
     } catch (e) {
       writeln(e);
-      firstHmsfText.text = timeToCurrentFormat(0, 25)
+      firstHmsfText.text = timeToCurrentFormat(0, 25);
       lastHmsfText.text = timeToCurrentFormat(60, 25);
       firstSlider.value = 0;
       lastSlider.value = 60;
@@ -434,21 +436,6 @@ function buildGUI(thisObj) {
 
   };
 
-  inChckBox.onClick = function() {
-    outChckBox.value = !inChckBox.value;
-  };
-
-  outChckBox.onClick = function() {
-    inChckBox.value = !outChckBox.value;
-  };
-
-  trimChckBox.onClick = function() {
-    moveChckBox.value = !trimChckBox.value;
-  };
-
-  moveChckBox.onClick = function() {
-    trimChckBox.value = !moveChckBox.value;
-  };
 
   doTheStuff.onClick = function() {
     theComp = app.project.activeItem;
@@ -464,7 +451,8 @@ function buildGUI(thisObj) {
       var regularity = regularitySlider.value / 100;
       var doInPoints = inChckBox.value;
       var moveNotTrim = moveChckBox.value;
-      sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim); //, randozCheckbox.value);
+      var quantise = quantizeChkBox.value;
+      sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim, quantise); //, randozCheckbox.value);
       app.endUndoGroup();
     }
   };
