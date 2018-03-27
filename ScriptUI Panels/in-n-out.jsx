@@ -1,4 +1,4 @@
-﻿// In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
+// In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
 // @target aftereffects
 // @includepath ../(lib)/
 // @include jsextras.jsx
@@ -10,7 +10,7 @@ var fnList = [
   'random',
   '-',
   'align footge Start times',
-  'align footage end times'//,
+  'align footage end times' //,
   // '-',
   // '-'
 ]; // the two dashes at the end are because of UI bug in 2015.3
@@ -55,26 +55,30 @@ function sigmoid(x, p) {
   if (x >= 1) {
     return 1;
   }
+  try {
+    if (p > 0) {
+      g = function(n) {
+        return (Math.pow(1 / n, p));
+      };
+      return g(1 - x) / (g(x) + g(1 - x));
+    }
+    return 1;
 
-  if (p > 0) {
-    g = function (n) {
-      return (Math.pow(1 / n, p));
-    };
-    return g(1 - x) / (g(x) + g(1 - x));
+  } catch (e) {
+    alert(e);
   }
-  return 1;
 }
 
 // ----------- useful ------------------------
 function defaultFor(arg, val, replaceNullandEmptyVals) {
   if (replaceNullandEmptyVals) {
     return ((typeof(arg) !== 'undefined') | (arg === null) | (arg === []))
-    ? val
-    : arg;
+      ? val
+      : arg;
   }
   return (typeof(arg) !== 'undefined')
-  ? arg
-  : val;
+    ? arg
+    : val;
 }
 
 // ----------- timeconversions--------------------
@@ -97,7 +101,7 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
     // if no layers are selected do all of them, lightwave style.
     // if (theLayers.length === 0) {
     //   theLayers = [];
-    //   // what were Adobe thinking when they didn't make comp.layers a proper array?
+    //    what were Adobe thinking when they didn't make comp.layers a proper array?
     //   for (i = 1; i <= theComp.layers.length; i++) {
     //     theLayers[i] = theComp.layers[i];
     //   }
@@ -106,49 +110,41 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
       alert('choose at least 2 layers in a comp');
     } else {
       if (order === 'index') {
-        theLayers
-        .sort(function (a, b) {
+        theLayers.sort(function(a, b) {
           return (a.index - b.index);
         });
       } else if (order === 'reverse index') {
-        theLayers
-        .sort(function (a, b) {
+        theLayers.sort(function(a, b) {
           return (b.index - a.index);
         });
       } else if (order === 'random') {
-        theLayers
-        .sort(function () {
+        theLayers.sort(function() {
           return (1 - Math.random() * 2);
         });
         // sort by selection is unneccesary - that's the order they're already in
       } else if (order === 'reverse selection') {
-        theLayers
-        .sort(function () {
+        theLayers.sort(function() {
           return (1);
         });
       } else if (order === 'current order') {
-        theLayers
-        .sort(function (a, b) {
+        theLayers.sort(function(a, b) {
           return (a.inPoint - b.inPoint);
         });
       } else if (order === 'reverse current order') {
-        theLayers
-        .sort(function (a, b) {
+        theLayers.sort(function(a, b) {
           return (b.inPoint - a.inPoint);
         });
       } else if (order === 'alphabetical') {
-        theLayers
-        .sort(function (a, b) {
+        theLayers.sort(function(a, b) {
           if (a.name === b.name) {
             return 0;
           }
           return (a.name > b.name)
-          ? -1
-          : 1;
+            ? -1
+            : 1;
         });
       } else if (order === 'reverse alphabetical') {
-        theLayers
-        .sort(function (a, b) {
+        theLayers.sort(function(a, b) {
           return (a.name < b.name);
         });
       }
@@ -182,8 +178,12 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
         if (ease === 'linear') {
           myTime = firstStartTime + timeSpan * layerIndex / (numLayers - 1);
         } else if (ease === 'exponential') {
-          myTime = firstStartTime + timeSpan * exponential(layerIndex / (numLayers - 1), easePower);
+          myTime = firstStartTime + timeSpan * exponential(layerIndex / (numLayers - 1), Math.pow(easePower, 3) * 8);
         } else if (ease === 'sigmoid') {
+          // easePower *= 4;
+          // if (easePower > 1) {
+          //   easePower = Math.pow(easePower, 3);
+          // }
           myTime = firstStartTime + timeSpan * sigmoid(layerIndex / (numLayers - 1), easePower);
         } else if (ease === 'align Start Time') {
           myTime = firstStartTime + theLayers[i].inpoint - theLayers[i].startTime;
@@ -225,7 +225,6 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
 //   }
 // }
 
-
 function buildGUI(thisObj) {
   var theComp = (app.project.activeItem || {
     duration: 60,
@@ -233,14 +232,13 @@ function buildGUI(thisObj) {
     time: 0
   });
   var theWindow = (thisObj instanceof Panel)
-  ? thisObj
-  : new Window('palette', thisObj.scriptTitle, undefined, {resizeable: true});
+    ? thisObj
+    : new Window('palette', thisObj.scriptTitle, undefined, {resizeable: true});
 
   // we need a comp for things like the sliders which are set based on the
   // duration, and for the frameDuration, so we'll set up a dummy object
 
-  var mainGroup = theWindow.add("group{orientation:'column',alignment:['left','top'],alignChildren:['left','top']" +
-  '}');
+  var mainGroup = theWindow.add("group{orientation:'column',alignment:['left','top'],alignChildren:['left','top']" + '}');
 
   var doTheStuff = mainGroup.add('button', undefined, 'Sequence layers');
   mainGroup.add('staticText', undefined, 'Sequence order');
@@ -248,32 +246,26 @@ function buildGUI(thisObj) {
     undefined, undefined, 150, undefined
   ], orderList);
 
-  var firstTxtGrp = mainGroup.add('group{orientation: "row"}');
-  firstTxtGrp.add('staticText', undefined, 'first in-point (% of comp length)');
-  var firstBttn = firstTxtGrp.add('button', undefined, 'set to current');
-  var firstGrp = mainGroup.add("group{orientation:'row'}");
-  var firstSlider = firstGrp.add('slider', undefined, 0, 0, 100);
-  var firstHmsfText = firstGrp.add('editText', [
+  var firstPnl = mainGroup.add('panel{orientation: "column", text:"first in-point"}');
+  var firstSlider = firstPnl.add('slider', undefined, 0, 0, 100);
+  var firstBtnGrp = firstPnl.add('group{orientation: "row"}');
+  var firstHmsfText = firstBtnGrp.add('editText', [
     undefined, undefined, 76, 28
   ], percentToHMSF(firstSlider.value, theComp));
+  var firstBttn = firstBtnGrp.add('button', undefined, 'current time');
 
-  var lastTxtGrp = mainGroup.add('group{orientation: "row"}');
-  lastTxtGrp.add('staticText', undefined, 'last in-point (% of comp length)');
-  var lastBttn = lastTxtGrp.add('button', undefined, 'set to current');
-  var lastGrp = mainGroup.add("group{orientation:'row'}");
-  var lastSlider = lastGrp.add('slider', undefined, 100, 0, 100);
-  var lastHmsfText = lastGrp.add('editText', [
+  var lastPnl = mainGroup.add('panel{orientation: "column", text:"last in-point"}');
+  var lastSlider = lastPnl.add('slider', undefined, 100, 0, 100);
+  var lastBtnGrp = lastPnl.add('group{orientation: "row"}');
+  var lastHmsfText = lastBtnGrp.add('editText', [
     undefined, undefined, 76, 28
   ], percentToHMSF(lastSlider.value, theComp));
+  var lastBttn = lastBtnGrp.add('button', undefined, 'current time');
 
-  mainGroup.add('staticText', undefined, 'easing type');
-  var fnTypeDropDown = mainGroup.add('dropDownList', [
-    undefined, undefined, 150, undefined
-  ], fnList);
-  mainGroup.add('staticText', undefined, 'ease amount');
-  var pwrGrp = mainGroup.add("group{orientation:'row'}");
-  var pwrSlider = pwrGrp.add('slider', undefined, 4, 0, 8);
-  var pwrEdit = pwrGrp.add('editText', [undefined, undefined, 40, 28], '' + pwrSlider.value);
+  var easePnl = mainGroup.add('panel{orientation: "column", text:  "easing"}');
+  var fnTypeDropDown = easePnl.add('dropDownList', undefined, fnList);
+  var pwrSlider = easePnl.add('slider', undefined, 0.5, 0, 1, 'text:"ease amount"');
+  // var pwrEdit = pwrGrp.add('editText', [undefined, undefined, 40, 28], '' + pwrSlider.value);
   mainGroup.add('staticText', undefined, 'regularity');
   var regularityGrp = mainGroup.add("group{orientation:'row'}");
   var regularitySlider = regularityGrp.add('slider', undefined, 100, -200, 100);
@@ -285,7 +277,6 @@ function buildGUI(thisObj) {
   var trimOrMove = mainGroup.add("group{orientation:'row'}");
   var moveChckBox = trimOrMove.add('checkbox', undefined, 'move');
   var trimChckBox = trimOrMove.add('checkbox', undefined, 'trim');
-
 
   fnTypeDropDown.selection = 1;
   pwrSlider.size = {
@@ -313,7 +304,7 @@ function buildGUI(thisObj) {
     height: 10
   };
 
-  firstSlider.onChanging = function () {
+  firstSlider.onChanging = function() {
     //update the edit box,
     firstHmsfText.text = percentToHMSF(firstSlider.value, theComp);
 
@@ -324,7 +315,7 @@ function buildGUI(thisObj) {
     lastHmsfText.text = percentToHMSF(lastSlider.value, theComp);
   };
 
-  firstHmsfText.onChange = function () {
+  firstHmsfText.onChanging = function() {
     //parse the user input
     try {
       parsedTime = currentFormatToTime(firstHmsfText.text, theComp.frameRate);
@@ -342,9 +333,9 @@ function buildGUI(thisObj) {
     firstHmsfText.text = timeToCurrentFormat(parsedTime, theComp.frameRate, true);
   };
 
-  lastSlider.onChanging = function () {
+  lastSlider.onChange = function() {
     //update the edit box,
-    try{
+    try {
       lastHmsfText.text = percentToHMSF(lastSlider.value, theComp);
 
       //and the other sliders
@@ -352,10 +343,10 @@ function buildGUI(thisObj) {
 
       //propogate to the edittext box
       firstHmsfText.text = percentToHMSF(firstSlider.value, theComp);
-    } catch (e){
+    } catch (e) {
       writeln(e);
-      firstHmsfText.text = timeToCurrentFormat(0,25)
-      lastHmsfText.text =timeToCurrentFormat(60,25);
+      firstHmsfText.text = timeToCurrentFormat(0, 25)
+      lastHmsfText.text = timeToCurrentFormat(60, 25);
       firstSlider.value = 0;
       lastSlider.value = 60;
     }
@@ -363,9 +354,9 @@ function buildGUI(thisObj) {
 
   // lastHmsfText.addEventListener('focus', function() {     var currText =
   // lastHmsfText.text;     lastHmsfText.text = '';     lastHmsfText.textselection
-  // = currText; }); //this didn't work
+  // = currText; }); this didn't work
 
-  lastHmsfText.onChange = function () {
+  lastHmsfText.onChange = function() {
     //parse the user input
     try {
       parsedTime = currentFormatToTime(lastHmsfText.text, theComp.frameRate);
@@ -377,24 +368,16 @@ function buildGUI(thisObj) {
 
       //normalise the value back to the editbox
       lastHmsfText.text = timeToCurrentFormat(parsedTime, theComp.frameRate);
-    } catch (e){
+    } catch (e) {
       writeln(e);
-      firstHmsfText.text = timeToCurrentFormat(0,25);
-      lastHmsfText.text = timeToCurrentFormat(60,25);
+      firstHmsfText.text = timeToCurrentFormat(0, 25);
+      lastHmsfText.text = timeToCurrentFormat(60, 25);
       firstSlider.value = 0;
       lastSlider.value = 60;
     }
   };
 
-  pwrSlider.onChange = function () {
-    pwrEdit.text = '' + pwrSlider.value;
-  };
-
-  pwrEdit.onChange = function () {
-    pwrSlider.value = parseInt(pwrEdit.text, 10);
-  };
-
-  firstBttn.onClick = function () {
+  firstBttn.onClick = function() {
     theComp = app.project.activeItem;
     if (!theComp) {
       alert('no comp is active');
@@ -410,7 +393,7 @@ function buildGUI(thisObj) {
     }
   };
 
-  lastBttn.onClick = function () {
+  lastBttn.onClick = function() {
     theComp = app.project.activeItem;
     if (!theComp) {
       alert('no comp is active');
@@ -426,37 +409,48 @@ function buildGUI(thisObj) {
     }
   };
 
-  fnTypeDropDown.onChange = function () {
+  // pwrSlider.onChanging = function () {
+  //   pwrEdit.text = '' + pwrSlider.value;
+  // };
+
+  // pwrEdit.onChange = function () {
+  //   var usrVal = parseInt(pwrEdit.text, 10);
+  //   if (usrVal > pwrSlider.maxvalue){pwrSlider.maxvalue = usrVal;}
+  //   if (usrVal < pwrSlider.minvalue){pwrSlider.minvalue = usrVal;}
+  //   pwrSlider.value = usrVal;
+  // };
+
+  fnTypeDropDown.onChange = function() {
     var i;
     var fn = 0;
     fnsel = fnTypeDropDown.selection.text;
-    for ( i = 0; i < fnList.length; i++) {
+    for (i = 0; i < fnList.length; i++) {
       if (fnList[i] === fnsel) {
         fn = i;
       }
     }
+    pwrSlider.enabled = ((fn === 1) || (fn === 2)); //enable for exponential or sigmoid
+    // pwrEdit.enabled = pwrSlider.enabled;
 
-    pwrSlider.enabled = (fn !== 0); //disable for linear
-    pwrEdit.enabled = (fn !== 0);
   };
 
-  inChckBox.onClick = function () {
+  inChckBox.onClick = function() {
     outChckBox.value = !inChckBox.value;
   };
 
-  outChckBox.onClick = function () {
+  outChckBox.onClick = function() {
     inChckBox.value = !outChckBox.value;
   };
 
-  trimChckBox.onClick = function () {
+  trimChckBox.onClick = function() {
     moveChckBox.value = !trimChckBox.value;
   };
 
-  moveChckBox.onClick = function () {
+  moveChckBox.onClick = function() {
     trimChckBox.value = !moveChckBox.value;
   };
 
-  doTheStuff.onClick = function () {
+  doTheStuff.onClick = function() {
     theComp = app.project.activeItem;
     if (!theComp) {
       alert('no comp is active');
@@ -466,7 +460,7 @@ function buildGUI(thisObj) {
       var firstStartTime = theComp.duration * firstSlider.value / 100;
       var endTime = theComp.duration * lastSlider.value / 100;
       var ease = fnTypeDropDown.selection.text;
-      var easePower = Math.pow(pwrSlider.value / 8, 4) * 8;
+      var easePower = pwrSlider.value;
       var regularity = regularitySlider.value / 100;
       var doInPoints = inChckBox.value;
       var moveNotTrim = moveChckBox.value;
@@ -479,9 +473,7 @@ function buildGUI(thisObj) {
     theWindow.center();
     theWindow.show();
   } else {
-    theWindow
-    .layout
-    .layout(true);
+    theWindow.layout.layout(true);
   }
 }
 
