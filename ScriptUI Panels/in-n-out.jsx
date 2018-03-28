@@ -91,7 +91,7 @@ function percentToHMSF(percent, comp) {
 }
 
 //here comes the hoo-ha
-function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim, quantise) { //}, randoz) {
+function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim, quantise, noneEqualsAll) { //}, randoz) {
   var shouldDoInPoints = doInPoints;
   var i;
   if (!theComp) {
@@ -99,14 +99,15 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
   } else {
     var theLayers = theComp.selectedLayers;
     // if no layers are selected do all of them, lightwave style.
-    // if (theLayers.length === 0) {
-    //   theLayers = [];
-    //    what were Adobe thinking when they didn't make comp.layers a proper array?
-    //   for (i = 1; i <= theComp.layers.length; i++) {
-    //     theLayers[i] = theComp.layers[i];
-    //   }
-    // }
-    if (theLayers.length < 2) {
+    if ((theLayers.length === 0) && noneEqualsAll) {
+      theLayers = [];
+      // what were Adobe thinking when they didn't make comp.layers a proper array?
+      for (i = 0; i < theComp.layers.length; i++) {
+        theLayers[i] = theComp.layer(i+1);
+      }
+    }
+
+        if (theLayers.length < 2) {
       alert('choose at least 2 layers in a comp');
     } else {
       if (order === 'index') {
@@ -149,10 +150,11 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
         });
       }
 
+
       var fDur = theComp.frameDuration;
       // rounds to nearest frame boundary if quantisation is on
-      roundToFrame = function(t){
-        if (quantise){
+      roundToFrame = function(t) {
+        if (quantise) {
           return Math.round(t / fDur) * fDur;
         } else {
           return t;
@@ -172,6 +174,7 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
       var layerIndex = 0;
       for (i = 0; i < numLayers; i++) {
         layerIndex = i;
+        currentLayer = theLayers[i];
         if (regularity < 1 && i > 0 && i < (numLayers - 1)) { //always make the first and last keyframe on time
           //although we're using the layer index as the input it doesn't have to be integral. This adds some irregularity
           var n = numLayers - 1; //just for readability
@@ -183,6 +186,8 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
           // before the last this spreads the randomness. Trust me, I worked it out on
           // paper.
         }
+        startOffset = currentLayer.inPoint - currentLayer.startTime;
+        endOffset = currentLayer.outPoint - currentLayer.startTime;
 
         if (ease === 'linear') {
           myTime = firstStartTime + timeSpan * layerIndex / (numLayers - 1);
@@ -196,10 +201,10 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
             myTime = firstStartTime + timeSpan * sigmoid(layerIndex / (numLayers - 1), Math.pow(easePower * 2, 3));
           }
         } else if (ease === 'align footage start times') {
-          myTime = firstStartTime + theLayers[i].inPoint - theLayers[i].startTime;
+          myTime = firstStartTime + currentLayer.inPoint - currentLayer.startTime;
           shouldDoInPoints = true;
         } else if (ease === 'align footage end times') {
-          myTime = endTime - theLayers[i].source.duration; //+ theLayers[i].inPoint;// theLayers[i].startTime;
+          myTime = endTime - currentLayer.source.duration + endOffset;
           shouldDoInPoints = false;
         } else { //kompletlely randoz
           myTime = firstStartTime + timeSpan * Math.random();
@@ -207,16 +212,15 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
 
         if (moveNotTrim) { //move the layer
           if (shouldDoInPoints) {
-            startOffset = theLayers[i].inPoint - theLayers[i].startTime;
-            theLayers[i].startTime = roundToFrame(myTime) - startOffset; //round it to the nearest frame boundary
+            currentLayer.startTime = roundToFrame(myTime) - startOffset; //round it to the nearest frame boundary
           } else {
-            theLayers[i].startTime = roundToFrame(myTime); //round it to the nearest frame boundary
+            currentLayer.startTime = roundToFrame(myTime) - endOffset; //round it to the nearest frame boundary
           }
         } else { //trim the in or out point
           if (shouldDoInPoints) {
-            theLayers[i].inPoint = roundToFrame(myTime);
+            currentLayer.inPoint = roundToFrame(myTime);
           } else {
-            theLayers[i].outPoint = roundToFrame(myTime);
+            currentLayer.outPoint = roundToFrame(myTime);
           }
         }
       }
@@ -247,13 +251,12 @@ function buildGUI(thisObj) {
   // we need a comp for things like the sliders which are set based on the
   // duration, and for the frameDuration, so we'll set up a dummy object
 
-  var mainGroup = theWindow.add("group{orientation:'column',alignment:['left','top'],alignChildren:['left','top']" + '}');
+  var mainGroup = theWindow.add("group{orientation:'column',alignment:['left','top'],alignChildren:['center','top']}");
 
   var doTheStuff = mainGroup.add('button', undefined, 'Sequence layers');
-  mainGroup.add('staticText', undefined, 'Sequence order');
-  var orderDropDown = mainGroup.add('dropDownList', [
-    undefined, undefined, 150, undefined
-  ], orderList);
+
+  var seqOrderPnl = mainGroup.add('panel{orientation: "column", text:"Sequence order"}');
+  var orderDropDown = seqOrderPnl.add('dropDownList', undefined, orderList);
 
   var firstPnl = mainGroup.add('panel{orientation: "column", text:"first in-point"}');
   var firstSlider = firstPnl.add('slider', undefined, 0, 0, 100);
@@ -274,32 +277,59 @@ function buildGUI(thisObj) {
   var easePnl = mainGroup.add('panel{orientation: "column", text:  "easing"}');
   var fnTypeDropDown = easePnl.add('dropDownList', undefined, fnList);
   var pwrSlider = easePnl.add('slider', undefined, 0.5, 0, 1, 'text:"ease amount"');
-  // var pwrEdit = pwrGrp.add('editText', [undefined, undefined, 40, 28], '' + pwrSlider.value);
+
   var regPnl = mainGroup.add('panel{orientation: "column", text:"regularity"}');
   var regularitySlider = regPnl.add('slider', undefined, 100, -200, 100);
 
-  var switchPanel = mainGroup.add('panel{orientation: "column", text:  "settings"}');
+  var switchPanel = mainGroup.add('panel{orientation: "column", text:  "settings", alignChildren:["left", "top"]}');
   var inOrOut = switchPanel.add("group{orientation:'row'}");
-  var inChckBox = inOrOut.add('radiobutton', undefined, 'inPoints');
-  var outChckBox = inOrOut.add('radiobutton', undefined, 'outPoints');
+  var inChckBox = inOrOut.add('radiobutton', undefined, 'in-points');
+  var outChckBox = inOrOut.add('radiobutton', undefined, 'out-points');
 
   var trimOrMove = switchPanel.add("group{orientation:'row'}");
   var moveChckBox = trimOrMove.add('radiobutton', undefined, 'move');
   var trimChckBox = trimOrMove.add('radiobutton', undefined, 'trim');
 
   var quantizeChkBox = switchPanel.add('checkbox', undefined, 'quantise to frames');
+  var noneEqualsAllChkBx = switchPanel.add('checkbox', undefined, 'none selected = do all');
 
   fnTypeDropDown.selection = 1;
 
   inChckBox.value = true;
-  // outChckBox.value = false;
-  // trimChckBox.value = false;
   moveChckBox.value = true;
   quantizeChkBox.value = true;
+  noneEqualsAllChkBx.value = true;
+
+  inChckBox.onClick = outChckBox.onClick = function() {
+    // alert((inChckBox.value)? "first in-point": "first out-point");
+    firstPnl.text = (inChckBox.value)
+      ? "first in-point"
+      : "first out-point";
+    lastPnl.text = (inChckBox.value)
+      ? "last in-point"
+      : "last out-point";
+  };
+
   theWindow.preferredSize = 'width: -1, height: -1';
   theWindow.alignChildren = ['left', 'top'];
   theWindow.margins = [10, 10, 10, 10];
   orderDropDown.selection = 0;
+
+  doTheStuff.size = {
+    width: 170,
+    height: 30
+  };
+
+  orderDropDown.size = fnTypeDropDown.size = {
+    width: 170,
+    height: 16
+  };
+
+  inChckBox.size = outChckBox.size = trimChckBox.size = moveChckBox.size = {
+    width: 85,
+    height: 16
+  };
+
   sliderSize = {
     width: 170,
     height: 10
@@ -393,6 +423,7 @@ function buildGUI(thisObj) {
       //propogate the value to the editbox
       firstHmsfText.text = percentToHMSF(firstSlider.value);
     }
+    firstBttn.active = false;
   };
 
   lastBttn.onClick = function() {
@@ -409,18 +440,8 @@ function buildGUI(thisObj) {
       //propogate the value to the editbox
       lastHmsfText.text = percentToHMSF(lastSlider.value);
     }
+    lastBttn.active = false;
   };
-
-  // pwrSlider.onChanging = function () {
-  //   pwrEdit.text = '' + pwrSlider.value;
-  // };
-
-  // pwrEdit.onChange = function () {
-  //   var usrVal = parseInt(pwrEdit.text, 10);
-  //   if (usrVal > pwrSlider.maxvalue){pwrSlider.maxvalue = usrVal;}
-  //   if (usrVal < pwrSlider.minvalue){pwrSlider.minvalue = usrVal;}
-  //   pwrSlider.value = usrVal;
-  // };
 
   fnTypeDropDown.onChange = function() {
     var i;
@@ -435,7 +456,6 @@ function buildGUI(thisObj) {
     // pwrEdit.enabled = pwrSlider.enabled;
 
   };
-
 
   doTheStuff.onClick = function() {
     theComp = app.project.activeItem;
@@ -452,9 +472,11 @@ function buildGUI(thisObj) {
       var doInPoints = inChckBox.value;
       var moveNotTrim = moveChckBox.value;
       var quantise = quantizeChkBox.value;
-      sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim, quantise); //, randozCheckbox.value);
+      var noneEqualsAll = noneEqualsAllChkBx.value;
+      sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim, quantise, noneEqualsAll); //, randozCheckbox.value);
       app.endUndoGroup();
     }
+      doTheStuff.active = false;
   };
 
   if (theWindow instanceof Window) {
