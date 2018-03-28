@@ -276,7 +276,7 @@ function buildGUI(thisObj) {
 
   var easePnl = mainGroup.add('panel{orientation: "column", text:  "easing"}');
   var fnTypeDropDown = easePnl.add('dropDownList', undefined, fnList);
-  var pwrSlider = easePnl.add('slider', undefined, 0.5, 0, 1, 'text:"ease amount"');
+  var pwrSlider = easePnl.add('slider', undefined, 0.7, 0, 1, 'text:"ease amount"');
 
   var regPnl = mainGroup.add('panel{orientation: "column", text:"regularity"}');
   var regularitySlider = regPnl.add('slider', undefined, 100, -200, 100);
@@ -310,7 +310,7 @@ function buildGUI(thisObj) {
       : "last out-point";
   };
 
-  theWindow.preferredSize = 'width: -1, height: -1';
+  theWindow.preferredSize = 'width: 200, height: 800';
   theWindow.alignChildren = ['left', 'top'];
   theWindow.margins = [10, 10, 10, 10];
   orderDropDown.selection = 0;
