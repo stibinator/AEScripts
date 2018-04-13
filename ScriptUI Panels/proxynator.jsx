@@ -60,7 +60,7 @@ function proxinate(proxyFolder, items) {
     }
   } else {
     // no originals were given
-    alert("Choose some footage items to add proxies to")
+    alert("Choose some footage items and I'll search the proxy folder for proxies")
   }
 }
 
@@ -73,9 +73,8 @@ function chooseProxyFolder(startPath) {
   // only update the proxy folder value if a new folder is actually choosen
   // selectDialog or selectDlg return null if user cancels, but if the proxy folder is already set
   // we don't want to overwrite it.
-
   if (newFolder){
-    writePrefs(proxyFolder);
+    writePrefs(newFolder);
     proxyFolder = newFolder;
   }
   return proxyFolder;
@@ -133,6 +132,7 @@ function buildUI(thisObj) {
     }, "set proxies for selected");
 
     function checkProxyFolderAndUpdateText() {
+
       if ( proxyFolder && proxyFolder.fsName) {
         proxyFolderText.text = proxyFolder.fsName;
         proxinateBtn.enabled = true;
