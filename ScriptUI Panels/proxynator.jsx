@@ -8,7 +8,7 @@ function proxinate(proxyFolder, items) {
   var msg = "";
   if (originals) {
     var f,
-      proxyPath;
+    proxyPath;
     for (var i = 0; i < originals.length; i++) {
       if (!proxyFolder) {
         chooseProxyFolder()
@@ -110,35 +110,54 @@ function buildUI(thisObj) {
   }
 
   if (pal !== null) {
-    chooseProxyFolderBtn = pal.add("button", {
+    var sourcePanel = pal.add("panel", {
+      x: 4,
+      y: undefined,
+      width: undefined,
+      height: undefined,
+    }, "source folder")
+    var chooseProxyFolderBtn = sourcePanel.add("button", {
       x: 4,
       y: undefined,
       width: 180,
       height: 25
     }, "choose proxy folder");
 
-    proxyFolderText = pal.add("statictext", {
+    var proxyFolderText = sourcePanel.add("statictext", {
       x: 4,
       y: undefined,
       width: 180,
       height: 25
     }, "no folder selected", {truncate: "middle"});
 
-    proxinateBtn = pal.add("button", {
+    var proxinateBtn = pal.add("button", {
       x: 4,
       y: undefined,
       width: 180,
       height: 25
     }, "set proxies for selected");
 
+    var statusText = pal.add("staticText", {
+      x: 4,
+      y: undefined,
+      width: 180,
+      height: 25
+    }, "choose a folder", {truncate: "middle"});
+
     function checkProxyFolderAndUpdateText() {
 
       if ( proxyFolder && proxyFolder.fsName) {
         proxyFolderText.text = proxyFolder.fsName;
+        if  (app.project.selection){
+          statusText.text = "ready to proxinate";
+        } else{
+          statusText.text = "select project items to proxinate";
+        }
         proxinateBtn.enabled = true;
       } else {
         proxyFolderText.text = "<none>";
         proxinateBtn.enabled = false;
+        statusText.text = "choose a proxy source folder";
       }
     }
     checkProxyFolderAndUpdateText();
@@ -149,7 +168,11 @@ function buildUI(thisObj) {
     };
 
     proxinateBtn.onClick = function() {
-      proxinate(proxyFolder);
+      if (proxinate(proxyFolder)){
+        statusText.text = "succesfully proxinated"
+      } else {
+        statusText.text = "error while proxinating"
+      };
       this.active = false; // stops the button staying activated
     };
 
