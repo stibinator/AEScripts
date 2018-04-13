@@ -257,8 +257,10 @@ function buildGUI(thisObj) {
 
   var seqOrderPnl = mainGroup.add('panel{orientation: "column", text:"Sequence order"}');
   var orderDropDown = seqOrderPnl.add('dropDownList', undefined, orderList);
-
-  var firstPnl = mainGroup.add('panel{orientation: "column", text:"first in-point"}');
+  var tabPnl = mainGroup.add('tabbedpanel');
+  var seqTab = tabPnl.add('tab', undefined, "sequencer");
+  var followTab = tabPnl.add('tab', undefined, "follower");
+  var firstPnl = seqTab.add('panel{orientation: "column", text:"first in-point"}');
   var firstSlider = firstPnl.add('slider', undefined, 0, 0, 100);
   var firstBtnGrp = firstPnl.add('group{orientation: "row"}');
   var firstHmsfText = firstBtnGrp.add('editText', [
@@ -266,7 +268,7 @@ function buildGUI(thisObj) {
   ], percentToHMSF(firstSlider.value, theComp));
   var firstBttn = firstBtnGrp.add('button', undefined, 'current time');
 
-  var lastPnl = mainGroup.add('panel{orientation: "column", text:"last in-point"}');
+  var lastPnl = seqTab.add('panel{orientation: "column", text:"last in-point"}');
   var lastSlider = lastPnl.add('slider', undefined, 100, 0, 100);
   var lastBtnGrp = lastPnl.add('group{orientation: "row"}');
   var lastHmsfText = lastBtnGrp.add('editText', [
@@ -274,12 +276,15 @@ function buildGUI(thisObj) {
   ], percentToHMSF(lastSlider.value, theComp));
   var lastBttn = lastBtnGrp.add('button', undefined, 'current time');
 
-  var easePnl = mainGroup.add('panel{orientation: "column", text:  "easing"}');
+  var easePnl = seqTab.add('panel{orientation: "column", text:  "easing"}');
   var fnTypeDropDown = easePnl.add('dropDownList', undefined, fnList);
   var pwrSlider = easePnl.add('slider', undefined, 0.7, 0, 1, 'text:"ease amount"');
 
-  var regPnl = mainGroup.add('panel{orientation: "column", text:"regularity"}');
+  var regPnl = seqTab.add('panel{orientation: "column", text:"regularity"}');
   var regularitySlider = regPnl.add('slider', undefined, 100, -200, 100);
+
+  var getInfoBtn = followTab.add('button', undefined, 'get comp info');
+  var followOffset = followTab.add('slider', undefined, 0, -1, 1, 'follow layer offset');
 
   var switchPanel = mainGroup.add('panel{orientation: "column", text:  "settings", alignChildren:["left", "top"]}');
   var inOrOut = switchPanel.add("group{orientation:'row'}");
@@ -456,6 +461,14 @@ function buildGUI(thisObj) {
     // pwrEdit.enabled = pwrSlider.enabled;
 
   };
+
+getInfoBtn.onClick = function(){
+  theComp = app.project.activeItem;
+  if (!theComp) {
+    alert('no comp is active');
+  } else {
+    //// TODO: this
+}
 
   doTheStuff.onClick = function() {
     theComp = app.project.activeItem;
