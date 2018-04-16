@@ -73,12 +73,12 @@ function sigmoid(x, p) {
 function defaultFor(arg, val, replaceNullandEmptyVals) {
   if (replaceNullandEmptyVals) {
     return ((typeof(arg) !== 'undefined') | (arg === null) | (arg === []))
-      ? val
-      : arg;
+    ? val
+    : arg;
   }
   return (typeof(arg) !== 'undefined')
-    ? arg
-    : val;
+  ? arg
+  : val;
 }
 
 // ----------- timeconversions--------------------
@@ -107,7 +107,7 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
       }
     }
 
-        if (theLayers.length < 2) {
+    if (theLayers.length < 2) {
       alert('choose at least 2 layers in a comp');
     } else {
       if (order === 'index') {
@@ -141,8 +141,8 @@ function sequenceLayers(order, firstStartTime, endTime, ease, easePower, regular
             return 0;
           }
           return (a.name > b.name)
-            ? -1
-            : 1;
+          ? -1
+          : 1;
         });
       } else if (order === 'reverse alphabetical') {
         theLayers.sort(function(a, b) {
@@ -245,8 +245,8 @@ function buildGUI(thisObj) {
     time: 0
   });
   var theWindow = (thisObj instanceof Panel)
-    ? thisObj
-    : new Window('palette', thisObj.scriptTitle, undefined, {resizeable: true});
+  ? thisObj
+  : new Window('palette', thisObj.scriptTitle, undefined, {resizeable: true});
 
   // we need a comp for things like the sliders which are set based on the
   // duration, and for the frameDuration, so we'll set up a dummy object
@@ -308,11 +308,11 @@ function buildGUI(thisObj) {
   inChckBox.onClick = outChckBox.onClick = function() {
     // alert((inChckBox.value)? "first in-point": "first out-point");
     firstPnl.text = (inChckBox.value)
-      ? "first in-point"
-      : "first out-point";
+    ? "first in-point"
+    : "first out-point";
     lastPnl.text = (inChckBox.value)
-      ? "last in-point"
-      : "last out-point";
+    ? "last in-point"
+    : "last out-point";
   };
 
   theWindow.preferredSize = 'width: 200, height: 800';
@@ -462,13 +462,14 @@ function buildGUI(thisObj) {
 
   };
 
-getInfoBtn.onClick = function(){
-  theComp = app.project.activeItem;
-  if (!theComp) {
-    alert('no comp is active');
-  } else {
-    //// TODO: this
-}
+  getInfoBtn.onClick = function(){
+    theComp = app.project.activeItem;
+    if (!theComp) {
+      alert('no comp is active');
+    } else {
+      //// TODO: this
+    }
+  };
 
   doTheStuff.onClick = function() {
     theComp = app.project.activeItem;
@@ -489,7 +490,7 @@ getInfoBtn.onClick = function(){
       sequenceLayers(order, firstStartTime, endTime, ease, easePower, regularity, doInPoints, theComp, moveNotTrim, quantise, noneEqualsAll); //, randozCheckbox.value);
       app.endUndoGroup();
     }
-      doTheStuff.active = false;
+    doTheStuff.active = false;
   };
 
   if (theWindow instanceof Window) {
