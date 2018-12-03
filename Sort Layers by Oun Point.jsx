@@ -10,29 +10,18 @@
 		var scriptName = "Sort Layers by In Point";
 		
 		
-		function sortByInpoint(comp_layers, unlockedOnly) {
-			var total_number = comp_layers.length;
-			while (total_number >= 2) {	
-				var layer_was_moved = false;
-				for (j = 1; j <= total_number; j++) {
-					// if you want to reverse the sort order, use "<" instead of ">".
-					if (comp_layers[j].outPoint > comp_layers[total_number].outPoint) {
-						if (comp_layers[j].locked) {
-							if (unlockedOnly==false) {
-								comp_layers[j].locked = false;
-								comp_layers[j].moveAfter(comp_layers[total_number]);
-								comp_layers[total_number].locked = true;
-								layer_was_moved = true;
-							}
-						} else {
-							comp_layers[j].moveAfter(comp_layers[total_number]);
-							layer_was_moved = true;
-						}
-					}
+		function trimToFades(theLayer) {
+			var opac = theLayer.opacity;
+			
+				var i = 1;
+			while (i < opac.numKeys){
+				if (opac.valueAtTime(opac.keyTime(i)) === 0){
+					theLayer.inPoint = opac.keyTime(i);
 				}
-				if (!layer_was_moved) {
-					total_number = total_number-1 ;
+				if (opac.valueAtTime(opac.keyTime(opac.numkeys + 1 - i)) === 0){
+					theLayer.outPoint = opac.keyTime(opac.numkeys + 1 - i);
 				}
+				i++;
 			}
 		}
 		
@@ -42,8 +31,13 @@
 			var activeItem = app.project.activeItem;
 			if (activeItem != null && (activeItem instanceof CompItem)) {
 				app.beginUndoGroup(scriptName);
-				var activeCompLayers = activeItem.layers;
-				sortByInpoint(activeCompLayers, unlockedOnly);
+				var theLayer;
+				for (var index = 1; index <= activeItem.numLayers; index ++){
+					theLayer = activeItem.layer(index);
+					if ((! unlockedOnly)||(! theLayer.locked)){
+						trimToFades(activeCompLayers);
+					}
+				}
 				app.endUndoGroup();
 			} else {
 				alert("Please select an active comp to use this script", scriptName);
