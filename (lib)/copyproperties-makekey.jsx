@@ -2,26 +2,32 @@
 	//in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.
 	var theAttributes = {
 	} ;
-	theAttributes.keyTime = theProperty.keyTime(keyIndex);
-	theAttributes.keyVal = theProperty.keyValue(keyIndex);
-	theAttributes.canInterp = theProperty.isInterpolationTypeValid(KeyframeInterpolationType.BEZIER) |
-	theProperty.isInterpolationTypeValid(KeyframeInterpolationType.HOLD) |
-	theProperty.isInterpolationTypeValid(KeyframeInterpolationType.LINEAR);
-	if (theAttributes.canInterp){
-		theAttributes.keyInInterpolationType = theProperty.keyInInterpolationType(keyIndex);
-		theAttributes.keyOutInterpolationType = theProperty.keyOutInterpolationType(keyIndex);
-		if (theAttributes.keyInInterpolationType) {
-			theAttributes.keyInTemporalEase = theProperty.keyInTemporalEase(keyIndex);
-			theAttributes.keyOutTemporalEase = theProperty.keyOutTemporalEase(keyIndex);
-		}
-	}
-    //ignore spatial tangents for things like masks
-    theAttributes.isSpatial = theProperty.isSpatial && (theProperty.propertyValueType == PropertyValueType.ThreeD_SPATIAL || theProperty.propertyValueType == PropertyValueType.TwoD_SPATIAL );
+	if (theProperty.propertyValueType != PropertyValueType.CUSTOM_VALUE){
+        
+        theAttributes.customProperty = false;
+        theAttributes.keyTime = theProperty.keyTime(keyIndex);
+        theAttributes.keyVal = theProperty.keyValue(keyIndex);
+        theAttributes.canInterp = theProperty.isInterpolationTypeValid(KeyframeInterpolationType.BEZIER) |
+        theProperty.isInterpolationTypeValid(KeyframeInterpolationType.HOLD) |
+        theProperty.isInterpolationTypeValid(KeyframeInterpolationType.LINEAR);
+        if (theAttributes.canInterp){
+                theAttributes.keyInInterpolationType = theProperty.keyInInterpolationType(keyIndex);
+            theAttributes.keyOutInterpolationType = theProperty.keyOutInterpolationType(keyIndex);
+            if (theAttributes.keyInInterpolationType) {
+                theAttributes.keyInTemporalEase = theProperty.keyInTemporalEase(keyIndex);
+                theAttributes.keyOutTemporalEase = theProperty.keyOutTemporalEase(keyIndex);
+            }
+        }
+        //ignore spatial tangents for things like masks
+        theAttributes.isSpatial = theProperty.isSpatial && (theProperty.propertyValueType == PropertyValueType.ThreeD_SPATIAL || theProperty.propertyValueType == PropertyValueType.TwoD_SPATIAL );
 
-    if (theAttributes.isSpatial ) {
-		theAttributes.keyInSpatialTangent = theProperty.keyInSpatialTangent(keyIndex);
-		theAttributes.keyOutSpatialTangent = theProperty.keyOutSpatialTangent(keyIndex);
-	}
+        if (theAttributes.isSpatial ) {
+            theAttributes.keyInSpatialTangent = theProperty.keyInSpatialTangent(keyIndex);
+            theAttributes.keyOutSpatialTangent = theProperty.keyOutSpatialTangent(keyIndex);
+        }
+    } else {
+        theAttributes.customProperty = true;
+        }
 	return theAttributes;
 }
 
