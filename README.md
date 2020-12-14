@@ -1,3 +1,3 @@
 # AEScripts
-Scripts for After Effects
-More info at http://blob.pureandapplied.com.au
+
+Tools that I've created for improving workflows in After Effects. The released versions are available at https:blob.pureandapplied.com.au, along with installation instructions and notes on how to use them.

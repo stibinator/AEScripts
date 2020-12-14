@@ -12,7 +12,7 @@ function contains(arr, obj) { //eslint-disable-line no-unused-vars
 
 
 // attach the .equals method to Array's prototype to call it on any array
-function equals(array1, array2) { //eslint-disable-line no-unused-vars
+Array.equals = function(array1, array2) { //eslint-disable-line no-unused-vars
   // if the other array is a falsy value, return
   if (!array2) {
     return false;
@@ -38,4 +38,26 @@ function equals(array1, array2) { //eslint-disable-line no-unused-vars
   return true;
 }
 // Hide method from for-in loops
-//Object.defineProperty(Array.prototype, 'equals', {enumerable: false}); //eslint-disable-line no-extend-native
+// Object.defineProperty(Array.prototype, 'equals', {enumerable: false}); //eslint-disable-line no-extend-native
+
+// python-esque array range function
+Array.range= function(a, b, step){
+    var A= [];
+    if(typeof a== 'number'){
+        A[0]= a;
+        step= step || 1;
+        while(a+step<= b){
+            A[A.length]= a+= step;
+        }
+    }
+    else{
+        var s= 'abcdefghijklmnopqrstuvwxyz';
+        if(a=== a.toUpperCase()){
+            b=b.toUpperCase();
+            s= s.toUpperCase();
+        }
+        s= s.substring(s.indexOf(a), s.indexOf(b)+ 1);
+        A= s.split('');        
+    }
+    return A;
+}

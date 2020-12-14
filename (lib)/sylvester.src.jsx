@@ -398,14 +398,14 @@ Vector.prototype = {
   },
 
   // retun the scalar projection of another vector a on this one b
-  // p = a.b / |b|
+  // p = a.b / ||b|
   scalarProjection: function (a) {
     var aDotB = this.dot(a);
     return aDotB / this.magnitude();
   },
 
   //return the vector projection of another vector (a) on this one (b)
-  //b*(a.b)/|b|^2
+  //b*(a.b)/||b|^2
   vectorProjection: function (a) {
     var aDotB = this.dot(a);
     return this.multiply( aDotB / Math.pow(this.magnitude(), 2) );

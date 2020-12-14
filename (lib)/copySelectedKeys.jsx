@@ -1,34 +1,33 @@
 //@target aftereffects
-/* jshint ignore:start */
-// Code here will be ignored by JSHint.
-#includepath "../(lib)"
-#include "defaultFor.jsx"
-#include "getproperties.jsx"
-#script "copySelectedKeys"
+/* includepath "../(lib)" */
+/* include "defaultFor.jsx" */
+/* include "getproperties.jsx" */
+// @script "getSelectedKeys"
+/* global app, defaultFor, getKeyAttributes,getIndividualProperties */
 
-/* jshint ignore:end */
-function copySelectedKeys(thecomp) {
+// eslint-disable-next-line no-unused-vars
+function getSelectedKeys(thecomp) {
     //the object this function will return: an array of keys and the first key's time
     var theKeys = {
         keys: [],
         firstSelectedKeyTime: null,
         lastSelectedKeyTime: null
     };
-    var theComp = defaultFor(theComp, app.project.activeItem, replaceNullAndZeroVals = true);
+    var theComp = defaultFor(theComp, app.project.activeItem, true);
     var selLayers = theComp.selectedLayers;
 
     //drill down to get to the keys:
     for (var i = 0; i < selLayers.length; i++) {
         var selectedProps = selLayers[i].selectedProperties;
         for (var j = 0; j < selectedProps.length; j++) {
-            selectedKeyframes = selectedProps[j].selectedKeys;
+            var selectedKeyframes = selectedProps[j].selectedKeys;
             for (var k = 0; k < selectedKeyframes.length; k++) {
                 //get the attributes of the selected key - note that the key list is 1-indexed WTF adobe?
-                var theAttributes = copyKeyAttributes(selectedProps[j], selectedKeyframes[k]);
-                if (theKeys.firstSelectedKeyTime === null | theAttributes.keyTime < theKeys.firstSelectedKeyTime) {
+                var theAttributes = getKeyAttributes(selectedProps[j], selectedKeyframes[k]);
+                if (theKeys.firstSelectedKeyTime === null || theAttributes.keyTime < theKeys.firstSelectedKeyTime) {
                     theKeys.firstSelectedKeyTime = theAttributes.keyTime;
                 }
-                if (theKeys.lastSelectedKeyTime === null | theAttributes.keyTime > theKeys.lastSelectedKeyTime) {
+                if (theKeys.lastSelectedKeyTime === null || theAttributes.keyTime > theKeys.lastSelectedKeyTime) {
                     theKeys.lastSelectedKeyTime = theAttributes.keyTime;
                 }
                 //add a new object to the array of keys:
@@ -39,10 +38,11 @@ function copySelectedKeys(thecomp) {
     return theKeys;
 }
 
+// eslint-disable-next-line no-unused-vars
 function copyTimeSlice(theComp){
   var theProps = [];
   var theVals = [];
-  theComp = defaultFor(theComp, app.project.activeItem, replaceNullAndZeroVals = true);
+  theComp = defaultFor(theComp, app.project.activeItem, true);
   var selLayers = theComp.selectedLayers;
   for (var layer = 0; layer < selLayers.length; layer++) {
     var theLayer = selLayers[layer];
@@ -55,8 +55,9 @@ function copyTimeSlice(theComp){
   return theVals;
 }
 
+// eslint-disable-next-line no-unused-vars
 function pasteTimeSlice(theVals, theComp){
-  theComp = defaultFor(theComp, app.project.activeItem, replaceNullAndZeroVals = true);
+  theComp = defaultFor(theComp, app.project.activeItem, true);
   for (var i = 0; i < theVals.length; i++) {
     theVals[i].prop.setValueAtTime(theComp.time, theVals[i].val);
   }

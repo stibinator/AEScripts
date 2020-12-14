@@ -1,11 +1,11 @@
 //@target aftereffects
-//@includepath  "../(lib)/"
-//@include 'defaultFor.jsx';
-//@include 'timeconversions.jsx';
-//@include 'spacetransforms.jsx';
-//@include 'vectormaths.jsx';
-//@include 'getproperties.jsx';
-//@include 'copyproperties-makekey.jsx';
+
+//@include '../(lib)/defaultFor.jsx';
+//@include '../(lib)/timeconversions.jsx';
+//@include '../(lib)/spacetransforms.jsx';
+//@include '../(lib)/vectormaths.jsx';
+//@include '../(lib)/getproperties.jsx';
+//@include '../(lib)/copyproperties-makekey.jsx';
 
 this.version = 0.9;
 scriptName = 'steerer';
@@ -16,7 +16,7 @@ buildGUI(this);
 function autoOrientSelectedLayers(lookAhead, lookBehind, headingOffset, additive) {
   var proj = app.project;
   app.beginUndoGroup(scriptName);
-  if (proj) {
+  if (proj instanceof Project) {
     if (app.project.activeItem) {
       var movingBodies = app.project.activeItem.selectedLayers;
       if (movingBodies.length > 0) {
@@ -56,7 +56,7 @@ function dealWithCurrentKeyframes(theBody, additive) {
 
 function getStartFrame(theBody) {
   var posn = theBody.property('position');
-  if (posn.expressionEnabled | posn.numKeys === 0) {
+  if (posn.expressionEnabled || posn.numKeys === 0) {
     return time2Frames(theBody.inPoint);
   }
   var firstPosKeyTime = posn.keyTime(1);
@@ -64,7 +64,7 @@ function getStartFrame(theBody) {
 }
 function getEndFrame(theBody) {
   var posn = theBody.property('position');
-  if (posn.expressionEnabled | posn.numKeys === 0) {
+  if (posn.expressionEnabled || posn.numKeys === 0) {
     return time2Frames(theBody.outPoint);
   }
   var lastPosKeyTime = posn.keyTime(posn.numKeys);

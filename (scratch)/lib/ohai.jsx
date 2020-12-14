@@ -1,0 +1,3 @@
+function ohai(){
+    alert("ohai")
+}

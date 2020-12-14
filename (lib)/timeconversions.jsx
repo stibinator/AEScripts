@@ -62,7 +62,7 @@ function framesToHMSF(frames, comp) { //eslint-disable-line no-unused-vars
 
 function percentToHMSF(percent, theComp) { //eslint-disable-line no-unused-vars
   comp = defaultFor(theComp, app.project.activeItem);
-  if (comp) {
+  if (comp instanceof CompItem) {
     return framesToHMSF(percentToframes(percent, comp), comp);
   }
   return false;
@@ -77,7 +77,7 @@ function zeroPad(digits, num, pad) { //eslint-disable-line no-unused-vars
 
 function parseTimeString(theString, comp) { //eslint-disable-line no-unused-vars
   comp = defaultFor(comp, app.project.activeItem);
-  if (comp) {
+  if (comp instanceof CompItem) {
     theString = '' + theString;
         //this took ages to work out
         //allows user to lazily enter timecode, eg to enter 1 minute you type 1.. rather than 0:1:0:0

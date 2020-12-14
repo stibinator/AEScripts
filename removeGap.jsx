@@ -20,7 +20,7 @@ for (i=1; i<= theLayers.length; i++){
 var gapLength = firstInPointAfterGap - lastOutPointBeforeGap;
 if (gapLength > 0){
     for (i=0; i < afterGapLayers.length; i++){
-            afterGapLayers[i].startTime = afterGapLayers[i].inPoint - gapLength;
+            afterGapLayers[i].startTime = afterGapLayers[i].startTime - gapLength;
     }
     curComp.duration = curComp.duration - gapLength;
 } else {
@@ -28,4 +28,4 @@ if (gapLength > 0){
     }
 
 curComp.time=lastOutPointBeforeGap;
-app.endUndoGroup();
+app.endUndoGroup();  

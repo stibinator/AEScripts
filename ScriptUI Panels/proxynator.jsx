@@ -1,56 +1,63 @@
-// global constants
+// @target aftereffects
+// @includepath "../(lib)/"
+// @include "preferences.jsx"
+/* global app, Panel, Folder, PrefsFile*/
+
 var scriptName = "proxinator";
-var prefsFile = Folder.userData.absoluteURI + "/AE_proxinator.prefs";
+var prefsFile = new PrefsFile("AE_proxinator.prefs");
+
+buildUI(this, prefsFile);
 
 function proxinate(proxyFolder, items) {
   // set a proxy for all selected items by matching file names in a folder
-  originals = items || app.project.selection;
+  var originals = items || app.project.selection;
   var msg = "";
   if (originals) {
-    var f,
-    proxyPath;
     for (var i = 0; i < originals.length; i++) {
       if (!proxyFolder) {
         chooseProxyFolder()
       }
-      try {
+      // try {
+        var originalBaseName = originals[i].name;
         if (originals[i].typeName === "Footage") {
-          newProxy = new File(proxyFolder.absoluteURI + "/" + originals[i].file.name);
-          originals[i].setProxy(newProxy);
-        } else {
-          // possible matches for the proxy, from the reasonable to the silly
-          var suffixes = [
-            ".mov",
-            ".avi",
-            ".mp4",
-            ".mxf",
-            ".mpg",
-            ".mpeg",
-            ".mkv",
-            ".ogv",
-            ".webm",
-            ".wmv",
-            ".dv",
-            ".omf"
-          ];
-          var attempt = 0;
-          for (var s = 0; s < suffixes.length; s++) {
-            newProxy = new File(proxyFolder.absoluteURI + "/" + originals[i].name + suffixes[s]);
+          originalBaseName = originals[i].name.replace(/\..+$/, ''); //trim extension
+        }
+        // possible matches for the proxy, from the reasonable to the silly
+        var suffixes = [
+          ".mov",
+          ".avi",
+          ".mp4",
+          ".mxf",
+          ".mpg",
+          ".mpeg",
+          ".mkv",
+          ".ogv",
+          ".webm",
+          ".wmv",
+          ".dv",
+          ".omf",
+        ];
+        var proxyStrings = [
+          "", "_proxy", "-proxy", " proxy"
+        ];
+        var foundAProxy = false;
+        for (var s = 0; s < suffixes.length & !foundAProxy; s++) {
+          for (var t = 0; t < proxyStrings.length & !foundAProxy; t++) {
+            var newProxy = new File(proxyFolder.absoluteURI + "/" + originalBaseName + proxyStrings[t] + suffixes[s]);
             if (newProxy.exists) {
-              break
-            }
+              originals[i].setProxy(newProxy);
+              foundAProxy = true;
+            } 
           }
-          if (newProxy.exists) {
-            originals[i].setProxy(newProxy);
-          } else {
-            msg += originals[i].name + "\n";
-          }
+        }
+        if (!foundAProxy){
+          msg += originalBaseName + "\n";
         }
         originals[i].selected = false;
         originals[i].selected = true;
-      } catch (e) {
-        alert("had an error" + e)
-      }
+      // } catch (e) {
+      //   alert("had an error" + e)
+      // }
     }
     if (msg) {
       alert("Can't find matching files in\n" + proxyFolder.fsName + "\nfor item:\n" + msg);
@@ -65,6 +72,7 @@ function proxinate(proxyFolder, items) {
 }
 
 function chooseProxyFolder(startPath) {
+  var newFolder = false;
   if (startPath) {
     newFolder = startPath.selectDlg("Choose the source folder for the proxies");
   } else {
@@ -73,38 +81,21 @@ function chooseProxyFolder(startPath) {
   // only update the proxy folder value if a new folder is actually choosen
   // selectDialog or selectDlg return null if user cancels, but if the proxy folder is already set
   // we don't want to overwrite it.
+
   if (newFolder){
-    writePrefs(newFolder);
-    proxyFolder = newFolder;
-  }
-  return proxyFolder;
-}
-
-function getLastFolder() {
-  prefs = new File(prefsFile);
-  if (prefs.exists) {
-    prefs.open("r");
-    lastProxyFolder = new Folder(prefs.read());
-    prefs.close();
-    if (lastProxyFolder && lastProxyFolder.exists) {
-      return lastProxyFolder;
-    }
-  }
-  return null
-}
-
-function writePrefs(lastProxyFolder) {
-  prefs = new File(prefsFile);
-  if (prefs.open("w")) {
-    prefs.write(lastProxyFolder);
-    prefs.close();
+    prefsFile.saveToPrefs(newFolder);
+    return newFolder; 
+  } else {
+    return false;
   }
 }
 
-function buildUI(thisObj) {
-  var proxyFolder = getLastFolder();
+
+
+
+function buildUI(thisObj, prefsFile) {
   if (thisObj instanceof Panel) {
-    pal = thisObj;
+    var pal = thisObj;
   } else {
     pal = new Window("palette", scriptName, undefined, {resizeable: true});
   }
@@ -144,27 +135,13 @@ function buildUI(thisObj) {
       height: 25
     }, "choose a folder", {truncate: "middle"});
 
-    function checkProxyFolderAndUpdateText() {
 
-      if ( proxyFolder && proxyFolder.fsName) {
-        proxyFolderText.text = proxyFolder.fsName;
-        if  (app.project.selection){
-          statusText.text = "ready to proxinate";
-        } else{
-          statusText.text = "select project items to proxinate";
-        }
-        proxinateBtn.enabled = true;
-      } else {
-        proxyFolderText.text = "<none>";
-        proxinateBtn.enabled = false;
-        statusText.text = "choose a proxy source folder";
-      }
-    }
-    checkProxyFolderAndUpdateText();
+    var proxyFolder = prefsFile.readFromPrefs();
+    checkProxyFolderAndUpdateText(proxyFolder, proxyFolderText, proxinateBtn, statusText);
 
     chooseProxyFolderBtn.onClick = function() {
       proxyFolder = chooseProxyFolder(proxyFolder);
-      checkProxyFolderAndUpdateText();
+      checkProxyFolderAndUpdateText(proxyFolder, proxyFolderText, proxinateBtn, statusText);
     };
 
     proxinateBtn.onClick = function() {
@@ -172,13 +149,13 @@ function buildUI(thisObj) {
         statusText.text = "succesfully proxinated"
       } else {
         statusText.text = "error while proxinating"
-      };
+      }
       this.active = false; // stops the button staying activated
     };
 
     if (!proxyFolder) {
       proxinateBtn.enabled = false
-    };
+    }
     // show the panel
     if (pal instanceof Window) {
       pal.center();
@@ -188,7 +165,23 @@ function buildUI(thisObj) {
     }
   }
 }
+
+function checkProxyFolderAndUpdateText(proxyFolder, proxyFolderText, proxinateBtn, statusText) {
+  if ( proxyFolder && proxyFolder.fsName) {
+    proxyFolderText.text = proxyFolder.fsName;
+    if  (app.project.selection){
+      statusText.text = "ready to proxinate";
+    } else{
+      statusText.text = "select project items to proxinate";
+    }
+    proxinateBtn.enabled = true;
+  } else {
+    proxyFolderText.text = "<none>";
+    proxinateBtn.enabled = false;
+    statusText.text = "choose a proxy source folder";
+  }
+}
+
 // var proxyFolder = chooseProxyFolder(lastFolder);
-// writePrefs(proxyFolder);
+// prefsFile.saveToPrefs(proxyFolder);
 // proxinate(proxyFolder);
-buildUI(this);

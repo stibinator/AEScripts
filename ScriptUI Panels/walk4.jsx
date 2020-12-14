@@ -1,12 +1,11 @@
 //@target aftereffects
 
-//@includepath '../stib/(lib)'
+//@includepath '../(lib)'
 //@include 'vectormaths.jsx'
 //useful js vector and matrix library
 //@include 'sylvester.src.jsx'
 
 var scriptName = 'walker 3';
-
 
 function normalise(vec, a, mag) {
     return vec.rotateZ(a.angleFromXaroundZ).rotateY(a.angleFromXaroundY).scale([mag, 1, 1]);
@@ -145,7 +144,7 @@ function walkinate(theBody, theStepData, stepOverlap) {
     for (leg = 0; leg < numLegs; leg++) {
         for (k = 0; k < stepData.legKFs[leg].length; k++) {
             //calculate the point when this KF should be placed, in terms of the length of the step
-            stepData.legKFs[leg][k].startOffset = stepData.legKFs[leg][k].kTime leg * totalStepLength / numLegs;
+            stepData.legKFs[leg][k].startOffset = stepData.legKFs[leg][k].kTime[leg] * totalStepLength / numLegs;
         }
         // create leg markers on the body layer
 
@@ -165,7 +164,8 @@ function walkinate(theBody, theStepData, stepOverlap) {
             for (k = 0; k < stepData.legKFs[leg].length; k++) {
                 stepPhase = lengthTraveled % totalStepLength;
                 //is it time to make a kf?
-                if ( stepPhase < stepData.legKFs[leg][k].startOffset &
+                if ( stepPhase < stepData.legKFs[leg][k].startOffset &&
+
                     stepData.legKFs[leg][k].startOffset < stepPhase + lengthTraveledThisFrame  ) {
                         // make a keyframe based on the travel this frame of the leg
                         makeKF(stepData, currLegPosn, nextLegPosn, leg);

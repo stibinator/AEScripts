@@ -7,7 +7,7 @@ function toWorldPos(fromLayer, fromPoint, t, thePosNull) {//eslint-disable-line 
   //return the world space co-ordinates of a given point in layer space
   //an extendscript implementation of the expressions function
   var toWorld;
-  if (fromLayer) {
+  if (fromLayer instanceof Layer) {
     theTime = defaultFor(t, app.project.activeItem.time);
     if (thePosNull) {
       posNull = thePosNull;
