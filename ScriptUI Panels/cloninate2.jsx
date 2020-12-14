@@ -20,15 +20,19 @@ function cloninateLayer(originalLayer, recursionDepth, recurseFootageToo, replac
         for (i = 1; i <= otherLayers.length; i++){
             otherLayers[i].wasSelected = otherLayers[i].selected;
         }
-        
         if (!isValid(oldSource)) {
             // shape and text layers have no source - no point duplicating them in nested comps but
             // we will duplicate them in this comp if the user wants to say, duplicate all
             // the layers selected
             if (recursionDepth === 0 && !replaceOriginal) {
                 var newLayer = originalLayer.duplicate();
+                var newName = newLayer.name;
+            } else {
+                newName = originalLayer.name;
             }
+            
         } else {
+            var newName = makeUniqueName(oldSource);
             if (oldSource.typeName === 'Composition') {
                 //easy peasy, the source is a comp
                 newSource = oldSource.duplicate();
@@ -58,10 +62,8 @@ function cloninateLayer(originalLayer, recursionDepth, recurseFootageToo, replac
                     //the source is a footage item, but not a solid so duplicate the source
                     newSource = duplicateLayerSource(originalLayer);
                 }
-                
-                
-                newSource.name = makeUniqueCompName(oldSource);
             }
+            newSource.name = newName;
             wasLocked = originalLayer.locked;
             //now back to the comp. Duplicate the layer
             newLayer = originalLayer.duplicate();
@@ -75,15 +77,14 @@ function cloninateLayer(originalLayer, recursionDepth, recurseFootageToo, replac
             
             //replacing the original layer means duplicating and deleting
             if (replaceOriginal) {
-                newLayer.selected = true; //original layer was selected, so we swap this one in
                 originalLayer.locked = false;
-                
                 //we're killing the parent, so we need the replacement to adopt its children
                 for (ol = 1; ol <= otherLayers.length; ol++) {
                     if (otherLayers[ol].parent === originalLayer) {
                         otherLayers[ol].parent = newLayer;
                     }
                 }
+                if (originalLayer.hasTrackMatte){newLayer.moveBefore(originalLayer)}
                 //delete
                 originalLayer.remove();
             }
@@ -96,6 +97,7 @@ function cloninateLayer(originalLayer, recursionDepth, recurseFootageToo, replac
                 theComp.layer(i).selected = theComp.layer(i).wasSelected === true;
                 theComp.layer(i).wasSelected = null;
             }
+            newLayer.selected = true;
         }
     }
 }
@@ -107,7 +109,8 @@ function escapeRegexChars(theString) {
 function replaceExpressionReferencesToLayer(originalLayer, newLayer){
     var theNewNameEscd = escapeRegexChars(newLayer.name);
     var theOldNameEscd = escapeRegexChars(originalLayer.name);
-    var theCompNameEscd = escapeRegexChars(originalLayer.containingComp.name);
+    var theComp = originalLayer.containingComp;
+    var theCompNameEscd = escapeRegexChars(theComp.name);
     var theSearchText = "(thisComp\\.layer\\s*\\(\\s*[\"'])" + theOldNameEscd + "([\"']\\s*\\))";
     var theSearchPattern = new RegExp(theSearchText, "g");
     var theReplaceText = "$1" + theNewNameEscd  + "$2";
@@ -117,7 +120,7 @@ function replaceExpressionReferencesToLayer(originalLayer, newLayer){
         findNReplaceInExpressions(theLayer, false, theSearchPattern,theReplaceText);
     }
     // search for comp(<this comp name>).layer(<old layer name>)
-    theSearchText = "(comp\\(\\s*[\"']" + theCompNameEscd + "[\"']\\s*\\))\\.layer\\s*\\([\"'])" + theOldNameEscd + "([\"']\\s*\\))";
+    theSearchText = "(comp\\(\\s*[\"']" + theCompNameEscd + "[\"']\\s*\\)\\.layer\\s*\\([\"'])" + theOldNameEscd + "([\"']\\s*\\))";
     theSearchPattern = new RegExp(theSearchText, "g");
     for (var c = 1; c <= app.project.numItems; c++) {
         if (app.project.item(c).typeName === "Composition") {
@@ -157,23 +160,31 @@ function duplicateLayerSource(theLayer){
 /* global app */
 
 // eslint-disable-next-line no-unused-vars
-function makeUniqueCompName(oldSource, prefix, suffix){
+function makeUniqueName(oldSource, prefix, suffix){
+    var divider = "_";
     if (oldSource.name){
         if (! suffix) {suffix = ''}
         if (! prefix) {prefix = ''}
         // Create a unique name, given a layer
         // find a serialnumber suffix if one exists e.g. mypic.jpg_1 
         // everyone stand back… 
-        // the RE matches any string that doesn't
-        // end in a number, followed by a number. eg foo99bar_9 will match
-        // (foo99bar_)(9)
-        var re = /(.*[^\d^\s^_^-])*([\s_-]*)(\d*)$/;
+        //anything that's not a number, followed by a number
+        var re = /(.*[^\d])(\d*)$/;
         
         var m = oldSource.name.match(re);
-        var oldSourceSerial = m[3];
-        var oldSourceDivider = m[2];
-        var oldSourceBaseName = m[1];
-        
+        if(m){
+            var oldSourceBaseName = m[1];
+            var oldSourceSerial = m[2];
+        }
+        if (oldSourceBaseName) {
+            var hasDivider = oldSourceBaseName.match( /(.*)([-_\s])$/);
+            if (hasDivider){
+                oldSourceBaseName = hasDivider[1];
+                divider = hasDivider[2];
+            }
+        } else {
+            oldSourceBaseName = oldSource.name;
+        }
         //default serial number
         var newSourceSerial = 1;
         
@@ -182,22 +193,21 @@ function makeUniqueCompName(oldSource, prefix, suffix){
         if (typeof(oldSourceSerial) === 'undefined' || oldSourceSerial === '' || isNaN(parseInt(oldSourceSerial, 10))) {
             // since there was no serial we add a separator onto the base name so that it
             // becomes basename_1 etc
-            oldSourceBaseName = oldSource.name + '_';
+            oldSourceBaseName = oldSource.name;
         } else {
             //there was a serial number, so increment it
             newSourceSerial = 1 + parseInt(oldSourceSerial, 10);
         }
         
-        if (!oldSourceBaseName) {
-            oldSourceBaseName = oldSource.name;
-        } //shouldn't happen, but you know, regex..
+        var newName = '' + prefix + oldSourceBaseName + suffix + divider + newSourceSerial;
+        //shouldn't happen, but you know, regex..
         // we need to check to see if a source layer with the new serial number exists,
         // and if it does we keep incrementing the serial until it doesn't
-        while (findDuplicateSourceItems('' + oldSourceBaseName + newSourceSerial)) {
+        while (findDuplicateSourceItems(newName)) {
             newSourceSerial++;
+            newName = '' + prefix + oldSourceBaseName + suffix + divider + newSourceSerial;
         }
-        if (! oldSourceDivider){oldSourceDivider = "_"};
-        return prefix + oldSourceBaseName + suffix + oldSourceDivider + newSourceSerial;
+        return newName;
     } else {
         return false;
     }
