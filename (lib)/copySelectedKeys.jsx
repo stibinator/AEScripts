@@ -1,9 +1,10 @@
-//@target aftereffects
-/* includepath "../(lib)" */
-/* include "defaultFor.jsx" */
-/* include "getproperties.jsx" */
+// @target aftereffects
+// @includepath "../(lib)"
+// @include "defaultFor.jsx"
+// @include "getproperties.jsx"
+// @include "getproperties-makekey.jsx"
 // @script "getSelectedKeys"
-/* global app, defaultFor, getKeyAttributes,getIndividualProperties */
+// global app, defaultFor, getKeyAttributes,getIndividualProperties
 
 // eslint-disable-next-line no-unused-vars
 function getSelectedKeys(thecomp) {
