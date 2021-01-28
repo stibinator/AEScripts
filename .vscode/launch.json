@@ -14,6 +14,13 @@
         {
             "type": "extendscript-debug",
             "request": "launch",
+            "name": "Current file- stop on entry",
+            "program": "${file}",
+            "stopOnEntry": true
+        },
+        {
+            "type": "extendscript-debug",
+            "request": "launch",
             "name": "Current file with logging",
             "program": "${file}",
             "stopOnEntry": false,
