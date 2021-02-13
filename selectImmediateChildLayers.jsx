@@ -1,3 +1,4 @@
+// @target aftereffects
 // selects immediate children of selected layer
 // (function(){
 var theComp = app.project.activeItem;

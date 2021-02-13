@@ -1,4 +1,4 @@
-/* @target AfterEffects */
+// @target aftereffects
 /* global app, CompItem */
 // if multiple layers are selected creates a null that acts as the parent for all selected layers
 // or if one layer is selected makes that the parent for the everything in the comp

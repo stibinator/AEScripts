@@ -1,4 +1,4 @@
-//@target aftereffects
+// @target aftereffects
 var projectQueue = (app.project)?app.project.renderQueue:false;
 var externalQueue = [];
 for (var i= 1; i <= projectQueue.items.length; i++){

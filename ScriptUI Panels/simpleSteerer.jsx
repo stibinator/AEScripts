@@ -1,4 +1,4 @@
-//@target aftereffects
+// @target aftereffects
 
 //@include '../(lib)/defaultFor.jsx';
 //@include '../(lib)/timeconversions.jsx';

@@ -1,4 +1,5 @@
-﻿/*written by Nicolas Dufresne
+// @target aftereffects
+/*written by Nicolas Dufresne
 http://www.duduf.net
 
 */

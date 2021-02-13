@@ -1,3 +1,4 @@
+// @target aftereffects
 // include "./(lib)/findBoundingBox.jsx"
 
 app.beginUndoGroup("add matte layer");

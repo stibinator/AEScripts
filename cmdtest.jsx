@@ -1,4 +1,4 @@
-/* @target AfterEffects */
+// @target aftereffects
 // var tempDir = system.callSystem("cmd.exe /c echo \"%TEMP%\"");
 // //callSystem returns a string with quotes and a line return so we need to strip them
 // tempDir = tempDir.replace(/[\n\r"]*/g, "");

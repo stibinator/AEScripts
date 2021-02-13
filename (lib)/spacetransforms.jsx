@@ -1,4 +1,4 @@
-//@target aftereffects
+// @target aftereffects
 //@includepath "lib"
 //@include defaultFor.jsx
 //@include vectormaths.jsx

@@ -1,4 +1,4 @@
-//@target aftereffects
+// @target aftereffects
 //this-n-that ©2016 Stephen Dixon
 //
 //selects nth layers

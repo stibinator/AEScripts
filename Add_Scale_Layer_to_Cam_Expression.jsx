@@ -1,4 +1,5 @@
-﻿function addNormaliseExpression(theLayer, theCamera) {if (proj instanceof Project)
+// @target aftereffects
+function addNormaliseExpression(theLayer, theCamera) {if (proj instanceof Project)
   var camName;
   camName = theCamera.name;
   if (theLayer.Scale.canSetExpression){

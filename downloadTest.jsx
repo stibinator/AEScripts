@@ -1,3 +1,4 @@
+// @target aftereffects
 /* 
  * @method : either "POST" or "GET" 
  * @endpoint:  a string representing an URI endpoint for any given API 

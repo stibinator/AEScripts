@@ -1,3 +1,4 @@
+// @target aftereffects
 {
 	// Sort Layers by In Point.jsx
 	//

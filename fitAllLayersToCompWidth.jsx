@@ -1,5 +1,6 @@
+// @target aftereffects
 /* global app */
-/* @target aftereffects */
+// @target aftereffects
 var theSelectedComps = app.project.selection;
 app.beginUndoGroup('Fit all layers to selected comp width');
 var n = 0;

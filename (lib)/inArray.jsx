@@ -1,3 +1,4 @@
+// @target aftereffects
 /*
  * @function
  * @name Object.prototype.inArray

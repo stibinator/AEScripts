@@ -1,6 +1,7 @@
+// @target aftereffects
 /* global app */
 //add a handle to all unparented layers
-//@target aftereffects
+// @target aftereffects
 function addHandleNull(theLayer, theHandle) {
     if (theLayer){
         if (! theLayer.parent) {

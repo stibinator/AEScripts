@@ -1,3 +1,4 @@
+// @target aftereffects
 {
 	// trimToFades.jsx
     // this script trims surplus off layers where the opacity is zero.

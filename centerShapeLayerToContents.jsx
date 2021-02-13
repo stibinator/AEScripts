@@ -1,3 +1,4 @@
+// @target aftereffects
 app.beginUndoGroup("Center shape layer")
 var theComp = app.project.activeItem;
 var selectedLayers = theComp.selectedLayers;

@@ -1,4 +1,4 @@
-﻿/* @target aftereffects */
+﻿// @target aftereffects
 /* includepath  "../(lib)" */
 /* include getproperties.jsx */
 /* global app, Panel, getPropertiesWithExpressionsFromLayer */

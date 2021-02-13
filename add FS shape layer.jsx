@@ -1,3 +1,4 @@
+// @target aftereffects
 app.beginUndoGroup("Add new shape layer");
 var curComp = app.project.activeItem;
 if(curComp){ 

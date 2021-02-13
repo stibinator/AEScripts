@@ -1,3 +1,4 @@
+// @target aftereffects
 
 /*
 Code for Import https://scriptui.joonas.me — (Triple click to select): 

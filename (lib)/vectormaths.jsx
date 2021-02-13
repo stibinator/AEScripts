@@ -1,3 +1,4 @@
+// @target aftereffects
 //library of useful vector and geometry functions
 function makeArray(num, arrLen, padding) {
   var newArr;

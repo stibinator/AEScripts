@@ -1,3 +1,4 @@
+// @target aftereffects
 var theComp = app.project.activeItem;
 var noLightSelected =true;
 if (theComp instanceof CompItem){

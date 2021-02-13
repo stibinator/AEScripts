@@ -1,4 +1,5 @@
-﻿//if no layers are selected do them all, a'la lightwave
+// @target aftereffects
+//if no layers are selected do them all, a'la lightwave
 var theLayers = app.project.activeItem.selectedLayers
 if (theLayers.length === 0) {
   theLayers = app.project.activeItem.layers;

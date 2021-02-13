@@ -1,4 +1,4 @@
-//@target aftereffects
+// @target aftereffects
 
 /* global app, Panel, getPropertiesWithExpressionsFromLayer,getPropertiesAndGroupsFromLayer, writeLn */
 // regexp find and replace for expressions

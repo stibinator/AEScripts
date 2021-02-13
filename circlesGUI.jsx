@@ -1,3 +1,4 @@
+// @target aftereffects
 function buildUI(thisObj) {
     if (thisObj instanceof Panel) {
       var myPanel = thisObj;

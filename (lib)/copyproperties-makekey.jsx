@@ -1,4 +1,5 @@
-﻿/* global KeyframeInterpolationType, PropertyValueType, writeln */
+// @target aftereffects
+/* global KeyframeInterpolationType, PropertyValueType, writeln */
 // eslint-disable-next-line no-unused-vars
 function getKeyAttributes(theProperty, keyIndex) {
 	//in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.

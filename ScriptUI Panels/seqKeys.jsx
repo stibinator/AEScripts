@@ -1,7 +1,8 @@
+// @target aftereffects
 //In-n-out by stib
 //©2016 Stephen Dixon
 //sequences layers in a variety of ways
-//@target aftereffects
+// @target aftereffects
 
 
 var fnList = [

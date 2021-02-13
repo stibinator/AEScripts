@@ -1,4 +1,4 @@
-/* @target aftereffects */
+// @target aftereffects
 /* global app */
 var IN = true;
 var OUT = false;

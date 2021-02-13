@@ -1,3 +1,4 @@
+// @target aftereffects
 // This script scales layers to match the camera's viewport
 //
 

@@ -1,3 +1,4 @@
+// @target aftereffects
 //freeze expressions at first frame
 //freezes expressions on layers
 

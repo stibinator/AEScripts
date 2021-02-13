@@ -1,4 +1,5 @@
-﻿var theComp = app.project.activeItem;
+// @target aftereffects
+var theComp = app.project.activeItem;
 var theLayers = theComp.layers;
 for (i=0; i < theLayers.length ; i++){
     theLayer = theLayers[i+1];

@@ -1,3 +1,4 @@
+// @target aftereffects
 /*
 Camera_for_Selected_Plane.jsx
 Version 1

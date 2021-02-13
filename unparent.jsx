@@ -1,4 +1,5 @@
-﻿/* jshint ignore:start */
+// @target aftereffects
+/* jshint ignore:start */
 // Code here will be ignored by JSHint.
 /* includepath "./(lib)" */
 /* include "spacetransforms.jsx" */

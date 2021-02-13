@@ -1,4 +1,5 @@
-﻿var theComp = app.project.activeItem;
+// @target aftereffects
+var theComp = app.project.activeItem;
 if (theComp){
     var theLayer = theComp.selectedLayers[0];
     var leaderLayer = theComp.layer(2);

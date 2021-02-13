@@ -1,4 +1,4 @@
-//@target aftereffects
+// @target aftereffects
 /* global app */
 
 // eslint-disable-next-line no-unused-vars

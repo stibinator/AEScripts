@@ -1,3 +1,4 @@
+// @target aftereffects
 app.beginUndoGroup("Shuffle Selected Layers");
 var curComp = app.project.activeItem;
 var theLayers= curComp.layers;

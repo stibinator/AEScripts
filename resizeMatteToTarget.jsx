@@ -1,3 +1,4 @@
+// @target aftereffects
 if (app.project && app.project.activeItem){
     var theComp = app.project.activeItem;
     var selectedMattes = app.project.activeItem.selectedLayers;

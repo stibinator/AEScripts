@@ -1,3 +1,4 @@
+// @target aftereffects
 var NAME_ROTATION = "Rotation"
 
 function resetXforms(theLayer, position, rotation, scale, anchor){

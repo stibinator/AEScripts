@@ -1,4 +1,5 @@
-﻿/* global app*/
+// @target aftereffects
+/* global app*/
 
 
 		// Sort Layers by In Point.jsx

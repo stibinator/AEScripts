@@ -1,3 +1,4 @@
+// @target aftereffects
 //Creates a parented 2D or 3D null in the average positions of selected 2D or 3D layers.
 // If you have small 2d or 3d layers scattered in one corner of comp, select those layers and click "Create Null".
 

@@ -1,3 +1,4 @@
+// @target aftereffects
 // Reverse Order of Selected Layersif (proj instanceof Project)
 //
 // This script scales layers to match the camera's viewport

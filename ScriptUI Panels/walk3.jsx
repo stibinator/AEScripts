@@ -1,4 +1,4 @@
-﻿//@target aftereffects
+﻿// @target aftereffects
 
 //@includepath '../stib/(lib)'
 //@include 'vectormaths.jsx'

@@ -1,3 +1,4 @@
+// @target aftereffects
 var reply = "asfdas";
 
 

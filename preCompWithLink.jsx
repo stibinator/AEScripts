@@ -1,3 +1,4 @@
+// @target aftereffects
 // (function(){
 var scriptName = "precomp with link";
 app.beginUndoGroup(scriptName);

@@ -1,3 +1,4 @@
+// @target aftereffects
 theitems  = app.project.selection;
 for (var i =0; i< theitems.length; i++){
     if (theitems[i].width < theitems[i].height){

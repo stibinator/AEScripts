@@ -1,4 +1,5 @@
-﻿//freeze expressions at first frame
+// @target aftereffects
+//freeze expressions at first frame
 //freezes expressions on layers
 
 function freezeExpression(theProperty){

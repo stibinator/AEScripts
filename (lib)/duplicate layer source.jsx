@@ -1,4 +1,5 @@
-﻿// duplicates the source of a layer
+// @target aftereffects
+// duplicates the source of a layer
 // usage duplicateLayerSource(layerObject)
 // layerObject is a comp layer
 // returns the newly created projectItem

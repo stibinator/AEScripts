@@ -1,4 +1,4 @@
-/* @target AfterEffects */
+// @target aftereffects
 /* global app, PREFType, CompItem */
 
 // this script automatically colourises the bones created by DUIK

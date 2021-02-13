@@ -1,3 +1,4 @@
+// @target aftereffects
 function storeLayerGroupSettings(theComp, groupID){
     for (var i = 1; i <= theComp.numLayers; i++){
         var theLayer = theComp.layer(i);
