@@ -1,6 +1,4 @@
 //@target aftereffects
-// @includepath "../(lib)"
-// @include  "getproperties.jsx"
 
 /* global app, Panel, getPropertiesWithExpressionsFromLayer,getPropertiesAndGroupsFromLayer, writeLn */
 // regexp find and replace for expressions
@@ -376,6 +374,7 @@ function buildUI(thisObj) {
                 var wasLocked = theLayer.locked;
                 theLayer.locked = false;
                 if (xpressionsChkBx.value) {
+                    // alert("finding expressions");
                     findNReplaceInExpressions(
                         theLayer,
                         selectedPropsOnlyCheckbox.value,
@@ -595,5 +594,58 @@ function myPrefs(prefList) {
     this.prefs = {};
     for (var p in prefList) {
         this.getPref(prefList[p]);
+    }
+}
+
+// eslint-disable-next-line no-unused-vars
+function getPropertiesWithExpressionsFromLayer(theLayer, selectedOnly) {
+    var props = [];
+    //only return selected properties. Kinda trivial but here for ease of use
+    if (selectedOnly) {
+        for (var j = 0; j < theLayer.selectedProperties.length; j++) {
+            if (theLayer.selectedProperties[j].expression) {
+                props.push(theLayer.selectedProperties[j]);
+            }
+        }
+    } else {
+        for (var p = 1; p <= theLayer.numProperties; p++) {
+            if (theLayer.property(p)) {
+                var propertyGroup = theLayer.property(p);
+                var newProps = traversePropertyGroups(propertyGroup, false);
+                if (newProps.length) {
+                    for (var i = 0; i < newProps.length; i++) {
+                        if (newProps[i].expression) {
+                            props.push(newProps[i]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return props;
+}
+
+function traversePropertyGroups(pGroup, inclusive) {
+    // walks through property groups, returning properties
+    // if inclusive is true, returns property groups as well
+    if (pGroup) {
+        var props = [];
+        //alert(pGroup.numProperties);
+        if (typeof pGroup.numProperties !== 'undefined') {
+            if (inclusive) {
+                props.push(pGroup)
+            }
+            for (var pp = 1; pp <= pGroup.numProperties; pp++) {
+                var newProps = traversePropertyGroups(pGroup.property(pp), inclusive);
+                if (newProps.length) {
+                    for (var i = 0; i < newProps.length; i++) {
+                        props.push(newProps[i]);
+                    }
+                }
+            }
+        } else {
+            props.push(pGroup);
+        }
+        return props;
     }
 }

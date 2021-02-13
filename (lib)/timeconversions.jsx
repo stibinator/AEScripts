@@ -42,21 +42,6 @@ function timeToHMSF(inputTime, theComp) { //eslint-disable-line no-unused-vars
 }
 
 function framesToHMSF(frames, comp) { //eslint-disable-line no-unused-vars
-    //convert time in frames to h:MM:SS:FF string
-  // comp = defaultFor(comp, app.project.activeItem);
-  // if (comp) {
-  //   var hr = 3600 / comp.frameDuration;
-  //   var min = 60 / comp.frameDuration;
-  //   var sec = 1 / comp.frameDuration;
-  //   var hrs = Math.floor(frames / hr);
-  //   frames = frames % hr;
-  //   var mins = Math.floor(frames / min);
-  //   frames = frames % min;
-  //   var secs = Math.floor(frames / sec);
-  //   frames = Math.round(frames % sec);
-  //   return '' + hrs + ':' + zeroPad(2, mins) + ':' + zeroPad(2, secs) + ':' + zeroPad(2, frames);
-  // }
-  // return false;
   return timeToCurrentFormat(frames2Time(frames, comp), comp.frameRate);
 }
 

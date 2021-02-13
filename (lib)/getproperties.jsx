@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 function getIndividualProperties(theProps) {
+    // recursively extracts individual properties from a property group.
     var props = [];
     for (var p = 0; p <= theProps.length; p++) {
         if (theProps[p]) {
@@ -16,6 +17,8 @@ function getIndividualProperties(theProps) {
 }
 
 function traversePropertyGroups(pGroup, inclusive) {
+    // walks through property groups, returning properties
+    // if inclusive is true, returns property groups as well
     if (pGroup) {
         var props = [];
         //alert(pGroup.numProperties);
@@ -40,6 +43,7 @@ function traversePropertyGroups(pGroup, inclusive) {
 
 // eslint-disable-next-line no-unused-vars
 function getPropertiesFromLayer(theLayer, selectedOnly) {
+    // returns an array of all the properties in a layer
     var props = [];
     //only return selected properties. Kinda trivial but here for ease of use
     if (selectedOnly) {

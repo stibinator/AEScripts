@@ -1,13 +1,5 @@
 // @target aftereffects
 // @includepath "../(lib)"
-// @include "defaultFor.jsx"
-// @include "timeconversions.jsx"
-// @include "spacetransforms.jsx"
-// @include "vectormaths.jsx"
-// @include "getproperties.jsx"
-// @include "copyproperties-makekey.jsx"
-// @script "copyMultiLayer"
-/* global app, Panel, ScriptUI, CompItem, makeKeyWithAttributes, makeKeyAtTime, setKeyAttributesReversed, getKeyAttributes, defaultFor, getIndividualProperties */
 
 var thisScript = this;
 thisScript.scriptTitle = "copyMultiLayer";
@@ -20,32 +12,32 @@ thisScript.run = function() {
 
 thisScript.buildGUI = function(thisObj) {
     // thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
-    thisObj.w = (thisObj instanceof Panel)? thisObj: new Window("palette", thisObj.scriptTitle, undefined, {resizeable: true});
-    thisObj.w.alignChildren = ['left', 'top'];
+    thisObj.pal = (thisObj instanceof Panel)? thisObj: new Window("palette", thisObj.scriptTitle, undefined, {resizeable: true});
+    thisObj.pal.alignChildren = ['left', 'top'];
     //thisObj.text = "vers. 0.1.1";
     var beforeBtnImg = "copy_multi/before-ph.png";
     var afterBtnImg = "copy_multi/after-ph.png";
     var beforePH = ScriptUI.newImage(beforeBtnImg, undefined, beforeBtnImg, afterBtnImg);
     var afterPH = ScriptUI.newImage(afterBtnImg, undefined, afterBtnImg, beforeBtnImg);
-
-    var row1 = thisObj.w.add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fill']}");
-    var row2 = thisObj.w.add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fill']}");
-    var row3 = thisObj.w.add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fill']}");
-
+    
+    var row1 = thisObj.pal.add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fill']}");
+    var row2 = thisObj.pal.add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fill']}");
+    var row3 = thisObj.pal.add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fill']}");
+    
     var copyPasteBttn = row1.add("iconbutton", {
         "x": undefined,
         "y": undefined,
         "width": 32,
         "height": 32
     }, File("copy_multi/copy-paste.png"));
-
+    
     var copyPasteRevBttn = row1.add("iconbutton", {
         "x": undefined,
         "y": undefined,
         "width": 32,
         "height": 32
     }, File("copy_multi/copy-paste_rev.png"));
-
+    
     var copyTimeSliceBttn = row2.add("iconbutton", {
         "x": undefined,
         "y": undefined,
@@ -58,7 +50,7 @@ thisScript.buildGUI = function(thisObj) {
         "width": 32,
         "height": 32
     }, File("copy_multi/paste-TS.png"));
-
+    
     var beforeAfterToggle = row3.add("iconbutton", {
         "x": undefined,
         "y": undefined,
@@ -76,44 +68,6 @@ thisScript.buildGUI = function(thisObj) {
     beforeAfterToggle.helpTip = "paste reversed keys before / after playhead";
     copyTimeSliceBttn.helpTip = "copy time slice of selected layers";
     pasteTimeSliceBttn.helpTip = "paste time slice as keyframes";
-    // copyBttn.preferredSize = [42, 42];
-    // copyPasteBttn.preferredSize = [42, 42];
-    // pasteBttn.preferredSize = [42, 42];
-    // pasteRevBttn.preferredSize = [42, 42];
-    // copyPasteRevBttn.preferredSize = [42, 42];
-
-    // pasteBttn.enabled = false;
-    // pasteRevBttn.enabled = false;
-    // pasteTimeSliceBttn.enabled = false;
-
-    // copyBttn.onClick = function() {
-    //     var theComp = app.project.activeItem;
-    //     if (theComp instanceof CompItem) {
-    //         app.beginUndoGroup("copy keys");
-    //         thisObj.theCopiedKeys = thisObj.getSelectedKeys(theComp);
-    //         thisObj.prefs.saveToPrefs(thisObj.theCopiedKeys);
-    //         app.endUndoGroup();
-    //         pasteBttn.enabled = true;
-    //         pasteRevBttn.enabled = true;
-    //     }
-    // };
-
-    // pasteBttn.onClick = function() {
-    //     var theComp = app.project.activeItem;
-    //     if (theComp instanceof CompItem) {
-    //         app.beginUndoGroup("paste keys");
-    //         if (thisObj.theCopiedKeys === null) {
-    //             thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
-    //         }
-    //         if (thisObj.theCopiedKeys !== null) {
-    //             thisObj.pasteKeys(thisObj.theCopiedKeys, beforeAfterToggle.value, theComp);
-    //         } else {
-    //             writeln("no copied keys found");
-    //         }
-    //         app.endUndoGroup();
-    //     }
-    // };
-
     copyPasteBttn.onClick = function() {
         var theComp = app.project.activeItem;
         if (theComp instanceof CompItem) {
@@ -126,23 +80,8 @@ thisScript.buildGUI = function(thisObj) {
             // pasteRevBttn.enabled = true;
         }
     };
-
-    // pasteRevBttn.onClick = function() {
-    //     var theComp = app.project.activeItem;
-    //     if (theComp instanceof CompItem) {
-    //         app.beginUndoGroup("paste keys");
-    //         if (thisObj.theCopiedKeys === null) {
-    //             thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
-    //         }
-    //         if (thisObj.theCopiedKeys !== null) {
-    //             thisObj.pasteKeysReverse(thisObj.theCopiedKeys, beforeAfterToggle.value, theComp);
-    //         } else {
-    //             writeln("no copied keys found");
-    //         }
-    //         app.endUndoGroup();
-    //     }
-    // };
-
+    
+    
     copyPasteRevBttn.onClick = function() {
         var theComp = app.project.activeItem;
         if (theComp instanceof CompItem) {
@@ -155,7 +94,7 @@ thisScript.buildGUI = function(thisObj) {
             // pasteRevBttn.enabled = true;
         }
     };
-
+    
     beforeAfterToggle.onClick = function() {
         if (beforeAfterToggle.value) {
             beforeAfterToggle.image = beforePH;
@@ -163,28 +102,29 @@ thisScript.buildGUI = function(thisObj) {
             beforeAfterToggle.image = afterPH;
         }
     };
-
+    
     copyTimeSliceBttn.onClick = function() {
         var theComp = app.project.activeItem;
         if (theComp instanceof CompItem) {
-            thisObj.timeSlice = thisScript.copyTimeSlice(theComp);
+            thisObj.timeSlice = thisObj.copyTimeSlice(theComp);
             pasteTimeSliceBttn.enabled = true;
         }
     };
-
+    
     pasteTimeSliceBttn.onClick = function() {
         var theComp = app.project.activeItem;
         if (theComp instanceof CompItem) {
-            thisScript.pasteTimeSlice(thisScript.timeSlice, theComp);
+            thisObj.pasteTimeSlice(thisObj.timeSlice, theComp);
         }
     };
     //-------end of the buttons, build the GUI-----------------------
-    if (thisObj.w instanceof Window) {
-        thisObj.w.center();
-        thisObj.w.show();
-    } else
-        thisObj.w.layout.layout(true);
+    if (thisObj.pal instanceof Window) {
+        thisObj.pal.center();
+        thisObj.pal.show();
+    } else{
+        thisObj.pal.layout.layout(true);
     }
+}
 ;
 //--------------------now for the real hoo-ha------------------
 
@@ -234,7 +174,7 @@ thisScript.getSelectedKeys = function(theComp) {
         lastSelectedKeyTime: null
     };
     var selLayers = theComp.selectedLayers;
-
+    
     //drill down to get to the keys:
     for (var i = 0; i < selLayers.length; i++) {
         var selectedProps = selLayers[i].selectedProperties;
@@ -279,11 +219,156 @@ thisScript.copyTimeSlice = function(theComp) {
 
 thisScript.pasteTimeSlice = function(theVals, theComp) {
     app.beginUndoGroup("paste Time Slice");
-    thisScript.theComp = defaultFor(theComp, app.project.activeItem, true);
-    for (var i = 0; i < theVals.length; i++) {
-        theVals[i].prop.setValueAtTime(theComp.time, theVals[i].val);
+    if (theVals){
+        thisScript.theComp = defaultFor(theComp, app.project.activeItem, true);
+        for (var i = 0; i < theVals.length; i++) {
+            theVals[i].prop.setValueAtTime(theComp.time, theVals[i].val);
+        }
     }
     app.endUndoGroup();
 };
+
+
+thisScript.defaultFor = function(arg, val, replaceNullandEmptyVals) { //eslint-disable-line no-unused-vars
+    if (replaceNullandEmptyVals) {
+        return ((typeof(arg) !== 'undefined') || (arg === null) || (arg === [])) ? val : arg;
+    }
+    return (typeof(arg) !== 'undefined') ? arg : val;
+}
+
+thisScript.getIndividualProperties = function(theProps) {
+    // recursively extracts individual properties from a property group.
+    var props = [];
+    for (var p = 0; p <= theProps.length; p++) {
+        if (theProps[p]) {
+            var propertyGroup = theProps[p];
+            var newProps = traversePropertyGroups(propertyGroup, false);
+            if (newProps.length) {
+                for (var i = 0; i < newProps.length; i++) {
+                    props.push(newProps[i]);
+                }
+            }
+        }
+    }
+    return props;
+}
+
+thisScript.traversePropertyGroups = function(pGroup, inclusive) {
+    // walks through property groups, returning properties
+    // if inclusive is true, returns property groups as well
+    if (pGroup) {
+        var props = [];
+        //alert(pGroup.numProperties);
+        if (typeof pGroup.numProperties !== 'undefined') {
+            if (inclusive) {
+                props.push(pGroup)
+            }
+            for (var pp = 1; pp <= pGroup.numProperties; pp++) {
+                var newProps = traversePropertyGroups(pGroup.property(pp), inclusive);
+                if (newProps.length) {
+                    for (var i = 0; i < newProps.length; i++) {
+                        props.push(newProps[i]);
+                    }
+                }
+            }
+        } else {
+            props.push(pGroup);
+        }
+        return props;
+    }
+}
+
+
+
+
+thisScript.getKeyAttributes = function(theProperty, keyIndex) {
+    //in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.
+    var theAttributes = {
+    } ;
+    theAttributes.keyTime = theProperty.keyTime(keyIndex);
+    theAttributes.keyVal = theProperty.keyValue(keyIndex);
+    theAttributes.canInterp = theProperty.isInterpolationTypeValid(KeyframeInterpolationType.BEZIER) ||
+    
+    theProperty.isInterpolationTypeValid(KeyframeInterpolationType.HOLD) ||
+    
+    theProperty.isInterpolationTypeValid(KeyframeInterpolationType.LINEAR);
+    if (theAttributes.canInterp){
+        theAttributes.keyInInterpolationType = theProperty.keyInInterpolationType(keyIndex);
+        theAttributes.keyOutInterpolationType = theProperty.keyOutInterpolationType(keyIndex);
+        if (theAttributes.keyInInterpolationType) {
+            theAttributes.keyInTemporalEase = theProperty.keyInTemporalEase(keyIndex);
+            theAttributes.keyOutTemporalEase = theProperty.keyOutTemporalEase(keyIndex);
+        }
+    }
+    //ignore spatial tangents for things like masks
+    theAttributes.isSpatial = theProperty.isSpatial && (theProperty.propertyValueType == PropertyValueType.ThreeD_SPATIAL || theProperty.propertyValueType == PropertyValueType.TwoD_SPATIAL );
+    
+    if (theAttributes.isSpatial ) {
+        theAttributes.keyInSpatialTangent = theProperty.keyInSpatialTangent(keyIndex);
+        theAttributes.keyOutSpatialTangent = theProperty.keyOutSpatialTangent(keyIndex);
+    }
+    return theAttributes;
+}
+
+//make key but don't set attributes
+thisScript.makeKeyAtTime = function(theProperty, keyAttributes, keyTime) {
+    theProperty.setValueAtTime(keyTime, keyAttributes.keyVal);
+}
+
+thisScript.makeKeyWithAttributes = function(theProperty, keyAttributes, keyTime) {
+    //turns theAttributes from getKeyAttributes into a new keyframe
+    if (theProperty.canVaryOverTime){
+        try {
+            theProperty.setValueAtTime(keyTime, keyAttributes.keyVal);
+            var newKeyIndex = theProperty.nearestKeyIndex(keyTime); //I wish Adobe would just make a keyframe class
+            
+            if (keyAttributes.canInterp) {
+                theProperty.setTemporalEaseAtKey(newKeyIndex, keyAttributes.keyInTemporalEase, keyAttributes.keyOutTemporalEase);
+                //important to do this after setting the temporal ease, or it turns all keyframes into bezier interpolation
+                theProperty.setInterpolationTypeAtKey(newKeyIndex, keyAttributes.keyInInterpolationType, keyAttributes.keyOutInterpolationType);
+            }
+            
+            //theProperty.setInterpolationTypeAtKey(theAttributes.keyInInterpolationType-6412, theAttributes.keyOutInterpolationType-6412); //WTF Javascript?
+            if (keyAttributes.isSpatial) {
+                theProperty.setSpatialTangentsAtKey(newKeyIndex, keyAttributes.keyInSpatialTangent, keyAttributes.keyOutSpatialTangent);
+            }
+            return newKeyIndex;
+        } catch (e) {
+            writeln(e);
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+//set attributes
+thisScript.setKeyAttributes = function(theProperty, keyAttributes, keyTime){
+    var newKeyIndex = theProperty.nearestKeyIndex(keyTime); //I wish Adobe would just make a keyframe class
+    if (keyAttributes.canInterp) {
+        theProperty.setTemporalEaseAtKey(newKeyIndex, keyAttributes.keyInTemporalEase, keyAttributes.keyOutTemporalEase);
+        //important to do this after setting the temporal ease, or it turns all keyframes into bezier interpolation
+        theProperty.setInterpolationTypeAtKey(newKeyIndex, keyAttributes.keyInInterpolationType, keyAttributes.keyOutInterpolationType);
+    }
+    
+    if (keyAttributes.isSpatial) {
+        theProperty.setSpatialTangentsAtKey(newKeyIndex, keyAttributes.keyInSpatialTangent, keyAttributes.keyOutSpatialTangent);
+    }
+    return newKeyIndex;
+}
+
+//set attribute in reverse
+thisScript.setKeyAttributesReversed = function(theProperty, keyAttributes, keyTime){
+    var newKeyIndex = theProperty.nearestKeyIndex(keyTime); //I wish Adobe would just make a keyframe class
+    if (keyAttributes.canInterp) {
+        theProperty.setTemporalEaseAtKey(newKeyIndex, keyAttributes.keyOutTemporalEase, keyAttributes.keyInTemporalEase);
+        //important to do this after setting the temporal ease, or it turns all keyframes into bezier interpolation
+        theProperty.setInterpolationTypeAtKey(newKeyIndex, keyAttributes.keyOutInterpolationType, keyAttributes.keyInInterpolationType);
+    }
+}
+
+thisScript.makeKeyAtTime = function(theProperty, keyAttributes, keyTime) {
+    theProperty.setValueAtTime(keyTime, keyAttributes.keyVal);
+}
 
 thisScript.run();
