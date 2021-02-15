@@ -1,4 +1,4 @@
-//@target aftereffects
+// @target aftereffects
 var thisScript = this;
 
 thisScript.buildGUI = function(thisObj) {

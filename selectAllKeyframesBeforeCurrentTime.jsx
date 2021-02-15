@@ -1,3 +1,4 @@
+// @target aftereffects
 var theComp=app.project.activeItem;
 if (theComp){
     var theLayers = theComp.selectedLayers;

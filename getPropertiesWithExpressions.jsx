@@ -1,3 +1,4 @@
+// @target aftereffects
 (function(){
     this.traversePropertyGroups = function(pGroup, inclusive) {
         // walks through property groups, returning properties

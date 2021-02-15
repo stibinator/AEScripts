@@ -1,3 +1,4 @@
+// @target aftereffects
 // eslint-disable-next-line no-unused-vars
 function getIndividualProperties(theProps) {
     // recursively extracts individual properties from a property group.

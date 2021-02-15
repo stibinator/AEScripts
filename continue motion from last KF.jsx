@@ -1,3 +1,4 @@
+// @target aftereffects
 var sampleTime = theComp.frameDuration / 100 ;
 
 var theComp = app.project.activeItem;

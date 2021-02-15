@@ -1,3 +1,4 @@
+// @target aftereffects
 (function(){var theComp = app.project.activeItem;
     if (theComp ){
         app.beginUndoGroup("zeroSelectedProperties")

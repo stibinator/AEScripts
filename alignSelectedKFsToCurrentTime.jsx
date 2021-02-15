@@ -1,3 +1,4 @@
+// @target aftereffects
 //Align selected keyframes to current time
 //considerably less trivial than it seems, given the glaring lack of a Keyframe object in AE.
 if (app.project && app.project.activeItem){

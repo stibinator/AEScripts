@@ -1,3 +1,4 @@
+// @target aftereffects
 (function(){
     app.beginUndoGroup("Remove all comp markers")
     var theComp = app.project.activeItem;
