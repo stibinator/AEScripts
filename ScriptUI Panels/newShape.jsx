@@ -1,4 +1,5 @@
-﻿//_____________________________________buildUI
+// @target aftereffects
+//_____________________________________buildUI
 function rand(min, max){
         return(min + Math.random()*(max-min));
     }

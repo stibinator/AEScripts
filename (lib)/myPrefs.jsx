@@ -1,3 +1,4 @@
+// @target aftereffects
 function myPrefs(prefList) {
     this.prefs = {};
     

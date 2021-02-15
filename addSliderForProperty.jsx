@@ -1,3 +1,4 @@
+// @target aftereffects
 function makeSlider(theComp, sliderSize, thePropName) {
   var theHandle = new Shape();
   var theSlide =  new Shape();

@@ -1,3 +1,4 @@
+// @target aftereffects
 /* eslint-disable no-debugger */
 // @target aftereffects
 /* global app */

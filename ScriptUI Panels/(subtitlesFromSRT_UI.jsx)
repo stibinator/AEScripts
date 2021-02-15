@@ -1,6 +1,6 @@
 ﻿// This is broken don't use.
 /* eslint-disable */  //too many problems. 
-/* @target AfterEffects */
+// @target aftereffects
 //JSON - from: https://github.com/douglascrockford/JSON-js
 
 /* global app */

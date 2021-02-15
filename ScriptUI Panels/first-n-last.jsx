@@ -1,4 +1,5 @@
-﻿/* global app, Panel, writeLn */
+// @target aftereffects
+/* global app, Panel, writeLn */
 // first-n-last a handy comp trimmer that can trim to layers that extend before
 // or after the comp's start and finish you can also trim to selected layers.
 

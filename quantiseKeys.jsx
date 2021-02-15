@@ -1,4 +1,4 @@
-//@target AfterEffects
+// @target aftereffects
 
 function quantiseKeyFrames(timeQuantisation, valQuantisation) {
   app.beginUndoGroup('quantise keyframe');

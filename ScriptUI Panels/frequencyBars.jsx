@@ -1,3 +1,4 @@
+// @target aftereffects
 function buildGUI(thisObj) {
     var theWindow = (thisObj instanceof Panel) ? thisObj
         : new Window('palette', thisObj.scriptTitle, undefined, {resizeable: true});

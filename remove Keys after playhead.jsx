@@ -1,3 +1,4 @@
+// @target aftereffects
 var BEFORE = true;
 var AFTER = false;
 

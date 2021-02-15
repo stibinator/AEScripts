@@ -1,4 +1,5 @@
-﻿var fnList = ['linear', 'exponential', 'sigmoid', 'random', '-'];
+// @target aftereffects
+var fnList = ['linear', 'exponential', 'sigmoid', 'random', '-'];
 function buildUI(thisObj) {
   var theComp = getCurrentCompOrMakeOne();
   var myPanel = (thisObj instanceof Panel)

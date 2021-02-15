@@ -1,3 +1,4 @@
+// @target aftereffects
 if (app.project.activeItem){
     var theLayers = [];
     theLayers = app.project.activeItem.selectedLayers;

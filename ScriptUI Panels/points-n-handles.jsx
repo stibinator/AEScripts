@@ -1,4 +1,4 @@
-/* @target aftereffects */
+// @target aftereffects
 /* global app, Panel, Shape*/
 
 

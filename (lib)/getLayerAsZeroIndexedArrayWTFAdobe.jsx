@@ -1,3 +1,4 @@
+// @target aftereffects
  // eslint-disable-next-line no-unused-vars
  function getLayerAsZeroIndexedArrayWTFAdobe(theComp){
     var theLayers = [];

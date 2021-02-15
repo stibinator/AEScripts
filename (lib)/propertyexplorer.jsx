@@ -1,4 +1,5 @@
-﻿var a = app.project.activeItem.selectedLayers[0];
+// @target aftereffects
+var a = app.project.activeItem.selectedLayers[0];
 var propertyArr = [];
 for (var i=1; i <= a.numProperties; i++){
     propertyArr.push( exploreProperty(a.property(i)));

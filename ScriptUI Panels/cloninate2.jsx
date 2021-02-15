@@ -1,3 +1,4 @@
+// @target aftereffects
 var scriptName = "Cloninate 2";
 // buildCloninateUI(this);
 app.beginUndoGroup("test");
@@ -156,7 +157,7 @@ function duplicateLayerSource(theLayer){
     return (newItem);
 }
 
-//@target aftereffects
+// @target aftereffects
 /* global app */
 
 // eslint-disable-next-line no-unused-vars

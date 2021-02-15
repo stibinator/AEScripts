@@ -76,5 +76,4 @@
         theProj.save(new File([projectFolder, theProj.file.name].join("/")));
     }
     app.endUndoGroup();
-    
 })()

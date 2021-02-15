@@ -1,5 +1,5 @@
-﻿/* Copyright (c) 2014 VideoCopilot */
-
+﻿// @target aftereffects
+/* Copyright (c) 2014 VideoCopilot */
 var cameraCheckbox, lightsCheckbox, linkCameraCheckbox, linkLightsCheckbox, layerNameTextbox;
 
 function LinkProperty(srcProp, dstProp, srcCompName, srcLayerName, propPath)

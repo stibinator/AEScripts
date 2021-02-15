@@ -1,3 +1,4 @@
+// @target aftereffects
 var theLayer = app.project.activeItem.selectedLayers[0];
 if (! theLayer) {alert ("select a layer")}
 var highlights = makeSamplePoint(theLayer, "Highlights");

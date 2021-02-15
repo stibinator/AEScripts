@@ -1,6 +1,7 @@
-﻿/* eslint-disable no-redeclare */
+// @target aftereffects
+/* eslint-disable no-redeclare */
 // In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
-/* @target aftereffects */
+// @target aftereffects
 // @includepath "../(lib)/"
 // @include jsextras.jsx
 // @include copyproperties-makekey.jsx 

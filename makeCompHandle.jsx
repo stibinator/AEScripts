@@ -1,3 +1,4 @@
+// @target aftereffects
 var activeItem = app.project.activeItem;
 makeCompHandle(activeItem);
 

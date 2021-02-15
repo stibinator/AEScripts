@@ -1,4 +1,5 @@
-﻿app.beginUndoGroup("removeGap");
+// @target aftereffects
+app.beginUndoGroup("removeGap");
 var curComp = app.project.activeItem;
 var curTime = curComp.time;
 var theLayers= curComp.layers;

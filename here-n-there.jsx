@@ -1,4 +1,5 @@
-﻿app.beginUndoGroup("here-n-there");
+// @target aftereffects
+app.beginUndoGroup("here-n-there");
 distribut3d(app.project.activeItem.selectedLayers);
 app.endUndoGroup();
 

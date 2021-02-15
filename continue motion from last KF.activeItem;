@@ -1,5 +1,0 @@
-var theComp = app.project.activeItem;
-if (theComp){
-    var theProps = theComp.selectedProperties;
-    if (theProps)
-}

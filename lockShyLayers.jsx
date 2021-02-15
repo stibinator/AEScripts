@@ -1,4 +1,4 @@
-/* @target AfterEffects */
+// @target aftereffects
 /* global app, CompItem */
 
 app.beginUndoGroup("Shy layers locked");

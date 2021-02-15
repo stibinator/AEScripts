@@ -1,3 +1,4 @@
+// @target aftereffects
 function findFonts(){
     if( $.os.match(/Windows.*/)){
         system.callSystem("cmd.exe /c \"powershell.exe -c [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing');set-content fontlist.json (convertTo-json(New-Object System.Drawing.Text.InstalledFontCollection))\"");

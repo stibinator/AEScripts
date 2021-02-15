@@ -1,4 +1,5 @@
-﻿{
+// @target aftereffects
+{
 	// Find and Replace Text.jsx
 	// 
 	// This script finds and/or replaces text in the Source Text property of 

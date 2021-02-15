@@ -1,4 +1,4 @@
-/* @target AfterEffects */
+// @target aftereffects
 var lyr1 = app.project.activeItem.selectedLayers[0];
 theText = lyr1.sourceText.value;
 var font = theText.font;

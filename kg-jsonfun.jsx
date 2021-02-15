@@ -1,4 +1,5 @@
-﻿#include "./(lib)/json2.js" // eslint-disable-line
+// @target aftereffects
+#include "./(lib)/json2.js" // eslint-disable-line
 //@target "aftereffects"
 
 app.beginUndoGroup("add supers");

@@ -1,3 +1,4 @@
+// @target aftereffects
 $._ext = {
     //Evaluate a file and catch the exception.
     evalFile : function(path) {

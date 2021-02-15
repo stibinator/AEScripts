@@ -1,4 +1,4 @@
-/* @target AfterEffects */
+// @target aftereffects
 /* global app, CompItem*/
 app.beginUndoGroup("show Guide layers");
 var theComp = app.project.activeItem;

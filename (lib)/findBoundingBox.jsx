@@ -1,3 +1,4 @@
+// @target aftereffects
 // @include "./LST-master/LST.js" 
 
 function findBoundingBox(theComp, theLayers, useMotion){

@@ -1,3 +1,4 @@
+// @target aftereffects
 /* global Folder */
 
 function PrefsFile(theName) { // eslint-disable-line no-unused-vars

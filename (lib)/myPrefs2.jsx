@@ -1,3 +1,4 @@
+// @target aftereffects
 function Preferences(scriptName) {
     // look for preferences for this object
     // provide a setPref function to allow values to be stored in AE's preferences

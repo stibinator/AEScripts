@@ -1,3 +1,4 @@
+// @target aftereffects
 //***********Selected as Spine, version 1
 //this script will take the selected group of layers and from them create an animatable spine;
 //  each vertebra is parented to the one below it, and each vertebra above the lowermost (base) vertebra

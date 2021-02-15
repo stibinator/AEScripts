@@ -1,3 +1,4 @@
+// @target aftereffects
 //useful JS shit I found on Stack Overflow etc
 
 function contains(arr, obj) { //eslint-disable-line no-unused-vars

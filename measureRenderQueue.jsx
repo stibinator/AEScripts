@@ -1,3 +1,4 @@
+// @target aftereffects
 alert(renderProj);
 app.open(renderProj);
 var rq = app.project.renderQueue;

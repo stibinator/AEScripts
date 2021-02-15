@@ -1,4 +1,5 @@
-﻿function buildUI(thisObj) {
+// @target aftereffects
+function buildUI(thisObj) {
 
 	var myPanel = (thisObj instanceof Panel) ? thisObj : new Window('palette', 'createshapes', [100, 100, 300, 300], {resizable: true});
 	writeLn(myPanel);
