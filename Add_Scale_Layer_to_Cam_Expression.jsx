@@ -28,7 +28,9 @@
           
           if (! (unlockedOnly && theLayers[i].locked)){
             if (theLayers[i].threeDLayer){
-              addNormaliseExpression(theLayers[i], camName);
+              var wasLocked = theLayers[i].locked;
+              this.addNormaliseExpression(theLayers[i], camName);
+              theLayers[i].locked = wasLocked;
             }
           }
         }

@@ -143,7 +143,7 @@ function getGroups(theComp){
 }
 
 
-// showUI(this);
+
 /*
 Code for Import https://scriptui.joonas.me — (Triple click to select): 
 {"activeId":12,"items":{"item-0":{"id":0,"type":"pal","parentId":false,"style":{"enabled":true,"varName":null,"windowType":"pal","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Groupinator","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":10,"alignChildren":["left","top"]}},"item-1":{"id":1,"type":"Button","parentId":4,"style":{"enabled":true,"varName":"newGroupBtn","text":"New Group","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-2":{"id":2,"type":"Button","parentId":10,"style":{"enabled":true,"varName":"setBtn","text":"Store","justify":"center","preferredSize":[68,0],"alignment":null,"helpTip":null}},"item-3":{"id":3,"type":"Button","parentId":10,"style":{"enabled":true,"varName":"applyBtn","text":"Apply","justify":"center","preferredSize":[68,0],"alignment":null,"helpTip":null}},"item-4":{"id":4,"type":"Panel","parentId":0,"style":{"enabled":true,"varName":null,"creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Groups","preferredSize":[0,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["left","top"],"alignment":null}},"item-5":{"id":5,"type":"EditText","parentId":8,"style":{"enabled":true,"varName":null,"creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"Group 1","justify":"left","preferredSize":[180,0],"alignment":null,"helpTip":null}},"item-6":{"id":6,"type":"RadioButton","parentId":7,"style":{"enabled":true,"varName":"group1Rdio","text":"","preferredSize":[0,0],"alignment":null,"helpTip":null,"checked":true}},"item-7":{"id":7,"type":"Group","parentId":16,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":[0,0,0,0],"orientation":"column","spacing":17,"alignChildren":["left","center"],"alignment":null}},"item-8":{"id":8,"type":"Group","parentId":16,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":0,"orientation":"column","spacing":8,"alignChildren":["left","center"],"alignment":null}},"item-9":{"id":9,"type":"RadioButton","parentId":7,"style":{"enabled":true,"varName":"group2Rdio","text":"","preferredSize":[0,0],"alignment":null,"helpTip":null,"checked":false}},"item-10":{"id":10,"type":"Group","parentId":0,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":0,"orientation":"row","spacing":9,"alignChildren":["center","center"],"alignment":null}},"item-11":{"id":11,"type":"Button","parentId":10,"style":{"enabled":true,"varName":"applyBtn","text":"Delete","justify":"center","preferredSize":[68,0],"alignment":null,"helpTip":null}},"item-12":{"id":12,"type":"EditText","parentId":8,"style":{"enabled":true,"varName":null,"creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"Group 2","justify":"left","preferredSize":[180,0],"alignment":null,"helpTip":null}},"item-13":{"id":13,"type":"RadioButton","parentId":7,"style":{"enabled":true,"varName":"group3Rdio","text":"","preferredSize":[0,0],"alignment":null,"helpTip":null,"checked":false}},"item-14":{"id":14,"type":"EditText","parentId":8,"style":{"enabled":true,"varName":null,"creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"Group 3","justify":"left","preferredSize":[180,0],"alignment":null,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":0,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-16":{"id":16,"type":"Group","parentId":4,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":0,"orientation":"row","spacing":0,"alignChildren":["left","center"],"alignment":null}}},"order":[0,4,16,7,6,9,13,8,5,12,14,1,10,2,3,11,15],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showpal":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"None"}}
@@ -152,7 +152,13 @@ function showUI(thisObj){
     // pal
     // ======
     var groupList = getGroups(app.project.activeItem);
-    var pal = (thisObj instanceof Panel) ? thisObj:new Window('palette', 'Groupinator',undefined, {resizable: true});
+    if (thisObj instanceof Panel) {
+        var pal = thisObj;
+    } else {
+        pal = new Window("palette", "group layers", undefined, {
+            resizeable: true
+        });
+    }
     pal.text = "Groupinator"; 
     pal.orientation = "column"; 
     pal.alignChildren = ["left","top"]; 
@@ -193,7 +199,7 @@ function showUI(thisObj){
     
     // GROUP3
     // ======
-    var nameColumn = group1.add("group", undefined, {name: "nameColumn"}); 
+    var nameColumn = groupsGroup.add("group", undefined, {name: "nameColumn"}); 
     nameColumn.orientation = "column"; 
     nameColumn.alignChildren = ["left","center"]; 
     nameColumn.spacing = 8; 
@@ -245,8 +251,8 @@ function showUI(thisObj){
     group5.margins = 0; 
     
     if (pal instanceof Window) {
-        pal.center();
         pal.show();
+        pal.center();
     } else {
         pal.layout.layout(true);
     }
@@ -373,5 +379,10 @@ function setPrefs(){
     OK.text = "OK"; 
     OK.preferredSize.width = 72; 
     
-    Groupinator.show();
+    
+        		Groupinator.center();
+        		Groupinator.show();
+    
 }
+
+showUI(this);
