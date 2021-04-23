@@ -7,7 +7,7 @@ var ERR_NO_PATHS = "<!> Select at least\none pathNo to control";
 var ERR_CONVERT_SHAPES = "Convert shape items to Bezier paths\nbefore using.";
 var RESULT_PTS_CREATED = " points were created on layer\n";
 var TXT_DOTHETHINGSBTN = "Create Path Controls";
-var TXT_NEWCTRLBTN = "New point";
+// var TXT_NEWCTRLBTN = "New point";
 var NAME_CONTROL_GROUP = " control points";
 var NAME_CTRL = "ctrl ";
 var NAME_CTRL_LAYER = " ctrl ";
@@ -27,8 +27,8 @@ function buildUI(thisObj) {
         pal.text = "points-n-handles";
         pal.orientation = "column";
         pal.alignChildren = ["center", "top"];
-        pal.spacing = 10;
-        pal.margins = 16;
+        pal.spacing = 16;
+        pal.margins = [0,16,0,12];
 
         var doTheThingsBtn = pal.add("button", undefined, undefined);
         doTheThingsBtn.name = "doTheThingsBtn";
@@ -38,10 +38,11 @@ function buildUI(thisObj) {
         var makeLayersChckBx = pal.add("checkbox", undefined, undefined);
         makeLayersChckBx.name = "makeLayersChckBx"
         makeLayersChckBx.text = "Make individual layers"
+        makeLayersChckBx.preferredSize.width = 160;
 
-        var newCtrlBtn = pal.add("button", undefined, undefined);
-        newCtrlBtn.name = "newCtrlBtn";
-        newCtrlBtn.text = TXT_NEWCTRLBTN;
+        // var newCtrlBtn = pal.add("button", undefined, undefined);
+        // newCtrlBtn.name = "newCtrlBtn";
+        // newCtrlBtn.text = TXT_NEWCTRLBTN;
 
         var infoText = pal.add("statictext", undefined, undefined);
         infoText.text = "";
@@ -109,6 +110,7 @@ function createPathControls(theLayer, makeLayers, theComp) { //}, method) {
             result.warnings.push(ERR_CONVERT_SHAPES);
         }
     }
+    
     for (var pathNo = 0; pathNo < allThePathInfos.length; pathNo++) {
         var newExpression;
         newExpression = makeControlPoint(allThePathInfos[pathNo], makeLayers);

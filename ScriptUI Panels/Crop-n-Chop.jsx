@@ -1,5 +1,5 @@
 // @target aftereffects
-//  @includepath "../(lib)/"
+// @includepath "../(lib)/"
 // @include "findBoundingBox.jsx"
 // @include "myPrefs.jsx"
 
