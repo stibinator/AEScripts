@@ -443,7 +443,7 @@ findNReplace.buildUI = function(thisObj) {
             
             var theSearchPattern = (useRegexChkBx.value) ?
             new RegExp(patternEditText.text, getFlags()) :
-            new RegExp(escapeRegexChars(patternEditText.text), getFlags());
+            new RegExp(findNReplace.escapeRegexChars(patternEditText.text), getFlags());
             
             var changedLayerNames = [];
             for (var i = 0; i < theLayers.length; i++) {
