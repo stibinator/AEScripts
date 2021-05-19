@@ -177,8 +177,9 @@ thisScript.findCommonFolder = function(theProj, hp){
     var commonFolder = false;
     for(var i = 1; i <= theProj.numItems; i++){
         var theItem = theProj.item(i);
-        if (commonFolder === false){commonFolder = theItem.file.toString().split("/");}
+        
         if( theItem instanceof FootageItem && theItem.file){
+            if (commonFolder === false){commonFolder = theItem.file.toString().split("/");}
             var filePath = theItem.file.toString();
             filePath = filePath.replace(/^~/, hp); 
             filePath = filePath.split("/");
