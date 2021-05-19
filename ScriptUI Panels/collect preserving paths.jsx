@@ -2,7 +2,6 @@
 var thisScript = this;
 
 thisScript.buildGUI = function(thisObj) {
-    // thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
     thisObj.pal = (thisObj instanceof Panel)?
     thisObj: 
     new Window("palette", thisObj.scriptTitle, undefined, {resizeable: true});
