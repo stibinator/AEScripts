@@ -9,25 +9,25 @@ thisScript.buildGUI = function(thisObj) {
     thisObj: 
     new Window("palette", thisObj.scriptTitle, undefined, {resizeable: true});
     // ----------------------- UI Elements here ---------------------
-    pal.setExpTargetBtn = thisObj.pal.add("button", [undefined, undefined, 180, 22], "Set Expression Targets");
-    pal.setExpSourceBtn = thisObj.pal.add("button", [undefined, undefined, 180, 22], "Set Expression Source");
-    pal.expressionText = thisObj.pal.add("edittext", [undefined, undefined, 180, 128], "No expression set", { multiline: true } );
-    pal.synchExpressionsBtn = thisObj.pal.add("button", [undefined, undefined, 180, 22], "Update Targets");
-    pal.synchExpressionsBtn.enabled = false;
+    thisObj.setExpTargetBtn = thisObj.pal.add("button", [undefined, undefined, 180, 22], "Set Expression Targets");
+    thisObj.setExpSourceBtn = thisObj.pal.add("button", [undefined, undefined, 180, 22], "Set Expression Source");
+    thisObj.expressionText = thisObj.pal.add("edittext", [undefined, undefined, 180, 128], "No expression set", { multiline: true } );
+    thisObj.synchExpressionsBtn = thisObj.pal.add("button", [undefined, undefined, 180, 22], "Update Targets");
+    thisObj.synchExpressionsBtn.enabled = false;
     
-    pal.setExpSourceBtn.onClick = function () {
+    thisObj.setExpSourceBtn.onClick = function () {
         thisScript.setExpSource();
-        pal.synchExpressionsBtn.enabled = (thisScript.sourceSet && thisScript.targetSet);
-        pal.expressionText.text = thisScript.sourceExp;
+        thisObj.synchExpressionsBtn.enabled = (thisScript.sourceSet && thisScript.targetSet);
+        thisObj.expressionText.text = thisScript.sourceExp;
     };
     
-    pal.setExpTargetBtn.onClick = function () {
+    thisObj.setExpTargetBtn.onClick = function () {
         thisScript.setTargets();
-        pal.synchExpressionsBtn.enabled = (thisScript.sourceSet && thisScript.targetSet)
+        thisObj.synchExpressionsBtn.enabled = (thisScript.sourceSet && thisScript.targetSet)
     };
     
-    pal.synchExpressionsBtn.onClick = function () {
-        thisScript.sourceExp = pal.expressionText.text;
+    thisObj.synchExpressionsBtn.onClick = function () {
+        thisScript.sourceExp = thisObj.expressionText.text;
         var theLayers = app.project.activeItem.selectedLayers;
         if (theLayers.length === 0) {
             var compLayers = app.project.activeItem.layers;
@@ -74,8 +74,7 @@ thisScript.setTargets = function(){
         if (theProps.length > 0) {
             for (var i = 0; i < theProps.length; i++){
                 if (theProps[i].expressionEnabled) {
-                    expressionText = "" + theProps[i].expression;
-                    theProps[i].expression = "//#SynchTarget#\n" + expressionText.replace(/\/\/#SynchTarget#\r\n/, "")
+                    theProps[i].sourceExpr = thisScript.sourceExp;
                 }
             }
             thisScript.targetSet = true;
@@ -90,8 +89,8 @@ thisScript.synchExpressions = function (theLayers) {
         // alert(theProps.length);
         for (var p = 0; p < theProps.length; p++){
             if (theProps[p].expressionEnabled){
-                if (theProps[p].expression.match(/\/\/#SynchTarget#/)) {
-                    theProps[p].expression = "//#SynchTarget#\r\n" + thisScript.sourceExp;
+                if (theProps[p].sourceExpr = thisScript.sourceExp) {
+                    theProps[p].expression =  thisScript.sourceExp;
                 }
             }
         }

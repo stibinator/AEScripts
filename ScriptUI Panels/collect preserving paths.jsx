@@ -8,15 +8,15 @@ thisScript.buildGUI = function(thisObj) {
     new Window("palette", thisObj.scriptTitle, undefined, {resizeable: true});
     // ----------------------- UI Elements here ---------------------
     
-    pal.text = "Collect Preserving Paths"; 
-    pal.orientation = "column"; 
-    pal.alignChildren = ["left","top"]; 
-    pal.spacing = 10; 
-    pal.margins = 16; 
+    thisObj.pal.text = "Collect Preserving Paths"; 
+    thisObj.pal.orientation = "column"; 
+    thisObj.pal.alignChildren = ["left","top"]; 
+    thisObj.pal.spacing = 10; 
+    thisObj.pal.margins = 16; 
     
     // PANEL1
     // ======
-    var panel1 = pal.add("panel", undefined, undefined); 
+    var panel1 = thisObj.pal.add("panel", undefined, undefined); 
     panel1.text = "Destination"; 
     panel1.preferredSize.width = 180; 
     panel1.orientation = "column"; 

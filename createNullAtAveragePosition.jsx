@@ -20,7 +20,8 @@ function buildUI(thisObj) {
 			for(var i=0;i<mySelectedLayers.length;i++){
 				totalPos+=mySelectedLayers[i].property("Transform").property("Position").value;
 			}
-			avgPos=totalPos/mySelectedLayers.length;
+
+			avgPos = totalPos/mySelectedLayers.length;
 
 			// Create null using new avg positions.
 			var myNull=app.project.activeItem.layers.addNull();
