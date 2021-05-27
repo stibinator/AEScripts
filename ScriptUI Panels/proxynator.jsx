@@ -18,43 +18,43 @@ function proxinate(proxyFolder, items) {
         chooseProxyFolder()
       }
       // try {
-        var originalBaseName = originals[i].name;
-        if (originals[i].typeName === "Footage") {
-          originalBaseName = originals[i].name.replace(/\..+$/, ''); //trim extension
+      var originalBaseName = originals[i].name;
+      if (originals[i].typeName === "Footage") {
+        originalBaseName = originals[i].name.replace(/\..+$/, ''); //trim extension
+      }
+      // possible matches for the proxy, from the reasonable to the silly
+      var suffixes = [
+        ".mov",
+        ".avi",
+        ".mp4",
+        ".mxf",
+        ".mpg",
+        ".mpeg",
+        ".mkv",
+        ".ogv",
+        ".webm",
+        ".wmv",
+        ".dv",
+        ".omf",
+      ];
+      var proxyStrings = [
+        "", "_proxy", "-proxy", " proxy"
+      ];
+      var foundAProxy = false;
+      for (var s = 0; s < suffixes.length & !foundAProxy; s++) {
+        for (var t = 0; t < proxyStrings.length & !foundAProxy; t++) {
+          var newProxy = new File(proxyFolder.absoluteURI + "/" + originalBaseName + proxyStrings[t] + suffixes[s]);
+          if (newProxy.exists) {
+            originals[i].setProxy(newProxy);
+            foundAProxy = true;
+          } 
         }
-        // possible matches for the proxy, from the reasonable to the silly
-        var suffixes = [
-          ".mov",
-          ".avi",
-          ".mp4",
-          ".mxf",
-          ".mpg",
-          ".mpeg",
-          ".mkv",
-          ".ogv",
-          ".webm",
-          ".wmv",
-          ".dv",
-          ".omf",
-        ];
-        var proxyStrings = [
-          "", "_proxy", "-proxy", " proxy"
-        ];
-        var foundAProxy = false;
-        for (var s = 0; s < suffixes.length & !foundAProxy; s++) {
-          for (var t = 0; t < proxyStrings.length & !foundAProxy; t++) {
-            var newProxy = new File(proxyFolder.absoluteURI + "/" + originalBaseName + proxyStrings[t] + suffixes[s]);
-            if (newProxy.exists) {
-              originals[i].setProxy(newProxy);
-              foundAProxy = true;
-            } 
-          }
-        }
-        if (!foundAProxy){
-          msg += originalBaseName + "\n";
-        }
-        originals[i].selected = false;
-        originals[i].selected = true;
+      }
+      if (!foundAProxy){
+        msg += originalBaseName + "\n";
+      }
+      originals[i].selected = false;
+      originals[i].selected = true;
       // } catch (e) {
       //   alert("had an error" + e)
       // }
@@ -81,7 +81,7 @@ function chooseProxyFolder(startPath) {
   // only update the proxy folder value if a new folder is actually choosen
   // selectDialog or selectDlg return null if user cancels, but if the proxy folder is already set
   // we don't want to overwrite it.
-
+  
   if (newFolder){
     prefsFile.saveToPrefs(newFolder);
     return newFolder; 
@@ -90,7 +90,18 @@ function chooseProxyFolder(startPath) {
   }
 }
 
-
+function createProxyWithFFMpeg(clips, proxyFolder, proxySettings) {
+  var commands = [];
+  for (var i = 0; i < clips.length; i++){
+    if (clips[i].typeName === "Footage"){
+      var scaleX = clips[i].width * proxySettings.scaleFactor;
+      var scaleY = clips[i].height * proxySettings.scaleFactor;
+      var clipScale = "" + scaleX + ":" + scaleY;
+      var cmd = "ffmpeg -i " + theFile + proxySettings.vCodec + "-s " + clipScale + proxyFile;
+      commands.push(cmd);
+    }
+  }
+}
 
 
 function buildUI(thisObj, prefsFile) {
@@ -99,7 +110,7 @@ function buildUI(thisObj, prefsFile) {
   } else {
     pal = new Window("palette", scriptName, undefined, {resizeable: true});
   }
-
+  
   if (pal !== null) {
     var sourcePanel = pal.add("panel", {
       x: 4,
@@ -113,37 +124,37 @@ function buildUI(thisObj, prefsFile) {
       width: 180,
       height: 25
     }, "choose proxy folder");
-
+    
     var proxyFolderText = sourcePanel.add("statictext", {
       x: 4,
       y: undefined,
       width: 180,
       height: 25
     }, "no folder selected", {truncate: "middle"});
-
+    
     var proxinateBtn = pal.add("button", {
       x: 4,
       y: undefined,
       width: 180,
       height: 25
     }, "set proxies for selected");
-
+    
     var statusText = pal.add("staticText", {
       x: 4,
       y: undefined,
       width: 180,
       height: 25
     }, "choose a folder", {truncate: "middle"});
-
-
+    
+    
     var proxyFolder = prefsFile.readFromPrefs();
     checkProxyFolderAndUpdateText(proxyFolder, proxyFolderText, proxinateBtn, statusText);
-
+    
     chooseProxyFolderBtn.onClick = function() {
       proxyFolder = chooseProxyFolder(proxyFolder);
       checkProxyFolderAndUpdateText(proxyFolder, proxyFolderText, proxinateBtn, statusText);
     };
-
+    
     proxinateBtn.onClick = function() {
       if (proxinate(proxyFolder)){
         statusText.text = "succesfully proxinated"
@@ -152,7 +163,7 @@ function buildUI(thisObj, prefsFile) {
       }
       this.active = false; // stops the button staying activated
     };
-
+    
     if (!proxyFolder) {
       proxinateBtn.enabled = false
     }
