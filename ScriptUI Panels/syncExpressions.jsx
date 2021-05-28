@@ -54,13 +54,20 @@
         };
         
         synchExpressionsBtn.onClick = function () {
-            var sourceProp = app.project.activeItem.selectedProperties;
-            if (sourceProp.length === 1) {
-                synchExpressions(sourceProp);
-            } else {
-                msg("Select 1 property only\nto synch to the target propert" + ((thisObj.targetsSet > 1)?"ies.": "y.")); //details
+            var sourceProps = app.project.activeItem.selectedProperties;
+            var sourceProp = false;
+            for (var p = 0; p < sourceProps.length; p++){
+                if (sourceProps[p] instanceof Property) {
+                    if (! sourceProp){
+                        sourceProp = sourceProps[p];
+                    } else {
+                        msg("Select 1 property only\nto synch to the target propert" + ((thisObj.targetsSet !== 1)?"ies.": "y.")); //details
+                    }
+                }
             }
-            // alert(theLayers.length);
+            if (sourceProp){    
+                msg(synchExpressions(sourceProp));
+            }
         };
         
         //------------------------ build the GUI ------------------------
@@ -86,7 +93,7 @@
                 for (var p = 0; p < theProps.length; p++){
                     var thisProp = theProps[p];
                     if (thisProp.selected) {
-                        thisProp.expressionID = expressionID;
+                        thisProp.expression.expressionID = expressionID;
                         targetsSet++; 
                     } else {
                         //nuke any unselected props that have the current ID
@@ -120,23 +127,43 @@
     }
     
     function synchExpressions(sourceProperty) {
-        alert(sourceProperty.expression);
+        var updateCount = 0;
+        // alert(expressionID);
         app.beginUndoGroup(scriptName);
-        for (var i = 0; i < theLayers.length; i++) {
-            var theProps = getPropertiesThatCanHaveExpressionsFromLayer(theLayers[i], false);
+        var theLayers = app.project.activeItem.layers;
+        for (var i = 1; i <= theLayers.length; i++) {
+            var theProps = findTargetProperties(theLayers[i]);
             // alert(theProps.length);
             //update the script's source expression
             for (var p = 0; p < theProps.length; p++) {
-                var thisProp = theProps[p];
-                
-                if (thisProp.expressionID = expressionID) {
-                    thisProp.expression = sourceProperty.expression;       
+                var thisProp = theProps[p];                
+                if (thisProp.expression.expressionID === expressionID) {
+                    thisProp.expression = sourceProperty.expression;
+                    updateCount++;
                 }
             }
         }
         app.endUndoGroup;
+        return ("updated " + updateCount + "expression" + ((updateCount !== 1) ? "s." : "."));
     }
     
+    function findTargetProperties(theLayer) {
+        var props = [];
+        for (var p = 1; p <= theLayer.numProperties; p++) {
+            if (theLayer.property(p)) {
+                var propertyGroup = theLayer.property(p);
+                var newProps = traversePropertyGroups(propertyGroup, false);
+                if (newProps.length) {
+                    for (var i = 0; i < newProps.length; i++) {
+                        if (newProps[i].expressionID) {
+                            props.push(newProps[i]);
+                        }
+                    }
+                }
+            }
+        }
+        return (props);
+    }
     
     function getPropertiesWithExpressionsFromLayer(theLayer, selectedOnly) {
         var props = [];
