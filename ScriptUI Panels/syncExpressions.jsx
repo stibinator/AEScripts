@@ -2,7 +2,6 @@
 (function (thisObj) {
     var scriptName = "syncExpressions";
     var versionNum = 0.1;
-    var expressionID = "My Expression";
     
     function buildGUI (thisObj) {
         pal = (thisObj instanceof Panel) ?
@@ -12,7 +11,7 @@
         // ----------------------- UI Elements here ---------------------
         var idGrp = pal.add("group");
         idGrp.orientation = "row";
-        var expressionIDText = idGrp.add("editText", [undefined, undefined, 150, 22], expressionID);
+        var expressionIDText = idGrp.add("editText", [undefined, undefined, 150, 22], "Expression 1");
         var incrementBtn = idGrp.add("button", [undefined, undefined, 20, 22], "+");
         var setExpTargetBtn = pal.add("button", [undefined, undefined, 180, 22], "Set Expression Targets");
         var addExpTargetBtn = pal.add("button", [undefined, undefined, 180, 22], "Add Expression Targets");
@@ -22,26 +21,33 @@
         msgGrp.spacing = 0;
         thisObj.idText1 = msgGrp.add("staticText",  [undefined, undefined, 180, 16], scriptName + " V" + versionNum);
         thisObj.idText2 = msgGrp.add("staticText",  [undefined, undefined, 180, 16], "No target set");
-        
-        expressionIDText.onChange = function () {
-            expressionID = expressionIDText.text;
-        }
         synchExpressionsBtn = pal.add("button", [undefined, undefined, 180, 22], "Update Targets");
         synchExpressionsBtn.enabled = false;
         
+        expressionIDText.onChange = function () {
+            if (expressionIDText.text.trim() === ""){
+                synchExpressionsBtn.enabled = false;
+                setExpTargetBtn.enabled = false;
+                msg("⚠ Invalid Expression ID ⚠");
+            } else {
+                setExpTargetBtn.enabled = true;
+            };
+        }
+        
         setExpTargetBtn.onClick = function () {
-            thisObj.targetsSet = setTargets();
+            thisObj.targetsSet = setTargets(expressionIDText.text);
             synchExpressionsBtn.enabled =  thisObj.targetsSet;
             if (targetsSet){msg("" +  thisObj.targetsSet + " target" + (( thisObj.targetsSet >1)? "s ": " ")+ "set.\nSelect source expression to synch")}
         }
         
         
         addExpTargetBtn.onClick = function () {
-            thisObj.targetsSet += addTargets();
+            thisObj.targetsSet += addTargets(expressionIDText.text);
             synchExpressionsBtn.enabled = (sourceSet && targetsSet)
         };
         
         incrementBtn.onClick = function () {
+            var expressionID = expressionIDText.text;
             var serialNum = 1;
             var numericalSuffix = expressionID.match(/.*[^\d](\d+)/);
             if (numericalSuffix) {
@@ -66,7 +72,7 @@
                 }
             }
             if (sourceProp){    
-                msg(synchExpressions(sourceProp));
+                msg(synchExpressions(sourceProp, expressionIDText.text));
             }
         };
         
@@ -81,9 +87,43 @@
     
     //---------------------------- functions n shit ---------------------
     
+    function getExpressionID(thisProp) {
+        if (thisProp.canSetExpression && thisProp.expression) {
+            var expressionText = thisProp.expression;
+            // search for // @synchExpressions ID: anything
+            var pat = new RegExp("\/\/ @" + scriptName + " ID: (.*)");
+            hasID = expressionText.match(pat)
+            if (hasID) {
+                return hasID[1].strip();
+            }
+        }
+        return null;
+    }
     
     
-    function setTargets () {
+    function setExpressionID(thisProp, expressionID) {
+        if (thisProp.canSetExpression) {
+            var IDTag = "// @" + scriptName + "ID: " + expressionID;
+            if (thisProp.expression) {
+                var expressionText = thisProp.expression;
+                var pat = new RegExp("\/\/ @" + scriptName + " ID: (.*)");
+                hasID = expressionText.match(pat)
+                if (hasID) {
+                    expressionText = expressionText.replace(pat, IDTag);
+                } else {
+                    expressionText = expressionText + "\n\n" + IDTag
+                }
+            } else { //no existing expression
+                thisProp.expression = "value\n\n" + IDTag;
+            }
+            return true;
+        } else {
+            msg("can't set expression on " + thisProp.name);
+            return false
+        }
+    }
+    
+    function setTargets (expressionID) {
         var targetsSet = 0;
         var theComp = app.project.activeItem;
         if (theComp && theComp.selectedProperties.length) {
@@ -93,12 +133,13 @@
                 for (var p = 0; p < theProps.length; p++){
                     var thisProp = theProps[p];
                     if (thisProp.selected) {
-                        thisProp.expression.expressionID = expressionID;
-                        targetsSet++; 
+                        if (setExpressionID(thisProp, expressionID)){
+                            targetsSet++;
+                        }
                     } else {
                         //nuke any unselected props that have the current ID
-                        if (thisProp.expressionID === expressionID) {
-                            thisProp.expressionID = null;
+                        if (getExpressionID(thisProp) === expressionID) {
+                            setExpressionID(thisProp, null);
                         }
                     }
                 }
@@ -109,24 +150,23 @@
         return targetsSet;
     }
     
-    function addTargets () {
+    function addTargets (expressionID) {
         var theComp = app.project.activeItem;
-        if (theComp) {
-            for (var i = 1; i <= theComp.numLayers; i++) {
-                var theProps = theComp.selectedProperties;
-                for (var p = 0; p < theProps.length; p++) {
-                    var thisProp = theProps[p];
-                    var expTxt = "" + thisProp.expression;
-                    if (expTxt) {
-                        thisProp.expression = expTxt.replace(/\n\/\/:::XPRESSION(SRC|ID)[0-9]+:::/g, "") + "\n//:::XPRESSIONSRC" + expressionID + ":::";
-                    }
-                }
+        var propsAdded = 0;
+        if (theComp && theComp.selectedProperties.length) {
+            var theProps = theComp.selectedProperties;
+            for (var p = 0; p < theProps.length; p++) {
+                if (setExpressionID(theProps[p], expressionID)) {
+                    propsAdded++
+                };
             }
-            targetsSet = true;
+        } else {
+            msg("⚠ Select some properties in a comp first ⚠")
         }
+        return propsAdded;
     }
     
-    function synchExpressions(sourceProperty) {
+    function synchExpressions(sourceProperty, expressionID) {
         var updateCount = 0;
         // alert(expressionID);
         app.beginUndoGroup(scriptName);
@@ -137,7 +177,7 @@
             //update the script's source expression
             for (var p = 0; p < theProps.length; p++) {
                 var thisProp = theProps[p];                
-                if (thisProp.expression.expressionID === expressionID) {
+                if (getExpressionID(thisProp) === expressionID) {
                     thisProp.expression = sourceProperty.expression;
                     updateCount++;
                 }
