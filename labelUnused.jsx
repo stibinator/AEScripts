@@ -2,7 +2,10 @@
 theitems = app.project.selection;
 //label all if nothing is selected
 if (theitems.length === 0) {
-    theitems = app.project.items;
+    for (var i = 1; i <= app.project.items.length; i++){
+        //convert 1-index collection to normal array. Thanks, Adobe.
+        theitems.push(app.project.item(i));
+    };
 }
 for (var i =0; i< theitems.length; i++){
     var uses = theitems[i].usedIn;
