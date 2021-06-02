@@ -1,12 +1,12 @@
 // @target aftereffects
 /* jshint ignore:start */
 // Code here will be ignored by JSHint.
-#include "imageButtons.jsx"
-#includepath "../(lib)"
-#include "defaultFor.jsx"
-#include "getproperties.jsx"
-#include "copyproperties-makekey.jsx"
-#script "copyMultiLayer"
+// @include "imageButtons.jsx"
+// @includepath "../(lib)"
+// @include "defaultFor.jsx"
+// @include "getproperties.jsx"
+// @include "copyproperties-makekey.jsx"
+// @script "copyMultiLayer"
 /* jshint ignore:end */
 var thisScript = this;
 thisScript.scriptTitle = "copyMultiLayer";
