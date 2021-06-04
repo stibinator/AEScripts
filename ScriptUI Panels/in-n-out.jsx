@@ -14,7 +14,8 @@ var fns = {
     linear: 'linear',
     exponential: 'exponential',
     sigmoid: 'sigmoid',
-    random: 'random'
+    random: 'random',
+    equalOverlap: 'equal overlap'
 };
 var orders = {
     index: 'index',
@@ -241,9 +242,9 @@ function sequenceLayers(
                     firstTime += layerLength;
                 }
                 layerLength = theLayers[n].outPoint - theLayers[n].inPoint;
-                if (lastInOrOut === OUT & doInPoints) {
+                if (lastInOrOut === OUT & doInPoints & ease !== fns.equalOverlap) {
                     lastTime -= layerLength;
-                } else if (lastInOrOut === IN & !doInPoints) {
+                } else if (lastInOrOut === IN & (!doInPoints | ease === fns.equalOverlap)) {
                     lastTime += layerLength;
                 }
             } else if (method === 2) {
@@ -283,6 +284,15 @@ function sequenceLayers(
             var myTime = 0;
             var layerIndex = 0;
             var newKeys = [];
+            var averageOverlap = 0;
+            var totalLength = 0;
+            var previousTime = 0;
+            if (ease === fns.equalOverlap){
+                for (var i = 0; i < numLayers; i++) {
+                    totalLength += Math.abs(theLayers[i].outPoint - theLayers[i].inPoint);
+                }
+                averageOverlap = (totalLength - timeSpan) / (numLayers - 1);
+            }
             for (var i = 0; i < numLayers; i++) {
                 layerIndex = i;
                 if (regularity < 1 && i > 0 && i < (numLayers - 1)) { //always make the first and last keyframe on time
@@ -305,6 +315,10 @@ function sequenceLayers(
                         break;
                     case fns.sigmoid:
                         myTime = firstTime + timeSpan * sigmoid(layerIndex / (numLayers - 1), easePower);
+                        break;
+                    case fns.equalOverlap:
+                        myTime = firstTime + previousTime;
+                        previousTime += Math.abs(theLayers[i].outPoint - theLayers[i].inPoint) - averageOverlap;
                         break;
                     default: //kompletelely randoz
                         myTime = firstTime + timeSpan * Math.random();
@@ -502,12 +516,13 @@ function buildGUI(thisObj) {
     lastInOrOutDD.name = "lastInOrOutDDselection";
     fnTypeDropDown.name = "fnTypeDropDownselection";
     inChckBox.name = "inChckBoxvalue";
-
+    regularitySlider.name = "regularitySliderValue"
     orderDropDown.name = "orderDropDownselection";
     pwrSlider.name = "pwrSlidervalue";
 
     inChckBox.value = prefs.prefs[inChckBox.name];
     pwrSlider.value = prefs.prefs[pwrSlider.name];
+    regularitySlider.value = prefs.prefs[regularitySlider.name];
 
     method.value = prefs.prefs[method.name];
     methodCheckBoxes[method.value].value = true;

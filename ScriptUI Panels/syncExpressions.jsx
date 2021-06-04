@@ -1,7 +1,7 @@
 //@target aftereffects
 (function (thisObj) {
     var scriptName = "syncExpressions";
-
+    
     var versionNum = 0.1;
     var tag = "// @" + scriptName + " ID: "
     function buildGUI (thisObj) {
@@ -10,6 +10,7 @@
         new Window("palette", thisObj.scriptTitle, undefined, { resizeable: true });
         pal.preferredSize.height = 120;
         // ----------------------- UI Elements here ---------------------
+        var expressionsDropDown = pal.add("dropdownlist", [undefined, undefined, 180, 22], ["Expression 1"]);
         var idGrp = pal.add("group");
         idGrp.orientation = "row";
         var expressionIDText = idGrp.add("editText", [undefined, undefined, 120, 22], "Expression 1");
@@ -29,6 +30,10 @@
         synchExpressionsBtn = pal.add("button", [undefined, undefined, 180, 22], "Update Targets");
         synchExpressionsBtn.enabled = false;
         
+        expressionsDropDown.onActivate = function () {
+            this.items = getAllExpressionIDs(this.items);
+        }
+        
         expressionIDText.onChange = function () {
             this.text = trim(this.text); // String.trim() doesn't seem to be available
             if (this.text === ""){
@@ -37,8 +42,8 @@
                 msg("⚠ Invalid Expression ID ⚠\nCannot be blank.");
             } else {
                 setExpTargetBtn.enabled = true;
+                addItemToList(expressionsDropDown.items, this.text)
             };
-            this.text = this.text;
         }
         
         setExpTargetBtn.onClick = function () {
@@ -79,14 +84,14 @@
                 id = getExpressionID(theProp);
             }
             if (id) {
-               expressionIDText.text = id;
+                expressionIDText.text = id;
                 msg("Found an expression ID")
             } else {
                 msg("no properties with a valid\nExpression ID selected.")
             }
             
         }
-
+        
         removeExpTargetBtn.onClick = function () {
             app.beginUndoGroup(this.text);
             removeTargets();
@@ -209,6 +214,33 @@
             msg("⚠ Select properties to target ⚠\n ")
         }
         return targetsSet;
+    }
+    
+    function addItemToList(item, theArr) {
+        inList = false;
+        for (id = 0; id < theArr.length && ! inList; id++){
+            if (theArr[id] === item) {
+                inList = true;
+            }
+        }
+        if (!inList) {
+            theArr.push(item);
+        }
+    }
+    
+    function getAllExpressionIDs (idList) {
+        var theComp = app.project.activeItem;
+        for (var i = 1; i <= theComp.numLayers; i++) {
+            //we have to go through all properties, to un-target any that aren't selected.
+            var theProps = getPropertiesThatCanHaveExpressionsFromLayer(theComp.layer(i));
+            for (var p = 0; p < theProps.length; p++){
+                var newID = getExpressionID(theProps[p]);
+                if (newID) {
+                    addItemToList(newID, idList);
+                }
+            }
+        }
+        return idList;
     }
     
     function removeTargets (expressionID) {
@@ -355,9 +387,9 @@
     function msg(msgText) {
         thisObj.idText1.text = msgText.replace(/\n.*/, "");
         thisObj.idText2.text = (msgText.split("\n").length > 1) ?
-            msgText.replace(/[^\n]*\n+/, "") :
-            "";
-            }
+        msgText.replace(/[^\n]*\n+/, "") :
+        "";
+    }
     
     //--------------------- go ahead and run ----------------------
     buildGUI(thisObj);
