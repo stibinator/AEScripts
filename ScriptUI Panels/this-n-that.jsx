@@ -71,12 +71,13 @@ function buildUI(thisObj) {
         };
         modeGrp.orientation = "row";
         modeGrp.alignChildren = "center";
-        modeGrp.margins = [12, 6, 6, 6];
+        modeGrp.margins = [12, 6, 6, 2];
+        modeGrp.spacing = 0;
         var layerMode = modeGrp.add("radiobutton", undefined, "Layers");
         layerMode.name = "layerMode";
-        layerMode.minimumSize = { width: 70, height: undefined };
+        layerMode.minimumSize = { width: 80, height: undefined };
         var keyMode = modeGrp.add("radiobutton", undefined, "Keys");
-        keyMode.minimumSize = { width: 70, height: undefined };
+        keyMode.minimumSize = { width: 80, height: undefined };
         var bttnGrp = pal.add("group");
         bttnGrp.orientation = "row";
         bttnGrp.margins = [0, 6, 0, 0];
