@@ -1,5 +1,5 @@
 // @target aftereffects
-var h = 0.004; //se https://blob.pureandapplied.com.au/planck-limit-for-ae/
+var h = 0.004; //see https://blob.pureandapplied.com.au/planck-limit-for-ae/
 function extendProps(theProps, inTime, outTime){
 
     for (var p=0, len=theProps.length; p < len ; p++) {
