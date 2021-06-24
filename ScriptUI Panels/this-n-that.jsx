@@ -4,114 +4,145 @@
 //selects nth layers
 /* global app, Panel */
 
-var scriptName = 'this-n-that';
+var scriptName = "this-n-that";
 var logicTypes = {
-    COUNT_SELECTED: 'count selected only',
-    XOR: 'xor (difference)',
-    OR: 'or (add)',
-    AND: 'and (intersect)',
-    SET: 'set'
-}
-
-
+    COUNT_SELECTED: "count selected only",
+    XOR: "xor (difference)",
+    OR: "or (add)",
+    AND: "and (intersect)",
+    SET: "set",
+};
 
 function buildUI(thisObj) {
-    var logicList = [logicTypes.SET, logicTypes.AND, logicTypes.OR, logicTypes.XOR, logicTypes.COUNT_SELECTED];
+    var logicList = [
+        logicTypes.SET,
+        logicTypes.AND,
+        logicTypes.OR,
+        logicTypes.XOR,
+        logicTypes.COUNT_SELECTED,
+    ];
     var pal;
 
     if (thisObj instanceof Panel) {
         pal = thisObj;
     } else {
-        pal = new Window('palette', scriptName, undefined, {
-            resizeable: true
+        pal = new Window("palette", scriptName, undefined, {
+            resizeable: true,
         });
     }
 
     if (pal !== null) {
-        var prefs = new myPrefs(
-            [{
-                    name: "layerMode",
-                    factoryDefault: true,
-                    prefType: "bool"
-                },
-                {
-                    name: "keyMode",
-                    factoryDefault: false,
-                    prefType: "bool"
-                },
-                {
-                    name: "nth",
-                    factoryDefault: 2,
-                    prefType: "integer"
-                },
-                {
-                    name: "offset",
-                    factoryDefault: 1,
-                    prefType: "integer"
-                },
-                {
-                    name: "randoz",
-                    factoryDefault: false,
-                    prefType: "bool"
-                },
-                {
-                    name: "logic",
-                    factoryDefault: 2,
-                    prefType: "int"
-                }
-            ])
-        var modeGrp = pal.add('group');
-        modeGrp.orientation = 'row';
+        var prefs = new myPrefs([
+            {
+                name: "layerMode",
+                factoryDefault: true,
+                prefType: "bool",
+            },
+            {
+                name: "keyMode",
+                factoryDefault: false,
+                prefType: "bool",
+            },
+            {
+                name: "nth",
+                factoryDefault: 2,
+                prefType: "integer",
+            },
+            {
+                name: "offset",
+                factoryDefault: 1,
+                prefType: "integer",
+            },
+            {
+                name: "randoz",
+                factoryDefault: false,
+                prefType: "bool",
+            },
+            {
+                name: "logic",
+                factoryDefault: 2,
+                prefType: "int",
+            },
+        ]);
+        var modeGrp = pal.add("panel");
+        modeGrp.minimumSize = {
+            width: 180,
+            height: undefined,
+        };
+        modeGrp.orientation = "row";
+        modeGrp.alignChildren = "center";
+        modeGrp.margins = [12, 6, 6, 6];
         var layerMode = modeGrp.add("radiobutton", undefined, "Layers");
         layerMode.name = "layerMode";
+        layerMode.minimumSize = { width: 70, height: undefined };
         var keyMode = modeGrp.add("radiobutton", undefined, "Keys");
-        var bttnGrp = pal.add('group');
-        bttnGrp.orientation = 'row';
-        var selectBttn = bttnGrp.add('button', undefined, 'select');
-        var deselectBttn = bttnGrp.add('button', undefined, 'deselect');
-        var selectionModePanel = pal.add('panel', undefined, 'select:');
-        selectionModePanel.orientation = 'column';
-        selectionModePanel.alignChildren = 'left';
-        selectionModePanel.size = {
+        keyMode.minimumSize = { width: 70, height: undefined };
+        var bttnGrp = pal.add("group");
+        bttnGrp.orientation = "row";
+        bttnGrp.margins = [0, 6, 0, 0];
+        bttnGrp.alignChildren = "left";
+        var selectBttn = bttnGrp.add("button", undefined, "select");
+        selectBttn.minimumSize = { width: 85, height: undefined };
+        var deselectBttn = bttnGrp.add("button", undefined, "deselect");
+        deselectBttn.minimumSize = { width: 85, height: undefined };
+        var selectionModePanel = pal.add("panel", undefined, "select:");
+        selectionModePanel.orientation = "column";
+        selectionModePanel.alignChildren = "left";
+        selectionModePanel.minimumSize = {
             width: 180,
-            height: undefined
+            height: undefined,
         };
-        var nthGrp = selectionModePanel.add('group');
-        nthGrp.orientation = 'row';
-        nthGrp.minimumSize = {
-            width: 120,
+        var nthGrp = selectionModePanel.add("group");
+        nthGrp.orientation = "row";
+        nthGrp.spacing = 4;
+        // nthGrp.minimumSize = {
+        //     width: 120,
+        //     height: undefined,
+        // };
+        var selectEveryTxt = nthGrp.add("staticText", undefined, "select every");
+        selectEveryTxt.minimumSize = {
+            width: 65,
             height: undefined
-        };
-        nthGrp.add('staticText', undefined, 'select every');
-        var nthText = nthGrp.add('editText', undefined, '');
+        }
+        var nthText = nthGrp.add("editText", undefined, "");
         nthText.name = "nth";
-        var suffixTxt = nthGrp.add('staticText', undefined, '');
+        var suffixTxt = nthGrp.add("staticText", undefined, "");
         nthText.minimumSize = {
             width: 30,
-            height: undefined
+            height: undefined,
         };
         suffixTxt.minimumSize = {
             width: 30,
-            height: undefined
+            height: undefined,
         };
-        var offsetGrp = selectionModePanel.add('group');
+        var offsetGrp = selectionModePanel.add("group");
         offsetGrp.minimumSize = {
             width: 120,
-            height: undefined
+            height: undefined,
         };
-        offsetGrp.add('staticText', undefined, 'starting at');
-        var offsetText = offsetGrp.add('editText', undefined, '');
+        offsetGrp.spacing = 4;
+        var startingAtTxt = offsetGrp.add("staticText", undefined, "starting at");
+        startingAtTxt.minimumSize = {
+            width: 65,
+            height: undefined
+        }
+        var offsetText = offsetGrp.add("editText", undefined, "");
+
         offsetText.name = "offset";
         offsetText.minimumSize = {
             width: 30,
-            height: undefined
+            height: undefined,
         };
-        var randomChckBx = selectionModePanel.add('checkbox', undefined, 'random');
-        randomChckBx.name = "randoz"
-        var logicGrp = pal.add('group');
-        logicGrp.orientation = 'row';
-        logicGrp.add('staticText', undefined, 'logic');
-        var logicDDown = logicGrp.add('dropDownList', undefined, logicList);
+        var randomChckBx = selectionModePanel.add(
+            "checkbox",
+            undefined,
+            "random"
+        );
+        randomChckBx.name = "randoz";
+        var logicGrp = pal.add("group");
+        logicGrp.orientation = "row";
+        logicGrp.add("staticText", undefined, "logic");
+        var logicDDown = logicGrp.add("dropDownList", undefined, logicList);
         logicDDown.name = "logic";
 
         // work in progress
@@ -135,45 +166,48 @@ function buildUI(thisObj) {
         nthText.text = prefs.prefs[nthText.name];
         logicDDown.selection = prefs.prefs[logicDDown.name];
         layerMode.value = prefs.prefs[layerMode.name];
-        keyMode.value = !(prefs.prefs[layerMode.name]);
+        keyMode.value = !prefs.prefs[layerMode.name];
         randomChckBx.value = prefs.prefs[randomChckBx.name];
 
-        //-------- callbacks ----------------------------- 
+        //-------- callbacks -----------------------------
 
-        layerMode.onClick =
-            randomChckBx.onClick =
-            function() {
-                prefs.setPref(this.name, this.value);
-            }
-
-        keyMode.onClick = function() {
-            prefs.setPref(layerMode.name, (!(keyMode.value)));
-        }
-
-        logicDDown.onChange = function() {
-            prefs.setPref(this.name, this.selection.index);
-        }
-
-        offsetText.onChange = function() {
-            var num = ((Math.abs(parseInt(offsetText.text, 10)) || 1));
-            offsetText.text = '' + num;
-            prefs.setPref(offsetText.name, num)
+        layerMode.onClick = randomChckBx.onClick = function () {
+            prefs.setPref(this.name, this.value);
+            updateNthText();
         };
 
-        nthText.onChange = function() {
-            var val = (Math.abs(parseInt(nthText.text, 10)) || 1);
-            nthText.text = '' + val;
+        keyMode.onClick = function () {
+            prefs.setPref(layerMode.name, !keyMode.value);
+            updateNthText();
+        };
+
+        logicDDown.onChange = function () {
+            prefs.setPref(this.name, this.selection.index);
+        };
+
+        offsetText.onChange = function () {
+            var num = Math.abs(parseInt(offsetText.text, 10)) || 1;
+            offsetText.text = "" + num;
+            prefs.setPref(offsetText.name, num);
+        };
+
+        nthText.onChange = function () {
+            updateNthText();
+        };
+
+        function updateNthText() {
+            var val = Math.abs(parseInt(nthText.text, 10)) || 1;
+            nthText.text = "" + val;
             prefs.setPref(nthText.name, val);
-            suffixTxt.text = getOrdinalSuffix(val);
+            suffixTxt.text = getOrdinalSuffix(val) + ((layerMode.value)? " layer" : " key");
         }
 
-        suffixTxt.text = getOrdinalSuffix(prefs[nthText.name]);
+        updateNthText()
 
-
-        selectBttn.onClick = function() {
+        selectBttn.onClick = function () {
             doTheThings(true);
-        }
-        deselectBttn.onClick = function() {
+        };
+        deselectBttn.onClick = function () {
             doTheThings(false);
         };
         // adjustBtn.onclick = selectLayerType("adjust");
@@ -186,8 +220,8 @@ function buildUI(thisObj) {
 
     // get ui values and do the stuff. Called by the select/deselect buttons.
     function doTheThings(sense) {
-        var nth = (parseInt(nthText.text, 10) || 1);
-        var offset = (parseInt(offsetText.text, 10) || 1);
+        var nth = parseInt(nthText.text, 10) || 1;
+        var offset = parseInt(offsetText.text, 10) || 1;
         var logic = logicDDown.selection.text;
         var randoz = randomChckBx.value;
         if (layerMode.value) {
@@ -211,21 +245,22 @@ buildUI(this);
 
 function findNth(i, nth, offset, sense) {
     // returns true if the index is the nth
-    // so much off-by-one!  
+    // so much off-by-one!
     var result;
     //setting sense to false inverts the output
-    if (nth === 1) { //de/select em all
-        return ((i >= offset - 1) && sense);
+    if (nth === 1) {
+        //de/select em all
+        return i >= offset - 1 && sense;
     }
 
     //selection based on index
-    result = ((i >= offset - 1) && (i - (offset - 1)) % nth === 0);
-    return (sense === result);
+    result = i >= offset - 1 && (i - (offset - 1)) % nth === 0;
+    return sense === result;
 }
 
 function randomizeIndexes(theIndexes, offset) {
     var nonRandomIndexes = theIndexes.slice(0, offset - 1);
-    var randomIndexes = theIndexes.slice(offset - theIndexes.length - 1)
+    var randomIndexes = theIndexes.slice(offset - theIndexes.length - 1);
     randomIndexes = shuffle(randomIndexes);
     return nonRandomIndexes.concat(randomIndexes);
 }
@@ -246,10 +281,10 @@ function makeLayerIndexArr(theComp, randoz, logic, offset) {
     }
     //..so that we can sort them for the random function
     if (randoz) {
-        theIndexes = randomizeIndexes(theIndexes, offset)
+        theIndexes = randomizeIndexes(theIndexes, offset);
     } else {
-        theIndexes = theIndexes.sort(function(a, b) {
-            return (a - b)
+        theIndexes = theIndexes.sort(function (a, b) {
+            return a - b;
         });
     }
     return theIndexes;
@@ -269,24 +304,28 @@ function makeKFIndexArr(theProperty, randoz, logic, offset) {
     }
     //..so that we can sort them for the random function
     if (randoz) {
-        theIndexes = randomizeIndexes(theIndexes, offset)
+        theIndexes = randomizeIndexes(theIndexes, offset);
     } else {
-        theIndexes = theIndexes.sort(function(a, b) {
-            return (a - b)
+        theIndexes = theIndexes.sort(function (a, b) {
+            return a - b;
         });
     }
     return theIndexes;
 }
-
 
 function selectLayers(sense, nth, offset, logic, randoz) {
     // do the hoo-hah
     var isNth;
     var isSelxd;
     var theIndexes = [];
-    app.beginUndoGroup('this-n-that');
+    app.beginUndoGroup("this-n-that");
     try {
-        theIndexes = makeLayerIndexArr(app.project.activeItem, randoz, logic, offset);
+        theIndexes = makeLayerIndexArr(
+            app.project.activeItem,
+            randoz,
+            logic,
+            offset
+        );
         var numIndexes = theIndexes.length;
 
         for (var i = 0; i < numIndexes; i++) {
@@ -295,23 +334,27 @@ function selectLayers(sense, nth, offset, logic, randoz) {
             // isNth = isNth & (originalLayers[theIndexes[i]].index >= offset);
             // apply the logic
             isSelxd = app.project.activeItem.layer(theIndexes[i]).selected;
-            if (logic === logicTypes.SET || logic === logicTypes.COUNT_SELECTED) {
+            if (
+                logic === logicTypes.SET ||
+                logic === logicTypes.COUNT_SELECTED
+            ) {
                 app.project.activeItem.layer(theIndexes[i]).selected = isNth;
             } else if (logic === logicTypes.AND) {
-                app.project.activeItem.layer(theIndexes[i]).selected = isNth & isSelxd;
+                app.project.activeItem.layer(theIndexes[i]).selected =
+                    isNth & isSelxd;
             } else if (logic === logicTypes.OR) {
-                app.project.activeItem.layer(theIndexes[i]).selected = isNth || isSelxd;
+                app.project.activeItem.layer(theIndexes[i]).selected =
+                    isNth || isSelxd;
             } else if (logic === logicTypes.XOR) {
-                app.project.activeItem.layer(theIndexes[i]).selected = (!(isNth & isSelxd)) & (isNth || isSelxd);
+                app.project.activeItem.layer(theIndexes[i]).selected =
+                    !(isNth & isSelxd) & (isNth || isSelxd);
             }
         }
-
     } catch (e) {
         alert(e);
     }
     app.endUndoGroup();
 }
-
 
 function selectKeys(sense, nth, offset, logic, randoz) {
     // do the hoo-hah
@@ -320,7 +363,7 @@ function selectKeys(sense, nth, offset, logic, randoz) {
     var isSelxd;
     var theIndexes = [];
 
-    app.beginUndoGroup('this-n-that');
+    app.beginUndoGroup("this-n-that");
     try {
         for (var p = 0; p < theProps.length; p++) {
             var theProp = theProps[p];
@@ -332,14 +375,20 @@ function selectKeys(sense, nth, offset, logic, randoz) {
                 isNth = findNth(i, nth, offset, sense);
                 // apply the logic
                 isSelxd = includes(selectedKFs, theIndexes[i]);
-                if (logic === logicTypes.SET || logic === logicTypes.COUNT_SELECTED) {
+                if (
+                    logic === logicTypes.SET ||
+                    logic === logicTypes.COUNT_SELECTED
+                ) {
                     theProp.setSelectedAtKey(theIndexes[i], isNth);
                 } else if (logic === logicTypes.AND) {
-                    theProp.setSelectedAtKey(theIndexes[i], (isNth & isSelxd));
+                    theProp.setSelectedAtKey(theIndexes[i], isNth & isSelxd);
                 } else if (logic === logicTypes.OR) {
-                    theProp.setSelectedAtKey(theIndexes[i], (isNth || isSelxd));
+                    theProp.setSelectedAtKey(theIndexes[i], isNth || isSelxd);
                 } else if (logic === logicTypes.XOR) {
-                    theProp.setSelectedAtKey(theIndexes[i], (!(isNth & isSelxd)) & (isNth || isSelxd));
+                    theProp.setSelectedAtKey(
+                        theIndexes[i],
+                        !(isNth & isSelxd) & (isNth || isSelxd)
+                    );
                 }
             }
         }
@@ -349,40 +398,40 @@ function selectKeys(sense, nth, offset, logic, randoz) {
     app.endUndoGroup();
 }
 
-
-
 function myPrefs(prefList) {
     this.prefs = {};
 
-    this.parsePref = function(val, prefType) {
+    this.parsePref = function (val, prefType) {
         switch (prefType) {
             case "integer":
                 return parseInt(val, 10);
             case "float":
                 return parseFloat(val);
             case "bool":
-                return (val === "true")
+                return val === "true";
             default:
-                return val
+                return val;
         }
-    }
+    };
 
-    this.getPref = function(preference) {
+    this.getPref = function (preference) {
         if (app.settings.haveSetting(scriptName, preference.name)) {
-            this.prefs[preference.name] = this.parsePref(app.settings.getSetting(scriptName, preference.name), preference.prefType);
+            this.prefs[preference.name] = this.parsePref(
+                app.settings.getSetting(scriptName, preference.name),
+                preference.prefType
+            );
         } else {
             this.prefs[preference.name] = preference.factoryDefault;
             this.setPref(preference.name, preference.factoryDefault);
         }
-    }
+    };
 
-    this.setPref = function(prefname, value) {
+    this.setPref = function (prefname, value) {
         if (this.prefs[prefname] !== value) {
             this.prefs[prefname] = value;
             app.settings.saveSetting(scriptName, prefname, value);
         }
-    }
-
+    };
 
     for (var p = 0; p < prefList.length; p++) {
         this.getPref(prefList[p]);
@@ -390,7 +439,9 @@ function myPrefs(prefList) {
 }
 
 function shuffle(array) {
-    var tmp, current, top = array.length;
+    var tmp,
+        current,
+        top = array.length;
 
     if (top)
         while (--top) {
@@ -405,26 +456,25 @@ function shuffle(array) {
 function getOrdinalSuffix(val) {
     var teens = val % 100;
     var ones = val % 10;
-    var suffixTxt = '';
-    if ((teens < 20 & teens > 10) || (ones > 3) || (ones === 0)) {
-        suffixTxt = 'th';
+    var suffixTxt = "";
+    if ((teens < 20) & (teens > 10) || ones > 3 || ones === 0) {
+        suffixTxt = "th";
     } else if (ones === 1) {
-        suffixTxt = 'st';
+        suffixTxt = "st";
     } else if (ones === 2) {
-        suffixTxt = 'nd';
+        suffixTxt = "nd";
     } else if (ones === 3) {
-        suffixTxt = 'rd';
+        suffixTxt = "rd";
     }
     return suffixTxt;
     // pal.layout.layout(recalculate);
 }
 
-
 function includes(arr, element) {
     var isInArr = false;
     for (var i = 0; i < arr.length; i++) {
         if (arr[i] == element) {
-            isInArr = true
+            isInArr = true;
         }
     }
     return isInArr;
