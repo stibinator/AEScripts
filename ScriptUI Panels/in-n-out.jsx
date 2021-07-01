@@ -4,8 +4,8 @@
 
 /* global app, Panel, CompItem, timeToCurrentFormat, currentFormatToTime, writeln */
 (function (thisObj) {
-    var scriptName = "pureandAppliedInNOut";
-
+    var scriptName = "In-n-Out";
+    var methods = {moveLayers: 0, trimLayers: 1, moveKeys: 2}
     var fns = {
         linear: "linear",
         exponential: "exponential",
@@ -160,6 +160,17 @@
         }
         return keyTime;
     }
+    function findLongestLayerLength(theComp) {
+        var longestLayer = 0;
+        for (var i = 1; i <= theComp.numLayers; i++) {
+            var theLayer = theComp.layer(i);
+            longestLayer = Math.max(
+                longestLayer,
+                Math.abs(theLayer.outPoint - theLayer.inPoint)
+            );
+        }
+        return longestLayer;
+    }
     // ------------- getKeyAttributes -------------
     //in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.
     function getKeyAttributes(theProperty, keyIndex) {
@@ -266,21 +277,37 @@
         return theNewKeys; //indices fo the newly created keys
     }
 
-    function crossFade(layerIndex, prevLayerIndex, amount, theComp) {
+    function crossFade(
+        layerIndex,
+        prevLayerIndex,
+        fade,
+        theComp,
+        clampToOverlap
+    ) {
         var incoming = theComp.layer(layerIndex);
         var outgoing = theComp.layer(prevLayerIndex);
-
-        var fadeStart =
-            outgoing.outPoint - amount * (outgoing.outPoint - incoming.inpoint);
+        var overlap = outgoing.outPoint - incoming.inPoint;
+        var fadeStart;
+        if (fade.proportional) {
+            fadeStart = outgoing.outPoint - (fade.amount / 100) * overlap;
+        } else {
+            fadeStart = outgoing.outPoint - fade.amount;
+        }
+        if (clampToOverlap) {
+            fadeStart = Math.max(fadeStart, incoming.inPoint);
+        }
         var fadeEnd = outgoing.outPoint + theComp.frameDuration;
         var opac = outgoing.transform.opacity;
-        var fadeStartValue = opac.valueAtTime(fadeStart);
-        for (var k = opac.numKeys; k > 1; k--) {
-            if ((opac.key(k).time > fadeStart) & (opac.key(k).time < fadeEnd)) {
-                opac.removeKey(k);
-            }
+        // var fadeStartValue = opac.valueAtTime(fadeStart, false);
+        var maxOpac = 0;
+        if (opac.numKeys === 0) {
+            maxOpac = opac.valueAtTime(0, false);
         }
-        opac.setValueAtTime(fadeStart, fadeStartValue);
+        for (var k = opac.numKeys; k >= 1; k--) {
+            maxOpac = Math.max(maxOpac, opac.keyValue(k));
+            opac.removeKey(k);
+        }
+        opac.setValueAtTime(fadeStart, maxOpac);
         opac.setValueAtTime(fadeEnd, 0);
     }
 
@@ -296,7 +323,11 @@
         theComp,
         method,
         firstInOrOut,
-        lastInOrOut
+        lastInOrOut,
+        doXFade,
+        xFadeProportional,
+        xFadeAmt,
+        clampFades
     ) {
         $.writeln(regularity);
         var shouldDoInPoints = doInPoints;
@@ -340,7 +371,7 @@
                 var newKeys = [];
                 var currentFirstKey = [];
 
-                if (method === 0) {
+                if (method === methods.moveLayers) {
                     // -------- move layers --------
                     var layerLength =
                         theLayers[0].outPoint - theLayers[0].inPoint;
@@ -362,7 +393,7 @@
                     ) {
                         lastTime += layerLength;
                     }
-                } else if (method === 2) {
+                } else if (method === methods.moveKeys) {
                     // -------- move keys  --------
                     var keyDif =
                         findLastSelectedKey(theLayers[0]) -
@@ -545,6 +576,26 @@
                         theProp.setSelectedAtKey(newKeys[n].keyIndxs[k], true);
                     }
                 }
+                //add crossfades after in and out points have veen set
+                if (doXFade && (method === methods.moveLayers || method === methods.trimLayers)) {
+                    var fadeTime = xFadeProportional
+                        ? parseFloat(xFadeAmt, 10)
+                        : currentFormatToTime(xFadeAmt, theComp.frameRate);
+                    for (var i = 0; i < numLayers; i++) {
+                        if (i < theLayers.length - 1) {
+                            crossFade(
+                                theLayers[i + 1].index,
+                                theLayers[i].index,
+                                {
+                                    proportional: xFadeProportional,
+                                    amount: fadeTime,
+                                },
+                                theComp,
+                                clampFades
+                            );
+                        }
+                    }
+                }
             }
         }
     }
@@ -562,7 +613,7 @@
         var theWindow =
             thisObj instanceof Panel
                 ? thisObj
-                : new Window("palette", thisObj.scriptTitle, undefined, {
+                : new Window("palette", scriptName, undefined, {
                       resizeable: true,
                   });
 
@@ -605,7 +656,7 @@
         var methodCheckBoxes = [moveChckBox, trimChckBox, keysChckBox];
         var method = {
             name: "method",
-            value: 0,
+            value: methods.moveLayers,
             choices: methodCheckBoxes,
         };
         // var slideChckBox = methodGrp.add('radiobutton', [undefined, undefined, 76, 16], 'slide');
@@ -738,11 +789,18 @@
             undefined,
             "cross fade"
         );
-        var crossFadeBttn = crossFadePanel.add(
-            "button",
+        var addXFadeGrp = crossFadePanel.add("group");
+        var crossFadeChkBx = addXFadeGrp.add(
+            "checkbox",
             undefined,
             "add crossfade"
         );
+        var percentRdio = addXFadeGrp.add(
+            "radiobutton",
+            undefined,
+            "% overlap"
+        );
+        var framesRdio = addXFadeGrp.add("radiobutton", undefined, "time");
         var crossFadeGrp = crossFadePanel.add(
             "group{orientation:'row',  alignChildren:'left'}"
         );
@@ -750,13 +808,18 @@
             "slider",
             undefined,
             100,
-            -200,
+            0,
             100
         );
         var crossFadeEdit = crossFadeGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
-            "" + crossFadeSlider.value
+            ""
+        );
+        var clampFadesChkBx = crossFadePanel.add(
+            "checkbox",
+            undefined,
+            "clamp fades to overlap"
         );
         crossFadeSlider.edit = crossFadeEdit;
         crossFadeEdit.slider = crossFadeSlider;
@@ -776,11 +839,13 @@
                     width: 140,
                     height: 10,
                 };
+        // checkbox sizes
         moveChckBox.size =
             trimChckBox.size =
             keysChckBox.size =
             inChckBox.size =
             outChckBox.size =
+            crossFadeChkBx.size =
                 {
                     width: 70,
                     height: 20,
@@ -794,7 +859,7 @@
             crossFadeEdit.size =
             firstBttn.size =
             lastBttn.size =
-            crossFadeBttn.size =
+            crossFadeChkBx.size =
                 {
                     width: 80,
                     height: 22,
@@ -850,9 +915,24 @@
                 prefType: "integer",
             },
             {
+                name: "crossFadeChkBx",
+                factoryDefault: false,
+                prefType: "bool",
+            },
+            {
                 name: "crossFadeSlider",
                 factoryDefault: 0,
                 prefType: "float",
+            },
+            {
+                name: "percentRdio",
+                factoryDefault: true,
+                prefType: "bool",
+            },
+            {
+                name: "clampFadesChkBx",
+                factoryDefault: true,
+                prefType: "bool",
             },
         ]);
         firstInOrOutDD.name = "firstInOrOutDDselection";
@@ -862,21 +942,26 @@
         regularitySlider.name = "regularitySliderValue";
         orderDropDown.name = "orderDropDownselection";
         pwrSlider.name = "pwrSlidervalue";
+        crossFadeChkBx.name = "crossFadeChkBx";
         crossFadeSlider.name = "crossFadeSlider";
+        percentRdio.name = "percentRdio";
+        clampFadesChkBx.name = "clampFadesChkBx";
 
         inChckBox.value = prefs.prefs[inChckBox.name];
         pwrSlider.value = prefs.prefs[pwrSlider.name];
         regularitySlider.value = prefs.prefs[regularitySlider.name];
         method.value = prefs.prefs[method.name];
+        crossFadeChkBx.value = prefs.prefs[crossFadeChkBx.name];
         crossFadeSlider.value = prefs.prefs[crossFadeSlider.name];
-
-        methodCheckBoxes[method.value].value = true;
-
+        percentRdio.value = prefs.prefs[percentRdio.name];
+        framesRdio.value = !percentRdio.value;
+        clampFadesChkBx.value = prefs.prefs[clampFadesChkBx.name];
         firstInOrOutDD.selection = prefs.prefs[firstInOrOutDD.name];
         lastInOrOutDD.selection = prefs.prefs[lastInOrOutDD.name];
         fnTypeDropDown.selection = prefs.prefs[fnTypeDropDown.name];
         orderDropDown.selection = prefs.prefs[orderDropDown.name];
 
+        methodCheckBoxes[method.value].value = true;
         firstSlider.value = 0;
         lastSlider.value = 100;
         firstSlider.textBox = firstHmsfText;
@@ -1050,7 +1135,9 @@
                         outChckBox.text = "out points";
                     }
                     method.value =
-                        1 * trimChckBox.value + 2 * keysChckBox.value; //0 if move, 1 if trim, 2 if keys
+                        methods.moveLayers * moveChckBox.value + 
+                        methods.trimLayers * trimChckBox.value +
+                        methods.moveKeys * keysChckBox.value; //0 if move, 1 if trim, 2 if keys
                     prefs.writePrefs({
                         name: method.name,
                         value: method.value,
@@ -1062,6 +1149,64 @@
                 doTheThings();
             }
         };
+
+        function updateCfText() {
+            var roundedVal = Math.round(crossFadeSlider.value * 10) / 10;
+            theComp = app.project.activeItem;
+
+            crossFadeEdit.text =
+                "" +
+                (percentRdio.value
+                    ? roundedVal + " %"
+                    : timeToCurrentFormat(
+                          (crossFadeSlider.value / 100) *
+                              findLongestLayerLength(theComp),
+                          app.project.activeItem.frameRate
+                      ));
+        }
+        updateCfText();
+
+        function updateCFSlider() {
+            try {
+                if (framesRdio.value) {
+                    crossFadeSlider.value =
+                        (100 *
+                            currentFormatToTime(
+                                crossFadeEdit.text,
+                                app.project.activeItem.frameRate,
+                                true
+                            )) /
+                        findLongestLayerLength;
+                    crossFadeEdit.text = timeToCurrentFormat(
+                        crossFadeSlider.value,
+                        app.project.activeItem.frameRate
+                    );
+                } else {
+                    crossFadeSlider.value = parseFloat(crossFadeEdit.text);
+                }
+            } catch (e) {
+                updateCfText();
+            }
+        }
+        crossFadeEdit.onChange = function () {
+            updateCFSlider();
+            doTheThings();
+        };
+        percentRdio.onClick =
+            crossFadeChkBx.onClick =
+            framesRdio.onClick =
+            crossFadeSlider.onChange =
+            clampFadesChkBx.onClick =
+                function () {
+                    updateCfText();
+                    prefs.writePrefs({
+                        name: this.name,
+                        value: this.value,
+                    });
+                    if (crossFadeChkBx.value) {
+                        doTheThings();
+                    }
+                };
 
         // --------- Call down the hoo-hah -------
         function doTheThings() {
@@ -1079,7 +1224,11 @@
                     theComp, //theComp
                     method.value, //method
                     firstInOrOutDD.selection.index, //firstInOrOut
-                    lastInOrOutDD.selection.index
+                    lastInOrOutDD.selection.index,
+                    crossFadeChkBx.value,
+                    percentRdio.value,
+                    crossFadeEdit.text,
+                    clampFadesChkBx.value
                 );
                 app.endUndoGroup();
             }
