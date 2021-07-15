@@ -25,19 +25,18 @@
     app.beginUndoGroup("moveAnchorToMiddleOfComp");
     var curItem = app.project.activeItem;
     //check that some layers have been selected
-    if (theLayers.length == 0) {
-        // no layers selected = all layers
-        for (var i = 1; i <= curItem.numLayers; i++) {
-            theLayers.push(curItem.layer(i));
-        }
+    if (curItem == null || !(curItem instanceof CompItem)) {
+        alert("Please choose a comp and run the script again");
     } else {
-        theLayers = curItem.selectedLayers;
+        var theLayers = curItem.selectedLayers;
+        // no layers selected = all layers
         if (theLayers.length == 0) {
-            alert("Please choose at least one layer and run the script again");
-        } else {
-            for (var i = 0; i < theLayers.length; i++) {
-                setAnchorPointToCenterOfComp(curItem, theLayers[i]);
+            for (var i = 1; i <= curItem.numLayers; i++) {
+                theLayers.push(curItem.layer(i));
             }
+        }
+        for (var i = 0; i < theLayers.length; i++) {
+            setAnchorPointToCenterOfComp(curItem, theLayers[i]);
         }
     }
     app.endUndoGroup();
