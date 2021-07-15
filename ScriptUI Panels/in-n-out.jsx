@@ -1,11 +1,10 @@
 // @target aftereffects
 // In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
-// @target aftereffects
 
 /* global app, Panel, CompItem, timeToCurrentFormat, currentFormatToTime, writeln */
 (function (thisObj) {
     var scriptName = "In-n-Out";
-    var methods = {moveLayers: 0, trimLayers: 1, moveKeys: 2}
+    var methods = { moveLayers: 0, trimLayers: 1, moveKeys: 2 };
     var fns = {
         linear: "linear",
         exponential: "exponential",
@@ -277,22 +276,12 @@
         return theNewKeys; //indices fo the newly created keys
     }
 
-    function crossFade(
-        layerIndex,
-        prevLayerIndex,
-        fade,
-        theComp,
-        clampToOverlap
-    ) {
+    function fade(layerIndex, prevLayerIndex, inOrOut, fadeTime, theComp, clampToOverlap) {
         var incoming = theComp.layer(layerIndex);
         var outgoing = theComp.layer(prevLayerIndex);
         var overlap = outgoing.outPoint - incoming.inPoint;
-        var fadeStart;
-        if (fade.proportional) {
-            fadeStart = outgoing.outPoint - (fade.amount / 100) * overlap;
-        } else {
-            fadeStart = outgoing.outPoint - fade.amount;
-        }
+        fadeStart = outgoing.outPoint - fadeTime;
+        
         if (clampToOverlap) {
             fadeStart = Math.max(fadeStart, incoming.inPoint);
         }
@@ -324,9 +313,8 @@
         method,
         firstInOrOut,
         lastInOrOut,
-        doXFade,
-        xFadeProportional,
-        xFadeAmt,
+        fadeIn,
+        fadeOut,
         clampFades
     ) {
         $.writeln(regularity);
@@ -577,19 +565,14 @@
                     }
                 }
                 //add crossfades after in and out points have veen set
-                if (doXFade && (method === methods.moveLayers || method === methods.trimLayers)) {
-                    var fadeTime = xFadeProportional
-                        ? parseFloat(xFadeAmt, 10)
-                        : currentFormatToTime(xFadeAmt, theComp.frameRate);
+                if (fadeIn) {
                     for (var i = 0; i < numLayers; i++) {
                         if (i < theLayers.length - 1) {
-                            crossFade(
+                            fade(
                                 theLayers[i + 1].index,
                                 theLayers[i].index,
-                                {
-                                    proportional: xFadeProportional,
-                                    amount: fadeTime,
-                                },
+                                IN,
+                                fadeIn,
                                 theComp,
                                 clampFades
                             );
@@ -784,53 +767,54 @@
         regularitySlider.invokeRealTime = true;
 
         // -------- crossfadePanel -------------
-        var crossFadePanel = mainGroup.add(
+        var fadePanel = mainGroup.add(
             'panel{alignChildren: "left"}',
             undefined,
             "cross fade"
         );
-        var addXFadeGrp = crossFadePanel.add("group");
-        var crossFadeChkBx = addXFadeGrp.add(
-            "checkbox",
-            undefined,
-            "add crossfade"
-        );
-        var percentRdio = addXFadeGrp.add(
-            "radiobutton",
-            undefined,
-            "% overlap"
-        );
-        var framesRdio = addXFadeGrp.add("radiobutton", undefined, "time");
-        var crossFadeGrp = crossFadePanel.add(
+        fadePanel.spacing = [0, 0, 0, 0];
+        var fadeInChkBx = fadePanel.add("checkbox", undefined, "add fade in");
+        var fadeInGrp = fadePanel.add(
             "group{orientation:'row',  alignChildren:'left'}"
         );
-        var crossFadeSlider = crossFadeGrp.add(
-            "slider",
-            undefined,
-            100,
-            0,
-            100
-        );
-        var crossFadeEdit = crossFadeGrp.add(
+        fadeInGrp.margins = [0, 0, 0, 12];
+        var fadeInSlider = fadeInGrp.add("slider", undefined, 100, 0, 100);
+        var fadeInEdit = fadeInGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
             ""
         );
-        var clampFadesChkBx = crossFadePanel.add(
+        var fadeOutChkBx = fadePanel.add("checkbox", undefined, "add fade Out");
+        fadeOutChkBx.margins = [20, 12, 0, 0];
+        var fadeOutGrp = fadePanel.add(
+            "group{orientation:'row',  alignChildren:'left'}"
+        );
+        fadeOutGrp.margins = [0, 0, 0, 12];
+        var fadeOutSlider = fadeOutGrp.add("slider", undefined, 100, 0, 100);
+        var fadeOutEdit = fadeOutGrp.add(
+            "editText",
+            [undefined, undefined, 66, 28],
+            ""
+        );
+        var clampFadesChkBx = fadePanel.add(
             "checkbox",
             undefined,
-            "clamp fades to overlap"
+            "limit fades to overlap"
         );
-        crossFadeSlider.edit = crossFadeEdit;
-        crossFadeEdit.slider = crossFadeSlider;
-        crossFadeSlider.invokeRealTime = false;
+
+        // associate sliders with text
+        fadeInSlider.edit = fadeInEdit;
+        fadeInEdit.slider = fadeInSlider;
+        fadeOutSlider.edit = fadeOutEdit;
+        fadeOutEdit.slider = fadeOutSlider;
 
         // slider sizes
         orderDropDown.size =
             firstInOrOutDD.size =
             lastInOrOutDD.size =
             fnTypeDropDown.size =
-            crossFadeSlider.size =
+            fadeInSlider.size =
+            fadeOutSlider.size =
             pwrSlider.size =
             regularitySlider.size =
             firstSlider.size =
@@ -845,7 +829,6 @@
             keysChckBox.size =
             inChckBox.size =
             outChckBox.size =
-            crossFadeChkBx.size =
                 {
                     width: 70,
                     height: 20,
@@ -856,10 +839,10 @@
             lastHmsfText.size =
             pwrEdit.size =
             regularityEdit.size =
-            crossFadeEdit.size =
+            fadeInEdit.size =
+            fadeOutEdit.size =
             firstBttn.size =
             lastBttn.size =
-            crossFadeChkBx.size =
                 {
                     width: 80,
                     height: 22,
@@ -915,19 +898,19 @@
                 prefType: "integer",
             },
             {
-                name: "crossFadeChkBx",
+                name: "fadeInChkBx",
                 factoryDefault: false,
                 prefType: "bool",
             },
             {
-                name: "crossFadeSlider",
-                factoryDefault: 0,
+                name: "fadeInSlider",
+                factoryDefault: 50,
                 prefType: "float",
             },
             {
-                name: "percentRdio",
-                factoryDefault: true,
-                prefType: "bool",
+                name: "fadeOutSlider",
+                factoryDefault: 50,
+                prefType: "float",
             },
             {
                 name: "clampFadesChkBx",
@@ -942,19 +925,20 @@
         regularitySlider.name = "regularitySliderValue";
         orderDropDown.name = "orderDropDownselection";
         pwrSlider.name = "pwrSlidervalue";
-        crossFadeChkBx.name = "crossFadeChkBx";
-        crossFadeSlider.name = "crossFadeSlider";
-        percentRdio.name = "percentRdio";
+        fadeInChkBx.name = "fadeInChkBx";
+        fadeInSlider.name = "fadeInSlider";
+        fadeOutChkBx.name = "fadeOutChkBx";
+        fadeOutSlider.name = "fadeOutSlider";
         clampFadesChkBx.name = "clampFadesChkBx";
 
         inChckBox.value = prefs.prefs[inChckBox.name];
         pwrSlider.value = prefs.prefs[pwrSlider.name];
         regularitySlider.value = prefs.prefs[regularitySlider.name];
         method.value = prefs.prefs[method.name];
-        crossFadeChkBx.value = prefs.prefs[crossFadeChkBx.name];
-        crossFadeSlider.value = prefs.prefs[crossFadeSlider.name];
-        percentRdio.value = prefs.prefs[percentRdio.name];
-        framesRdio.value = !percentRdio.value;
+        fadeInChkBx.value = prefs.prefs[fadeInChkBx.name];
+        fadeInSlider.value = prefs.prefs[fadeInSlider.name];
+        fadeOutChkBx.value = prefs.prefs[fadeOutChkBx.name];
+        fadeOutSlider.value = prefs.prefs[fadeOutSlider.name];
         clampFadesChkBx.value = prefs.prefs[clampFadesChkBx.name];
         firstInOrOutDD.selection = prefs.prefs[firstInOrOutDD.name];
         lastInOrOutDD.selection = prefs.prefs[lastInOrOutDD.name];
@@ -1106,7 +1090,7 @@
             doTheThings();
         };
 
-        regularityEdit.onChange = crossFadeEdit.onchange = function () {
+        regularityEdit.onChange = function () {
             var val = parseFloat(this.text, 10);
             if (!isNaN(val)) {
                 this.slider.value = val;
@@ -1114,7 +1098,7 @@
             }
         };
 
-        regularitySlider.onChange = crossFadeSlider.onChange = function () {
+        regularitySlider.onChange = function () {
             this.edit.text = "" + Math.round(this.value * 10) / 10;
             if (this.invokeRealTime) {
                 doTheThings();
@@ -1135,7 +1119,7 @@
                         outChckBox.text = "out points";
                     }
                     method.value =
-                        methods.moveLayers * moveChckBox.value + 
+                        methods.moveLayers * moveChckBox.value +
                         methods.trimLayers * trimChckBox.value +
                         methods.moveKeys * keysChckBox.value; //0 if move, 1 if trim, 2 if keys
                     prefs.writePrefs({
@@ -1150,60 +1134,57 @@
             }
         };
 
-        function updateCfText() {
-            var roundedVal = Math.round(crossFadeSlider.value * 10) / 10;
+        function updateCfText(theSlidr) {
             theComp = app.project.activeItem;
-
-            crossFadeEdit.text =
-                "" +
-                (percentRdio.value
-                    ? roundedVal + " %"
-                    : timeToCurrentFormat(
-                          (crossFadeSlider.value / 100) *
-                              findLongestLayerLength(theComp),
-                          app.project.activeItem.frameRate
-                      ));
+            var longestLayer = findLongestLayerLength(theComp);
+            theSlidr.edit.text = timeToCurrentFormat(
+                (theSlidr.value / 100) * longestLayer,
+                app.project.activeItem.frameRate
+            );
         }
-        updateCfText();
 
-        function updateCFSlider() {
-            try {
-                if (framesRdio.value) {
-                    crossFadeSlider.value =
-                        (100 *
-                            currentFormatToTime(
-                                crossFadeEdit.text,
-                                app.project.activeItem.frameRate,
-                                true
-                            )) /
-                        findLongestLayerLength;
-                    crossFadeEdit.text = timeToCurrentFormat(
-                        crossFadeSlider.value,
-                        app.project.activeItem.frameRate
-                    );
-                } else {
-                    crossFadeSlider.value = parseFloat(crossFadeEdit.text);
-                }
-            } catch (e) {
-                updateCfText();
-            }
+        function updateCFSlider(theEdit) {
+            // try {
+            theEdit.slider.value =
+                (100 *
+                    currentFormatToTime(
+                        theEdit.text,
+                        app.project.activeItem.frameRate,
+                        true
+                    )) /
+                longestLayer;
+            theEdit.text = timeToCurrentFormat(
+                theEdit.slider.value,
+                app.project.activeItem.frameRate
+            );
+            // } catch (e) {
+            //     updateCfText();
+            // }
         }
-        crossFadeEdit.onChange = function () {
-            updateCFSlider();
+        updateCfText(fadeInSlider);
+        updateCfText(fadeOutSlider);
+
+        fadeOutSlider.onChange = fadeInSlider.onChange = function () {
+            updateCfText(this);
             doTheThings();
         };
-        percentRdio.onClick =
-            crossFadeChkBx.onClick =
-            framesRdio.onClick =
-            crossFadeSlider.onChange =
+        fadeOutEdit.onChange = fadeInEdit.onChange = function () {
+            updateCFSlider(this);
+            doTheThings();
+        };
+
+        fadeOutSlider.onChanging = fadeInSlider.onChanging = function () {
+            updateCfText(this);
+        };
+        fadeInChkBx.onClick =
+            fadeOutChkBx.onClick =
             clampFadesChkBx.onClick =
                 function () {
-                    updateCfText();
                     prefs.writePrefs({
                         name: this.name,
                         value: this.value,
                     });
-                    if (crossFadeChkBx.value) {
+                    if (fadeInChkBx.value || fadeOutChkBx.value) {
                         doTheThings();
                     }
                 };
@@ -1225,9 +1206,18 @@
                     method.value, //method
                     firstInOrOutDD.selection.index, //firstInOrOut
                     lastInOrOutDD.selection.index,
-                    crossFadeChkBx.value,
-                    percentRdio.value,
-                    crossFadeEdit.text,
+                    fadeInChkBx.value
+                        ? currentFormatToTime(
+                              fadeInEdit.text,
+                              theComp.frameRate
+                          )
+                        : false,
+                    fadeOutChkBx.value
+                        ? currentFormatToTime(
+                              fadeOutEdit.text,
+                              theComp.frameRate
+                          )
+                        : false,
                     clampFadesChkBx.value
                 );
                 app.endUndoGroup();

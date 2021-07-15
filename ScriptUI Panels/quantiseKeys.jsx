@@ -1,4 +1,4 @@
-﻿// @target aftereffects
+// @target aftereffects
 
 function quantiseKeyFrames(timeQuantisation, valQuantisation) {
   app.beginUndoGroup('quantise keyframe');
@@ -60,10 +60,10 @@ function buildUI(thisObj) {
   }
   pal.add('staticText', undefined, 'Quantise time to how many whole keyframes:');
   var timeQSlider = pal.add('slider', undefined, 1, 0, 100);
-  var timeQEditText = pal.add('editText', undefined, parseInt(timeQSlider.value, 10));
+  var timeQEditText = pal.add('editText', udefined, parseInt(timeQSlider.value, 10));
   pal.add('staticText', undefined, 'Quantise values to how many pixels:');
   var valueQSlider = pal.add('slider', undefined, 1, 0, 100);
-  var valueQEditText = pal.add('editText', undefined, parseInt(valueQSlider.value, 10));
+  var valueQEditText = pal.add('editText', udefined, parseInt(valueQSlider.value, 10));
   // var selectedOnlyCheckBox = pal.add('checkbox', undefined, true, 'selected KFs
   // only')
   var quantisor = pal.add('button', undefined, 'quantise keys');
