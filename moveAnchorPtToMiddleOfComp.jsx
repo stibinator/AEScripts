@@ -1,5 +1,4 @@
 // @target aftereffects
-//this is where the hoo-hah happens
 (function () {
     function setAnchorPointToCenterOfComp(comp, theLayer) {
         var compCenter = [comp.width / 2, comp.height / 2, 0];
@@ -10,7 +9,6 @@
             var sc = theLayers[i].scale.value / 100;
             var topFrontLeft = Array(3); //the position in comp space of the top, front, left corner of a layer
             var newAP = [0, 0, 0]; //the new anchor point
-
 
             for (var j = 0; j < 3; j++) {
                 topFrontLeft[j] =
@@ -27,8 +25,11 @@
     app.beginUndoGroup("moveAnchorToMiddleOfComp");
     var curItem = app.project.activeItem;
     //check that some layers have been selected
-    if (curItem == null || !(curItem instanceof CompItem)) {
-        alert("Please choose at least one layer and run the script again");
+    if (theLayers.length == 0) {
+        // no layers selected = all layers
+        for (var i = 1; i <= curItem.numLayers; i++) {
+            theLayers.push(curItem.layer(i));
+        }
     } else {
         theLayers = curItem.selectedLayers;
         if (theLayers.length == 0) {
