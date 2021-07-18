@@ -16,13 +16,14 @@
         index: "index",
         random: "random",
         selection: "selection",
-        current: "current order",
+        currentLyr: "currentLyr order",
         alphabetical: "alphabetical",
     };
 
     var IN = 0;
     var OUT = 1;
-    var inAndOut = ["in point", "out point"];
+    var inAndOutPoints = ["in point", "out point"];
+    var inAndOutKeys = ["first key", "last key"];
 
     function MyPrefs(prefList) {
         this.parsePref = function (val, prefType) {
@@ -276,19 +277,39 @@
         return theNewKeys; //indices fo the newly created keys
     }
 
-    function fade(layerIndex, prevLayerIndex, inOrOut, fadeTime, theComp, clampToOverlap) {
-        var incoming = theComp.layer(layerIndex);
-        var outgoing = theComp.layer(prevLayerIndex);
-        var overlap = outgoing.outPoint - incoming.inPoint;
-        fadeStart = outgoing.outPoint - fadeTime;
-        
+    function fade(
+        theComp,
+        prevLayerIndex,
+        curLayerIndex,
+        nextLayerIndex,
+        fadeInTime,
+        fadeOutTime,
+        clampToOverlap
+    ) {
+        var frame = theComp.frameDuration;
+        var currentLyr = theComp.layer(curLayerIndex);
+        var curInPoint = Math.min(currentLyr.inPoint, currentLyr.outPoint); //reversed layers have their outpoints before their inPoints
+        var curOutPoint = Math.max(currentLyr.inPoint, currentLyr.outPoint);
+        var fadeInStart = curInPoint - frame;
+        var fadeInEnd = fadeInStart + fadeInTime;
+        var fadeOutEnd = curOutPoint + frame;
+        var fadeOutStart = fadeOutEnd - fadeOutTime;
         if (clampToOverlap) {
-            fadeStart = Math.max(fadeStart, incoming.inPoint);
+            if (prevLayerIndex) {
+                var prev = theComp.layer(prevLayerIndex);
+                var prevOutPoint = Math.max(prev.inPoint, prev.outPoint);
+                fadeInEnd = Math.min(fadeInEnd, prevOutPoint);
+            }
+            if (nextLayerIndex) {
+                var next = theComp.layer(nextLayerIndex);
+                var nextInPoint = Math.min(next.inPoint, next.outPoint);
+                fadeOutStart = Math.max(fadeOutStart, nextInPoint);
+            }
         }
-        var fadeEnd = outgoing.outPoint + theComp.frameDuration;
-        var opac = outgoing.transform.opacity;
+
         // var fadeStartValue = opac.valueAtTime(fadeStart, false);
         var maxOpac = 0;
+        var opac = currentLyr.transform.opacity;
         if (opac.numKeys === 0) {
             maxOpac = opac.valueAtTime(0, false);
         }
@@ -296,12 +317,19 @@
             maxOpac = Math.max(maxOpac, opac.keyValue(k));
             opac.removeKey(k);
         }
-        opac.setValueAtTime(fadeStart, maxOpac);
-        opac.setValueAtTime(fadeEnd, 0);
+        if (fadeInEnd > fadeInStart) {
+            opac.setValueAtTime(fadeInStart, 0);
+            opac.setValueAtTime(fadeInEnd, maxOpac);
+        }
+        if (fadeOutStart < fadeOutEnd) {
+            opac.setValueAtTime(fadeOutStart, maxOpac);
+            opac.setValueAtTime(fadeOutEnd, 0);
+        }
     }
 
     //here comes the hoo-ha
     function sequenceLayers(
+        theComp,
         order,
         firstTime,
         lastTime,
@@ -309,7 +337,6 @@
         easePower,
         regularity,
         doInPoints,
-        theComp,
         method,
         firstInOrOut,
         lastInOrOut,
@@ -337,8 +364,8 @@
                             return 1 - Math.random() * 2;
                         });
                         break;
-                    // ---------- current -------------
-                    case orders.current:
+                    // ---------- currentLyr -------------
+                    case orders.currentLyr:
                         theLayers.sort(function (a, b) {
                             return a.inPoint - b.inPoint;
                         });
@@ -565,18 +592,19 @@
                     }
                 }
                 //add crossfades after in and out points have veen set
-                if (fadeIn) {
+                if (fadeIn || fadeOut) {
                     for (var i = 0; i < numLayers; i++) {
-                        if (i < theLayers.length - 1) {
-                            fade(
-                                theLayers[i + 1].index,
-                                theLayers[i].index,
-                                IN,
-                                fadeIn,
-                                theComp,
-                                clampFades
-                            );
-                        }
+                        fade(
+                            theComp,
+                            i > 0 ? theLayers[i - 1].index : 0,
+                            theLayers[i].index,
+                            i < theLayers.length - 1
+                                ? theLayers[i + 1].index
+                                : 0,
+                            fadeIn,
+                            fadeOut,
+                            clampFades
+                        );
                     }
                 }
             }
@@ -664,11 +692,12 @@
         var firstInOutCurrentGrp = firstPanel.add(
             "group{orientation:'row',  alignChildren:'left'}"
         );
-        var firstInOrOutDD = firstInOutCurrentGrp.add(
+        var firstInOrOutPtDD = firstInOutCurrentGrp.add(
             "dropDownList",
             undefined,
-            inAndOut
+            inAndOutPoints
         );
+
         var firstBttn = firstInOutCurrentGrp.add(
             "button",
             undefined,
@@ -693,11 +722,12 @@
         var lastInOutCurrentGrp = lastPanel.add(
             "group{orientation:'row',  alignChildren:'left'}"
         );
-        var lastInOrOutDD = lastInOutCurrentGrp.add(
+        var lastInOrOutPtDD = lastInOutCurrentGrp.add(
             "dropDownList",
             undefined,
-            inAndOut
+            inAndOutPoints
         );
+
         var lastBttn = lastInOutCurrentGrp.add(
             "button",
             undefined,
@@ -778,7 +808,7 @@
             "group{orientation:'row',  alignChildren:'left'}"
         );
         fadeInGrp.margins = [0, 0, 0, 12];
-        var fadeInSlider = fadeInGrp.add("slider", undefined, 100, 0, 100);
+        var fadeInSlider = fadeInGrp.add("slider", undefined, 20, 0, 100);
         var fadeInEdit = fadeInGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
@@ -790,7 +820,7 @@
             "group{orientation:'row',  alignChildren:'left'}"
         );
         fadeOutGrp.margins = [0, 0, 0, 12];
-        var fadeOutSlider = fadeOutGrp.add("slider", undefined, 100, 0, 100);
+        var fadeOutSlider = fadeOutGrp.add("slider", undefined, 80, 0, 100);
         var fadeOutEdit = fadeOutGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
@@ -807,11 +837,13 @@
         fadeInEdit.slider = fadeInSlider;
         fadeOutSlider.edit = fadeOutEdit;
         fadeOutEdit.slider = fadeOutSlider;
+        fadeOutSlider.reversed = true;
+        fadeOutSlider.maxVal = 100;
 
         // slider sizes
         orderDropDown.size =
-            firstInOrOutDD.size =
-            lastInOrOutDD.size =
+            firstInOrOutPtDD.size =
+            lastInOrOutPtDD.size =
             fnTypeDropDown.size =
             fadeInSlider.size =
             fadeOutSlider.size =
@@ -911,6 +943,7 @@
                 name: "fadeOutSlider",
                 factoryDefault: 50,
                 prefType: "float",
+                prefType: "float",
             },
             {
                 name: "clampFadesChkBx",
@@ -918,8 +951,8 @@
                 prefType: "bool",
             },
         ]);
-        firstInOrOutDD.name = "firstInOrOutDDselection";
-        lastInOrOutDD.name = "lastInOrOutDDselection";
+        firstInOrOutPtDD.name = "firstInOrOutDDselection";
+        lastInOrOutPtDD.name = "lastInOrOutDDselection";
         fnTypeDropDown.name = "fnTypeDropDownselection";
         inChckBox.name = "inChckBoxvalue";
         regularitySlider.name = "regularitySliderValue";
@@ -940,8 +973,8 @@
         fadeOutChkBx.value = prefs.prefs[fadeOutChkBx.name];
         fadeOutSlider.value = prefs.prefs[fadeOutSlider.name];
         clampFadesChkBx.value = prefs.prefs[clampFadesChkBx.name];
-        firstInOrOutDD.selection = prefs.prefs[firstInOrOutDD.name];
-        lastInOrOutDD.selection = prefs.prefs[lastInOrOutDD.name];
+        firstInOrOutPtDD.selection = prefs.prefs[firstInOrOutPtDD.name];
+        lastInOrOutPtDD.selection = prefs.prefs[lastInOrOutPtDD.name];
         fnTypeDropDown.selection = prefs.prefs[fnTypeDropDown.name];
         orderDropDown.selection = prefs.prefs[orderDropDown.name];
 
@@ -996,14 +1029,16 @@
         };
 
         orderDropDown.onChange =
-            firstInOrOutDD.onChange =
-            lastInOrOutDD.onChange =
+            firstInOrOutPtDD.onChange =
+            lastInOrOutPtDD.onChange =
                 function () {
-                    prefs.writePrefs({
-                        name: this.name,
-                        value: this.selection.index,
-                    });
-                    doTheThings();
+                    if (this.selection) {
+                        prefs.writePrefs({
+                            name: this.name,
+                            value: this.selection.index,
+                        });
+                        doTheThings();
+                    }
                 };
 
         fnTypeDropDown.onChange = function () {
@@ -1105,12 +1140,25 @@
             }
         };
 
+        function updateFirstLastDDs(theDD) {
+            var curFirstSelection = theDD.selection.index;
+            theDD.visible = lastInOrOutPtDD.visible = !trimChckBox.value;
+            theDD.removeAll();
+            var newList = moveChckBox.value ? inAndOutPoints : inAndOutKeys;
+            for (var i = 0; i < newList.length; i++) {
+                theDD.add("item", newList[i]);
+            }
+            theDD.selection = curFirstSelection;
+        }
+        updateFirstLastDDs(firstInOrOutPtDD);
+        updateFirstLastDDs(lastInOrOutPtDD);
+
         trimChckBox.onClick =
             moveChckBox.onClick =
             keysChckBox.onClick =
                 function () {
-                    firstInOrOutDD.visible = lastInOrOutDD.visible =
-                        !trimChckBox.value;
+                    updateFirstLastDDs(firstInOrOutPtDD);
+                    updateFirstLastDDs(lastInOrOutPtDD);
                     if (keysChckBox.value) {
                         inChckBox.text = "first key";
                         outChckBox.text = "last key";
@@ -1136,10 +1184,16 @@
 
         function updateCfText(theSlidr) {
             theComp = app.project.activeItem;
-            var longestLayer = findLongestLayerLength(theComp);
+            var longestLayer = 10;
+            if (theComp) {
+                longestLayer = findLongestLayerLength(theComp);
+            }
+            sliderActualVal = theSlidr.reversed
+                ? theSlidr.maxVal - theSlidr.value
+                : theSlidr.value;
             theSlidr.edit.text = timeToCurrentFormat(
-                (theSlidr.value / 100) * longestLayer,
-                app.project.activeItem.frameRate
+                (sliderActualVal / 100) * longestLayer,
+                theComp ? app.project.activeItem.frameRate : 25
             );
         }
 
@@ -1195,6 +1249,7 @@
             if (theComp) {
                 app.beginUndoGroup("in-n-out sequence layers");
                 sequenceLayers(
+                    theComp, //theComp
                     orderDropDown.selection.text, //order
                     (theComp.duration * firstSlider.value) / 100, //firstTime
                     (theComp.duration * lastSlider.value) / 100, //lastTime
@@ -1202,23 +1257,22 @@
                     mapSliderToVal(pwrSlider.value), //easePower
                     regularitySlider.value / 100, //regularity
                     inChckBox.value, //doInPoints
-                    theComp, //theComp
                     method.value, //method
-                    firstInOrOutDD.selection.index, //firstInOrOut
-                    lastInOrOutDD.selection.index,
-                    fadeInChkBx.value
+                    firstInOrOutPtDD.selection.index, //firstInOrOut
+                    lastInOrOutPtDD.selection.index, //lastInOrOut
+                    fadeInChkBx.value //fadeIn
                         ? currentFormatToTime(
                               fadeInEdit.text,
                               theComp.frameRate
                           )
                         : false,
-                    fadeOutChkBx.value
+                    fadeOutChkBx.value //fadeOut
                         ? currentFormatToTime(
                               fadeOutEdit.text,
                               theComp.frameRate
                           )
                         : false,
-                    clampFadesChkBx.value
+                    clampFadesChkBx.value //clamp fades
                 );
                 app.endUndoGroup();
             }
