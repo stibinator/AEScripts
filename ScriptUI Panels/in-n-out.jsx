@@ -880,14 +880,14 @@
                     height: 22,
                 };
         // panel sizes
-        orderPanel.size =
-            methodPanel.size =
-            inoutPanel.size =
+        orderPanel.preferredSize =
+            methodPanel.preferredSize =
+            inoutPanel.preferredSize =
                 {
                     width: 264,
                     height: 40,
                 };
-        orderPanel.size.height = 50;
+        orderPanel.preferredSize.height = 50;
 
         theWindow.preferredSize = "width: -1, height: -1";
         theWindow.alignChildren = ["left", "top"];
@@ -981,13 +981,17 @@
         methodCheckBoxes[method.value].value = true;
         firstSlider.value = 0;
         lastSlider.value = 100;
+
         firstSlider.textBox = firstHmsfText;
         lastSlider.textBox = lastHmsfText;
         firstHmsfText.slider = firstSlider;
         lastHmsfText.slider = lastSlider;
+        fadeInEdit.slider = fadeInSlider;
+        fadeOutEdit.slider = fadeOutSlider;
         updateHMSFEdit = function (theSlidr) {
             //update the edit box
-            theSlidr.textBox.text = percentToHMSF(theSlidr.value, theComp);
+            theSlidr.textBox.text =
+                percentToHMSF(theSlidr.value, theComp) || "No Comp!";
         };
         firstSlider.onChanging = lastSlider.onChanging = function () {
             updateHMSFEdit(this);
@@ -1017,14 +1021,6 @@
         };
 
         lastSlider.onChange = firstSlider.onChange = function () {
-            doTheThings();
-        };
-
-        moveChckBox.onChange = function () {
-            prefs.writePrefs({
-                name: this.name,
-                value: this.value,
-            });
             doTheThings();
         };
 
@@ -1153,27 +1149,35 @@
         updateFirstLastDDs(firstInOrOutPtDD);
         updateFirstLastDDs(lastInOrOutPtDD);
 
+        
+        function updateMethods() {
+            updateFirstLastDDs(firstInOrOutPtDD);
+            updateFirstLastDDs(lastInOrOutPtDD);
+            fadePanel.enabled = fadePanel.visible = !keysChckBox.value;
+            if (keysChckBox.value) {
+                inChckBox.text = "first key";
+                outChckBox.text = "last key";
+            } else {
+                inChckBox.text = "in points";
+                outChckBox.text = "out points";
+            }
+
+            method.value =
+                methods.moveLayers * moveChckBox.value +
+                methods.trimLayers * trimChckBox.value +
+                methods.moveKeys * keysChckBox.value; //0 if move, 1 if trim, 2 if keys
+            prefs.writePrefs({
+                name: method.name,
+                value: method.value,
+            });
+        }
+        updateMethods();
+
         trimChckBox.onClick =
             moveChckBox.onClick =
             keysChckBox.onClick =
                 function () {
-                    updateFirstLastDDs(firstInOrOutPtDD);
-                    updateFirstLastDDs(lastInOrOutPtDD);
-                    if (keysChckBox.value) {
-                        inChckBox.text = "first key";
-                        outChckBox.text = "last key";
-                    } else {
-                        inChckBox.text = "in points";
-                        outChckBox.text = "out points";
-                    }
-                    method.value =
-                        methods.moveLayers * moveChckBox.value +
-                        methods.trimLayers * trimChckBox.value +
-                        methods.moveKeys * keysChckBox.value; //0 if move, 1 if trim, 2 if keys
-                    prefs.writePrefs({
-                        name: method.name,
-                        value: method.value,
-                    });
+                    updateMethods();
                 };
 
         inChckBox.onClick = outChckBox.onClick = function () {
@@ -1198,22 +1202,22 @@
         }
 
         function updateCFSlider(theEdit) {
-            // try {
-            theEdit.slider.value =
-                (100 *
-                    currentFormatToTime(
-                        theEdit.text,
-                        app.project.activeItem.frameRate,
-                        true
-                    )) /
-                longestLayer;
-            theEdit.text = timeToCurrentFormat(
-                theEdit.slider.value,
-                app.project.activeItem.frameRate
-            );
-            // } catch (e) {
-            //     updateCfText();
-            // }
+            try {
+                theEdit.slider.value =
+                    (100 *
+                        currentFormatToTime(
+                            theEdit.text,
+                            app.project.activeItem.frameRate,
+                            true
+                        )) /
+                    longestLayer;
+                theEdit.text = timeToCurrentFormat(
+                    theEdit.slider.value,
+                    app.project.activeItem.frameRate
+                );
+            } catch (e) {
+                updateCfText();
+            }
         }
         updateCfText(fadeInSlider);
         updateCfText(fadeOutSlider);
@@ -1221,9 +1225,11 @@
         fadeOutSlider.onChange = fadeInSlider.onChange = function () {
             updateCfText(this);
             doTheThings();
+            prefs.writePrefs(this.name, this.value);
         };
         fadeOutEdit.onChange = fadeInEdit.onChange = function () {
             updateCFSlider(this);
+            prefs.writePrefs(this.slider.name, this.slider.value);
             doTheThings();
         };
 
