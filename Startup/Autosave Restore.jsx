@@ -16,8 +16,7 @@
 
 // @target aftereffects
 (function () {
-    this.name = "checkForNewerAutoSaves";
-    prefName = "lastQuitWasClean";
+    this.name = "AutoSave Restore";
 
     if (app.project) {
         //if run by user with a file open
