@@ -8,7 +8,7 @@
     var fns = {
         linear: "linear",
         exponential: "exponential",
-        sigmoid: "sigmoid",
+        easing: "easing",
         random: "random",
         equalOverlap: "equal overlap / gap",
     };
@@ -98,6 +98,24 @@
                 return Math.pow(1 / n, p);
             };
             return g(1 - x) / (g(x) + g(1 - x));
+        }
+        return 1;
+    }
+
+    function easeInOut(x, easeOut, easeIn) {
+        if (x <= 0) {
+            return 0;
+        }
+        if (x >= 1) {
+            return 1;
+        }
+
+        if (easeOut > 0 && easeIn > 0) {
+            var eeze = function (n, dir) {
+                return Math.pow(1 / n, dir);
+            };
+
+            return eeze(1 - x) / (eeze(x, easeOut) + eeze(1 - x, easeIn));
         }
         return 1;
     }
@@ -288,7 +306,7 @@
     ) {
         var frame = theComp.frameDuration;
         var currentLyr = theComp.layer(curLayerIndex);
-        var curInPoint = Math.min(currentLyr.inPoint, currentLyr.outPoint); //reversed layers have their outpoints before their inPoints
+        var curInPoint = Math.min(currentLyr.inPoint, currentLyr.outPoint); //reversed layers have theInr outpoints before theInr inPoints
         var curOutPoint = Math.max(currentLyr.inPoint, currentLyr.outPoint);
         var fadeInStart = curInPoint - frame;
         var fadeInEnd = fadeInStart + fadeInTime;
@@ -334,7 +352,8 @@
         firstTime,
         lastTime,
         ease,
-        easePower,
+        easeOutPower,
+        easeInPower,
         regularity,
         doInPoints,
         method,
@@ -492,17 +511,18 @@
                                 timeSpan *
                                     exponential(
                                         layerIndex / (numLayers - 1),
-                                        easePower
+                                        easeOutPower
                                     );
                             break;
                         // -------- sigmoid easing --------
-                        case fns.sigmoid:
+                        case fns.easing:
                             myTime =
                                 firstTime +
                                 timeSpan *
-                                    sigmoid(
+                                    easeInOut(
                                         layerIndex / (numLayers - 1),
-                                        easePower
+                                        easeOutPower,
+                                        easeInPower
                                     );
                             break;
                         // -------- equalOverlap easing --------
@@ -761,101 +781,116 @@
             undefined,
             functionList
         );
-        var pwrGrp = easingPanel.add(
+        var easeOutGrp = easingPanel.add(
             "group{orientation:'row',  alignChildren:'left'}"
         );
-        var pwrSlider = pwrGrp.add("slider", undefined, 0.5, 0, 1);
-        var pwrEdit = pwrGrp.add(
+        var easeOutSlider = easeOutGrp.add("slider", undefined, 0.5, 0, 1);
+        var easeOutLabel = easeOutGrp.add("staticText", undefined, "Out");
+        var easeOutEdit = easeOutGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
-            "" + pwrSlider.value
-        );
-
-        // -------- regularityPanel -------------
-        var regularityPanel = mainGroup.add(
+            "" + easeOutSlider.value
+            );
+            var easeInGrp = easingPanel.add(
+                "group{orientation:'row',  alignChildren:'left'}"
+                );
+                var easeInSlider = easeInGrp.add("slider", undefined, 0.5, 0, 1);
+                var easeInLabel = easeInGrp.add("staticText", undefined, "In");
+        var easeInEdit = easeInGrp.add(
+            "editText",
+            [undefined, undefined, 66, 28],
+            "" + easeInSlider.value
+            );
+            // -------- regularityPanel -------------
+            var regularityPanel = mainGroup.add(
             'panel{alignChildren: "left", text: "regularity"}',
             undefined,
             "regularity"
-        );
-        var regularityGrp = regularityPanel.add(
-            "group{orientation:'row',  alignChildren:'left'}"
-        );
-        var regularitySlider = regularityGrp.add(
-            "slider",
+            );
+            var regularityGrp = regularityPanel.add(
+                "group{orientation:'row',  alignChildren:'left'}"
+                );
+                var regularitySlider = regularityGrp.add(
+                    "slider",
             undefined,
             100,
             -200,
             100
-        );
+            );
         var regularityEdit = regularityGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
             "100"
-        );
-        regularitySlider.edit = regularityEdit;
-        regularityEdit.slider = regularitySlider;
-        regularitySlider.invokeRealTime = true;
-
-        // -------- crossfadePanel -------------
-        var fadePanel = mainGroup.add(
-            'panel{alignChildren: "left"}',
+            );
+            
+            // -------- crossfadePanel -------------
+            var fadePanel = mainGroup.add(
+                'panel{alignChildren: "left"}',
             undefined,
             "cross fade"
-        );
-        fadePanel.spacing = [0, 0, 0, 0];
-        var fadeInChkBx = fadePanel.add("checkbox", undefined, "add fade in");
-        var fadeInGrp = fadePanel.add(
-            "group{orientation:'row',  alignChildren:'left'}"
-        );
-        fadeInGrp.margins = [0, 0, 0, 12];
-        var fadeInSlider = fadeInGrp.add("slider", undefined, 20, 0, 100);
+            );
+            fadePanel.spacing = [0, 0, 0, 0];
+            var fadeInChkBx = fadePanel.add("checkbox", undefined, "add fade in");
+            var fadeInGrp = fadePanel.add(
+                "group{orientation:'row',  alignChildren:'left'}"
+                );
+                fadeInGrp.margins = [0, 0, 0, 12];
+                var fadeInSlider = fadeInGrp.add("slider", undefined, 20, 0, 100);
         var fadeInEdit = fadeInGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
             ""
-        );
+            );
         var fadeOutChkBx = fadePanel.add("checkbox", undefined, "add fade Out");
         fadeOutChkBx.margins = [20, 12, 0, 0];
         var fadeOutGrp = fadePanel.add(
             "group{orientation:'row',  alignChildren:'left'}"
-        );
-        fadeOutGrp.margins = [0, 0, 0, 12];
-        var fadeOutSlider = fadeOutGrp.add("slider", undefined, 80, 0, 100);
-        var fadeOutEdit = fadeOutGrp.add(
-            "editText",
-            [undefined, undefined, 66, 28],
-            ""
-        );
-        var clampFadesChkBx = fadePanel.add(
-            "checkbox",
-            undefined,
-            "limit fades to overlap"
-        );
-
-        // associate sliders with text
-        fadeInSlider.edit = fadeInEdit;
-        fadeInEdit.slider = fadeInSlider;
-        fadeOutSlider.edit = fadeOutEdit;
-        fadeOutEdit.slider = fadeOutSlider;
-        fadeOutSlider.reversed = true;
-        fadeOutSlider.maxVal = 100;
-
-        // slider sizes
-        orderDropDown.size =
+            );
+            fadeOutGrp.margins = [0, 0, 0, 12];
+            var fadeOutSlider = fadeOutGrp.add("slider", undefined, 80, 0, 100);
+            var fadeOutEdit = fadeOutGrp.add(
+                "editText",
+                [undefined, undefined, 66, 28],
+                ""
+                );
+                var clampFadesChkBx = fadePanel.add(
+                    "checkbox",
+                    undefined,
+                    "limit fades to overlap"
+            );
+            
+            // associate sliders with text
+            fadeInSlider.edit = fadeInEdit;
+            fadeInEdit.slider = fadeInSlider;
+            fadeOutSlider.edit = fadeOutEdit;
+            fadeOutEdit.slider = fadeOutSlider;
+            fadeOutSlider.reversed = true;
+            fadeOutSlider.maxVal = 100;
+            regularitySlider.edit = regularityEdit;
+            regularityEdit.slider = regularitySlider;
+            regularitySlider.invokeRealTime = true;
+            easeOutSlider.edit = easeOutEdit;
+            easeOutEdit.slider = easeOutSlider;
+            easeInSlider.edit = easeInEdit;
+            easeInEdit.slider = easeInSlider;
+            
+            // slider sizes
+            orderDropDown.size =
             firstInOrOutPtDD.size =
             lastInOrOutPtDD.size =
             fnTypeDropDown.size =
             fadeInSlider.size =
             fadeOutSlider.size =
-            pwrSlider.size =
+            easeOutSlider.size =
+            easeInSlider.size =
             regularitySlider.size =
             firstSlider.size =
             lastSlider.size =
-                {
-                    width: 140,
-                    height: 10,
+            {
+                width: 140,
+                height: 10,
                 };
-        // checkbox sizes
+                // checkbox sizes
         moveChckBox.size =
             trimChckBox.size =
             keysChckBox.size =
@@ -869,7 +904,8 @@
         // text box and button sizes
         firstHmsfText.size =
             lastHmsfText.size =
-            pwrEdit.size =
+            easeOutEdit.size =
+            easeInEdit.size =
             regularityEdit.size =
             fadeInEdit.size =
             fadeOutEdit.size =
@@ -915,7 +951,12 @@
                 prefType: "integer",
             },
             {
-                name: "pwrSlidervalue",
+                name: "easeOutSlidervalue",
+                factoryDefault: 0.5,
+                prefType: "float",
+            },
+            {
+                name: "easeInSlidervalue",
                 factoryDefault: 0.5,
                 prefType: "float",
             },
@@ -957,7 +998,8 @@
         inChckBox.name = "inChckBoxvalue";
         regularitySlider.name = "regularitySliderValue";
         orderDropDown.name = "orderDropDownselection";
-        pwrSlider.name = "pwrSlidervalue";
+        easeOutSlider.name = "easeOutSlidervalue";
+        easeInSlider.name = "easeInSlidervalue";
         fadeInChkBx.name = "fadeInChkBx";
         fadeInSlider.name = "fadeInSlider";
         fadeOutChkBx.name = "fadeOutChkBx";
@@ -965,7 +1007,8 @@
         clampFadesChkBx.name = "clampFadesChkBx";
 
         inChckBox.value = prefs.prefs[inChckBox.name];
-        pwrSlider.value = prefs.prefs[pwrSlider.name];
+        easeOutSlider.value = prefs.prefs[easeOutSlider.name];
+        easeInSlider.value = prefs.prefs[easeInSlider.name];
         regularitySlider.value = prefs.prefs[regularitySlider.name];
         method.value = prefs.prefs[method.name];
         fadeInChkBx.value = prefs.prefs[fadeInChkBx.name];
@@ -1039,8 +1082,10 @@
 
         fnTypeDropDown.onChange = function () {
             if (fnTypeDropDown.selection.index === 0) {
-                pwrSlider.value = 0.5;
-                pwrEdit.value = "1";
+                easeOutSlider.value = 0.5;
+                easeInSlider.value = 0.5;
+                easeOutEdit.text = "1";
+                easeInEdit.text = "1";
             }
             prefs.writePrefs({
                 name: this.name,
@@ -1104,20 +1149,36 @@
             return 1 - 1 / (Math.pow(n, 1 / sliderPower) + 1);
         }
 
-        pwrEdit.onChange = function () {
-            if (fnTypeDropDown.selection.index === 0) {
-                fnTypeDropDown.selection = 1;
+        function autoFn(val) {
+            // chooses a function automatically.
+            // if the easing is set to 0.5 reverts to linear
+            // if the easing is linear and the easing sliders are changed
+            // sets the easing to easeInOut
+            if (fnTypeDropDown.selection.index === 0 && val !== 1) {
+                fnTypeDropDown.selection = 2;
+            } else {
+                if (val === 0.5) {
+                    fnTypeDropDown.selection = 0;
+                }
             }
-            pwrSlider.value = mapEditToVal(parseFloat(pwrEdit.text, 10));
+        }
+
+        function updateEaseEditText(slider) {
+            slider.edit.text =
+                "" + Math.round(mapSliderToVal(slider.value) * 1000) / 1000;
+            autoFn(slider.value);
+        }
+        updateEaseEditText(easeInSlider);
+        updateEaseEditText(easeOutSlider);
+
+        easeOutEdit.onChange = easeInEdit.onChange = function () {
+            this.slider.value = mapEditToVal(parseFloat(this.text, 10));
+            autoFn(this.slider.value);
             doTheThings();
         };
 
-        pwrSlider.onChange = function () {
-            if (fnTypeDropDown.selection.index === 0) {
-                fnTypeDropDown.selection = 1;
-            }
-            pwrEdit.text =
-                "" + Math.round(mapSliderToVal(pwrSlider.value) * 1000) / 1000;
+        easeOutSlider.onChange = easeInSlider.onChange = function () {
+            updateEaseEditText(this);
             doTheThings();
         };
 
@@ -1149,7 +1210,6 @@
         updateFirstLastDDs(firstInOrOutPtDD);
         updateFirstLastDDs(lastInOrOutPtDD);
 
-        
         function updateMethods() {
             updateFirstLastDDs(firstInOrOutPtDD);
             updateFirstLastDDs(lastInOrOutPtDD);
@@ -1260,7 +1320,8 @@
                     (theComp.duration * firstSlider.value) / 100, //firstTime
                     (theComp.duration * lastSlider.value) / 100, //lastTime
                     fnTypeDropDown.selection.text, //ease
-                    mapSliderToVal(pwrSlider.value), //easePower
+                    mapSliderToVal(easeOutSlider.value), //easeOutPower
+                    mapSliderToVal(easeInSlider.value), //easeInPower
                     regularitySlider.value / 100, //regularity
                     inChckBox.value, //doInPoints
                     method.value, //method
