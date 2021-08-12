@@ -1,6 +1,6 @@
 // Autosave Restore by stib
 // if AE crashes it finds if there are autosaved copies your project that are newer than the saved one
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -22,7 +22,7 @@
         //if run by user with a file open
         lastProj = app.project.file;
     }
-    if (! lastProj){
+    if (!lastProj) {
         //run at startup before opening project
         var lastProj = findLastProj();
     }
@@ -36,7 +36,6 @@
             }
         }
     }
-    
 
     function findLastProj() {
         var lastProjectPath = app.preferences.getPrefAsString(
@@ -51,30 +50,35 @@
     }
 
     function findLastAutoSave(lastProjectFile) {
-        //TODO localised strings
-        var autoSaveFolder = new Folder(
-            String(lastProjectFile.parent) + "/Adobe After Effects Auto-Save"
-        );
-        if (autoSaveFolder.exists) {
+        try {
             //TODO localised strings
-            var mask =
-                File.decode(lastProjectFile.name).replace(".aep", "") +
-                "*auto-save*.aep";
-            var autosaves = autoSaveFolder.getFiles(mask);
-            var lastVersion = 0;
-            var lastAutoSaveFile;
-            for (var a = 0; a < autosaves.length; a++) {
-                var vers = parseInt(
-                    File.decode(autosaves[a].name).match(
-                        /.*\s([0-9]+)\.aep$/
-                    )[1]
-                );
-                if (vers > lastVersion) {
-                    lastVersion = vers;
-                    lastAutoSaveFile = autosaves[a];
+            var autoSaveFolder = new Folder(
+                String(lastProjectFile.parent) +
+                    "/Adobe After Effects Auto-Save"
+            );
+            if (autoSaveFolder.exists) {
+                //TODO localised strings
+                var mask =
+                    File.decode(lastProjectFile.name).replace(".aep", "") +
+                    "*auto-save*.aep";
+                var autosaves = autoSaveFolder.getFiles(mask);
+                var lastVersion = 0;
+                var lastAutoSaveFile;
+                for (var a = 0; a < autosaves.length; a++) {
+                    var vers = parseInt(
+                        File.decode(autosaves[a].name).match(
+                            /.*\s([0-9]+)\.aep$/
+                        )[1]
+                    );
+                    if (vers > lastVersion) {
+                        lastVersion = vers;
+                        lastAutoSaveFile = autosaves[a];
+                    }
                 }
+                return lastAutoSaveFile;
             }
-            return lastAutoSaveFile;
+        } catch (e) {
+            // 
         }
         return false;
     }

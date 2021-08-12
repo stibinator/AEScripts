@@ -81,28 +81,29 @@
         return Math.pow(x, p);
     }
 
-    function sigmoid(x, p) {
-        // sigmoid function for 0<=x<=1 returns a variable s-shaped slope where 0<=y<=1,
-        // and that always passes through [0,0] and [1,1] took a while to figure out
-        // see https://www.desmos.com/calculator/40sqnfw8hf
+    // function sigmoid(x, p) {
+    //     // sigmoid function for 0<=x<=1 returns a variable s-shaped slope where 0<=y<=1,
+    //     // and that always passes through [0,0] and [1,1] took a while to figure out
+    //     // see https://www.desmos.com/calculator/40sqnfw8hf
 
-        if (x <= 0) {
-            return 0;
-        }
-        if (x >= 1) {
-            return 1;
-        }
+    //     if (x <= 0) {
+    //         return 0;
+    //     }
+    //     if (x >= 1) {
+    //         return 1;
+    //     }
 
-        if (p > 0) {
-            var g = function (n) {
-                return Math.pow(1 / n, p);
-            };
-            return g(1 - x) / (g(x) + g(1 - x));
-        }
-        return 1;
-    }
+    //     if (p > 0) {
+    //         var g = function (n) {
+    //             return Math.pow(1 / n, p);
+    //         };
+    //         return g(1 - x) / (g(x) + g(1 - x));
+    //     }
+    //     return 1;
+    // }
 
     function easeInOut(x, easeOut, easeIn) {
+        // replaces the sigmoid function
         if (x <= 0) {
             return 0;
         }
@@ -115,7 +116,7 @@
                 return Math.pow(1 / n, dir);
             };
 
-            return eeze(1 - x) / (eeze(x, easeOut) + eeze(1 - x, easeIn));
+            return eeze(1 - x, easeIn) / (eeze(x, easeOut) + eeze(1 - x, easeIn));
         }
         return 1;
     }
@@ -636,11 +637,13 @@
     // ------------------------------------------------------------------------------------------------
 
     function buildGUI(thisObj) {
+        // get the active comp, or set sane defaults
         var theComp = app.project.activeItem || {
             duration: 60,
             frameDuration: 1 / 25,
             time: 0,
         };
+
         var theWindow =
             thisObj instanceof Panel
                 ? thisObj
@@ -785,97 +788,97 @@
             "group{orientation:'row',  alignChildren:'left'}"
         );
         var easeOutSlider = easeOutGrp.add("slider", undefined, 0.5, 0, 1);
-        var easeOutLabel = easeOutGrp.add("staticText", undefined, "Out");
+        var easeOutLabel = easeOutGrp.add("staticText", [undefined, undefined, 24, 28], "Out");
         var easeOutEdit = easeOutGrp.add(
             "editText",
-            [undefined, undefined, 66, 28],
+            [undefined, undefined, 24, 28],
             "" + easeOutSlider.value
-            );
-            var easeInGrp = easingPanel.add(
-                "group{orientation:'row',  alignChildren:'left'}"
-                );
-                var easeInSlider = easeInGrp.add("slider", undefined, 0.5, 0, 1);
-                var easeInLabel = easeInGrp.add("staticText", undefined, "In");
+        );
+        var easeInGrp = easingPanel.add(
+            "group{orientation:'row',  alignChildren:'left'}"
+        );
+        var easeInSlider = easeInGrp.add("slider", undefined, 0.5, 0, 1);
+        var easeInLabel = easeInGrp.add("staticText", [undefined, undefined, 24, 28], "In");
         var easeInEdit = easeInGrp.add(
             "editText",
-            [undefined, undefined, 66, 28],
+            [undefined, undefined, 24, 28],
             "" + easeInSlider.value
-            );
-            // -------- regularityPanel -------------
-            var regularityPanel = mainGroup.add(
+        );
+        // -------- regularityPanel -------------
+        var regularityPanel = mainGroup.add(
             'panel{alignChildren: "left", text: "regularity"}',
             undefined,
             "regularity"
-            );
-            var regularityGrp = regularityPanel.add(
-                "group{orientation:'row',  alignChildren:'left'}"
-                );
-                var regularitySlider = regularityGrp.add(
-                    "slider",
+        );
+        var regularityGrp = regularityPanel.add(
+            "group{orientation:'row',  alignChildren:'left'}"
+        );
+        var regularitySlider = regularityGrp.add(
+            "slider",
             undefined,
             100,
             -200,
             100
-            );
+        );
         var regularityEdit = regularityGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
             "100"
-            );
-            
-            // -------- crossfadePanel -------------
-            var fadePanel = mainGroup.add(
-                'panel{alignChildren: "left"}',
+        );
+
+        // -------- crossfadePanel -------------
+        var fadePanel = mainGroup.add(
+            'panel{alignChildren: "left"}',
             undefined,
             "cross fade"
-            );
-            fadePanel.spacing = [0, 0, 0, 0];
-            var fadeInChkBx = fadePanel.add("checkbox", undefined, "add fade in");
-            var fadeInGrp = fadePanel.add(
-                "group{orientation:'row',  alignChildren:'left'}"
-                );
-                fadeInGrp.margins = [0, 0, 0, 12];
-                var fadeInSlider = fadeInGrp.add("slider", undefined, 20, 0, 100);
+        );
+        fadePanel.spacing = [0, 0, 0, 0];
+        var fadeInChkBx = fadePanel.add("checkbox", undefined, "add fade in");
+        var fadeInGrp = fadePanel.add(
+            "group{orientation:'row',  alignChildren:'left'}"
+        );
+        fadeInGrp.margins = [0, 0, 0, 12];
+        var fadeInSlider = fadeInGrp.add("slider", undefined, 20, 0, 100);
         var fadeInEdit = fadeInGrp.add(
             "editText",
             [undefined, undefined, 66, 28],
             ""
-            );
+        );
         var fadeOutChkBx = fadePanel.add("checkbox", undefined, "add fade Out");
         fadeOutChkBx.margins = [20, 12, 0, 0];
         var fadeOutGrp = fadePanel.add(
             "group{orientation:'row',  alignChildren:'left'}"
-            );
-            fadeOutGrp.margins = [0, 0, 0, 12];
-            var fadeOutSlider = fadeOutGrp.add("slider", undefined, 80, 0, 100);
-            var fadeOutEdit = fadeOutGrp.add(
-                "editText",
-                [undefined, undefined, 66, 28],
-                ""
-                );
-                var clampFadesChkBx = fadePanel.add(
-                    "checkbox",
-                    undefined,
-                    "limit fades to overlap"
-            );
-            
-            // associate sliders with text
-            fadeInSlider.edit = fadeInEdit;
-            fadeInEdit.slider = fadeInSlider;
-            fadeOutSlider.edit = fadeOutEdit;
-            fadeOutEdit.slider = fadeOutSlider;
-            fadeOutSlider.reversed = true;
-            fadeOutSlider.maxVal = 100;
-            regularitySlider.edit = regularityEdit;
-            regularityEdit.slider = regularitySlider;
-            regularitySlider.invokeRealTime = true;
-            easeOutSlider.edit = easeOutEdit;
-            easeOutEdit.slider = easeOutSlider;
-            easeInSlider.edit = easeInEdit;
-            easeInEdit.slider = easeInSlider;
-            
-            // slider sizes
-            orderDropDown.size =
+        );
+        fadeOutGrp.margins = [0, 0, 0, 12];
+        var fadeOutSlider = fadeOutGrp.add("slider", undefined, 80, 0, 100);
+        var fadeOutEdit = fadeOutGrp.add(
+            "editText",
+            [undefined, undefined, 66, 28],
+            ""
+        );
+        var clampFadesChkBx = fadePanel.add(
+            "checkbox",
+            undefined,
+            "limit fades to overlap"
+        );
+
+        // associate sliders with text
+        fadeInSlider.edit = fadeInEdit;
+        fadeInEdit.slider = fadeInSlider;
+        fadeOutSlider.edit = fadeOutEdit;
+        fadeOutEdit.slider = fadeOutSlider;
+        fadeOutSlider.reversed = true;
+        fadeOutSlider.maxVal = 100;
+        regularitySlider.edit = regularityEdit;
+        regularityEdit.slider = regularitySlider;
+        regularitySlider.invokeRealTime = true;
+        easeOutSlider.edit = easeOutEdit;
+        easeOutEdit.slider = easeOutSlider;
+        easeInSlider.edit = easeInEdit;
+        easeInEdit.slider = easeInSlider;
+
+        // slider sizes
+        orderDropDown.size =
             firstInOrOutPtDD.size =
             lastInOrOutPtDD.size =
             fnTypeDropDown.size =
@@ -886,11 +889,11 @@
             regularitySlider.size =
             firstSlider.size =
             lastSlider.size =
-            {
-                width: 140,
-                height: 10,
+                {
+                    width: 140,
+                    height: 10,
                 };
-                // checkbox sizes
+        // checkbox sizes
         moveChckBox.size =
             trimChckBox.size =
             keysChckBox.size =
@@ -904,18 +907,22 @@
         // text box and button sizes
         firstHmsfText.size =
             lastHmsfText.size =
-            easeOutEdit.size =
-            easeInEdit.size =
             regularityEdit.size =
             fadeInEdit.size =
             fadeOutEdit.size =
             firstBttn.size =
             lastBttn.size =
-                {
-                    width: 80,
-                    height: 22,
-                };
-        // panel sizes
+            {
+                width: 80,
+                height: 22,
+            };
+            easeOutEdit.size =
+            easeInEdit.size =
+            {
+                width: 46,
+                height: 22,
+            };
+            // panel sizes
         orderPanel.preferredSize =
             methodPanel.preferredSize =
             inoutPanel.preferredSize =
@@ -1031,7 +1038,7 @@
         lastHmsfText.slider = lastSlider;
         fadeInEdit.slider = fadeInSlider;
         fadeOutEdit.slider = fadeOutSlider;
-        updateHMSFEdit = function (theSlidr) {
+        var updateHMSFEdit = function (theSlidr) {
             //update the edit box
             theSlidr.textBox.text =
                 percentToHMSF(theSlidr.value, theComp) || "No Comp!";
@@ -1039,9 +1046,6 @@
         firstSlider.onChanging = lastSlider.onChanging = function () {
             updateHMSFEdit(this);
         };
-
-        updateHMSFEdit(firstSlider);
-        updateHMSFEdit(lastSlider);
 
         firstHmsfText.onChange = lastHmsfText.onChange = function () {
             //parse the user input
@@ -1149,7 +1153,7 @@
             return 1 - 1 / (Math.pow(n, 1 / sliderPower) + 1);
         }
 
-        function autoFn(val) {
+        var autoFn = function (val) {
             // chooses a function automatically.
             // if the easing is set to 0.5 reverts to linear
             // if the easing is linear and the easing sliders are changed
@@ -1161,15 +1165,15 @@
                     fnTypeDropDown.selection = 0;
                 }
             }
-        }
+        };
 
-        function updateEaseEditText(slider) {
+        var updateEaseEditText = function (slider) {
             slider.edit.text =
                 "" + Math.round(mapSliderToVal(slider.value) * 1000) / 1000;
             autoFn(slider.value);
-        }
-        updateEaseEditText(easeInSlider);
-        updateEaseEditText(easeOutSlider);
+        };
+        // updateEaseEditText(easeInSlider);
+        // updateEaseEditText(easeOutSlider);
 
         easeOutEdit.onChange = easeInEdit.onChange = function () {
             this.slider.value = mapEditToVal(parseFloat(this.text, 10));
@@ -1197,7 +1201,7 @@
             }
         };
 
-        function updateFirstLastDDs(theDD) {
+        var updateFirstLastDDs = function (theDD) {
             var curFirstSelection = theDD.selection.index;
             theDD.visible = lastInOrOutPtDD.visible = !trimChckBox.value;
             theDD.removeAll();
@@ -1206,11 +1210,9 @@
                 theDD.add("item", newList[i]);
             }
             theDD.selection = curFirstSelection;
-        }
-        updateFirstLastDDs(firstInOrOutPtDD);
-        updateFirstLastDDs(lastInOrOutPtDD);
+        };
 
-        function updateMethods() {
+        var updateMethods = function () {
             updateFirstLastDDs(firstInOrOutPtDD);
             updateFirstLastDDs(lastInOrOutPtDD);
             fadePanel.enabled = fadePanel.visible = !keysChckBox.value;
@@ -1230,8 +1232,7 @@
                 name: method.name,
                 value: method.value,
             });
-        }
-        updateMethods();
+        };
 
         trimChckBox.onClick =
             moveChckBox.onClick =
@@ -1246,7 +1247,7 @@
             }
         };
 
-        function updateCfText(theSlidr) {
+        var updateCfText = function (theSlidr) {
             theComp = app.project.activeItem;
             var longestLayer = 10;
             if (theComp) {
@@ -1261,7 +1262,7 @@
             );
         }
 
-        function updateCFSlider(theEdit) {
+        var updateCFSlider = function (theEdit) {
             try {
                 theEdit.slider.value =
                     (100 *
@@ -1279,8 +1280,6 @@
                 updateCfText();
             }
         }
-        updateCfText(fadeInSlider);
-        updateCfText(fadeOutSlider);
 
         fadeOutSlider.onChange = fadeInSlider.onChange = function () {
             updateCfText(this);
@@ -1308,9 +1307,15 @@
                         doTheThings();
                     }
                 };
-
+        // updateMethods();
+        // updateCfText(fadeInSlider);
+        // updateCfText(fadeOutSlider);
+        // updateFirstLastDDs(firstInOrOutPtDD);
+        // updateFirstLastDDs(lastInOrOutPtDD);
+        // updateHMSFEdit(firstSlider);
+        // updateHMSFEdit(lastSlider);
         // --------- Call down the hoo-hah -------
-        function doTheThings() {
+        var doTheThings = function () {
             theComp = app.project.activeItem;
             if (theComp) {
                 app.beginUndoGroup("in-n-out sequence layers");
@@ -1343,7 +1348,7 @@
                 );
                 app.endUndoGroup();
             }
-        }
+        };
 
         if (theWindow instanceof Window) {
             theWindow.center();
