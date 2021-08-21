@@ -16,7 +16,8 @@
 
 // @target aftereffects
 (function () {
-    this.name = "AutoSave Restore";
+    var scriptName = this.name = "AutoSave Restore";
+    var prefName = "ignoredAutoSaves";
 
     if (app.project) {
         //if run by user with a file open
@@ -29,11 +30,13 @@
     if (lastProj) {
         var lastAutoSave = findLastAutoSave(lastProj);
         if (lastAutoSave) {
+            ignoredAutoSaves = getListOfIgnoredAutosaves(this.name);
+            if(notInIgnoredList(lastAutoSave, ignoredAutoSaves)){
             if (isNewer(lastAutoSave, lastProj)) {
                 if (askUserAboutRestoring(lastProj, lastAutoSave)) {
                     restoreAutoSave(lastProj, lastAutoSave);
                 }
-            }
+            }}
         }
     }
 
@@ -81,6 +84,32 @@
             // 
         }
         return false;
+    }
+
+    function getListOfIgnoredAutosaves() {
+        var ignoredAutoSaves = [];
+        if (app.settings.haveSetting(scriptName, prefName)) {
+            ignoredAutoSaves = app.settings.getSetting(scriptName, prefName).split(":\n");
+        }
+        return ignoredAutoSaves;
+    }
+    function notInIgnoredList(lastAutoSave, ignoredAutoSaves){
+        var lastAutoSaveURI = lastAutoSave.absoluteURI;
+        for (var i = 0; i < ignoredAutoSaves.length; i++){
+            if (ignoredAutoSaves[i] === lastAutoSaveURI) {
+                return false;
+            }
+        }
+        return true;
+    }
+    function ignoreLastAutoSave(lastAutoSave) {
+        var ignoredAutoSaves = getListOfIgnoredAutosaves();
+        var newIgnoredList = [lastAutoSave.absoluteURI];
+        // remember a maximum of 10 ignored autosaves.
+        for (var i = 0; i < 10 && ignoredAutoSaves.length > i; i++){
+                newIgnoredList.push(ignoredAutoSaves[i])
+        }
+        app.settings.saveSetting(scriptName, prefName, newIgnoredList.join(":\n"))
     }
 
     function isNewer(fileOne, fileTwo) {
@@ -264,12 +293,20 @@
         panel3.alignChildren = ["left", "top"];
         panel3.spacing = 6;
         panel3.margins = [10, 16, 10, 6];
-
-        var restoreButton = panel3.add("button", undefined, undefined, {
+        var buttonGrp = panel3.add("group");
+        buttonGrp.orientation = "row";
+        var restoreButton = buttonGrp.add("button", undefined, undefined, {
             name: "restoreButton",
         });
         restoreButton.text = "Restore from autosave";
-        restoreButton.preferredSize.width = 340;
+        restoreButton.preferredSize.width = 270;
+        
+        var yeahNahButton = buttonGrp.add("button", undefined, undefined, {
+            name: "yeahNahButton",
+        });
+        yeahNahButton.text = "Ignore";
+        yeahNahButton.preferredSize.width = 60;
+
         var infoTextRow = panel3.add("group");
         infoTextRow.orientation = "row";
         var restoreAsStaticText = infoTextRow.add(
@@ -308,6 +345,11 @@
             );
             dialog.close();
         };
+
+        yeahNahButton.onClick = function () {
+            ignoreLastAutoSave(autoSave);
+            dialog.close();
+        }
 
         dialog.show();
     }
