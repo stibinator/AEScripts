@@ -31,6 +31,56 @@ findNReplace.escapeRegexChars = function(theString) {
     // escape the plain text. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
 }
 
+findNReplace.getPropertiesAndGroupsFromLayer = function(theLayer, selectedOnly) {
+    var props = [];
+    //only return selected properties. Kinda trivial but here for ease of use
+    if (selectedOnly) {
+        for (var j = 0; j < theLayer.selectedProperties.length; j++) {
+            props.push(theLayer.selectedProperties[j]);
+        }
+    } else {
+        //walk the whole property tree
+        for (var p = 1; p <= theLayer.numProperties; p++) {
+            if (theLayer.property(p)) {
+                props.push(theLayer.property(p));
+                var propertyGroup = theLayer.property(p);
+                var newProps = findNReplace.traversePropertyGroups(propertyGroup, true);
+                if (newProps.length) {
+                    for (var i = 0; i < newProps.length; i++) {
+                        props.push(newProps[i]);
+                    }
+                }
+            }
+        }
+    }
+    return props;
+}
+
+findNReplace.traversePropertyGroups = function(pGroup, inclusive) {
+    // walks through property groups, returning properties
+    // if inclusive is true, returns property groups as well
+    if (pGroup) {
+        var props = [];
+        //alert(pGroup.numProperties);
+        if (typeof pGroup.numProperties !== 'undefined') {
+            if (inclusive) {
+                props.push(pGroup)
+            }
+            for (var pp = 1; pp <= pGroup.numProperties; pp++) {
+                var newProps = findNReplace.traversePropertyGroups(pGroup.property(pp), inclusive);
+                if (newProps.length) {
+                    for (var i = 0; i < newProps.length; i++) {
+                        props.push(newProps[i]);
+                    }
+                }
+            }
+        } else {
+            props.push(pGroup);
+        }
+        return props;
+    }
+}
+
 findNReplace.buildUI = function(thisObj) {
     if (thisObj instanceof Panel) {
         var pal = thisObj;
@@ -108,7 +158,7 @@ findNReplace.buildUI = function(thisObj) {
         var targetsPanel = pal.add('panel', undefined, findNReplace.targetsPanelLabel);
         targetsPanel.orientation = 'column';
         targetsPanel.alignChildren = 'left';
-        targetsPanel.size = {
+        targetsPanel.preferredSize = {
             width: 180,
             height: undefined
         };
@@ -143,7 +193,7 @@ findNReplace.buildUI = function(thisObj) {
         var layerOptsPanel = pal.add('panel', undefined, findNReplace.layerOptsPanelLabel);
         layerOptsPanel.orientation = 'column';
         layerOptsPanel.alignChildren = 'left';
-        layerOptsPanel.size = {
+        layerOptsPanel.preferredSize = {
             width: 180,
             height: undefined
         };
@@ -176,7 +226,7 @@ findNReplace.buildUI = function(thisObj) {
         var xpPanel = pal.add('panel', undefined, findNReplace.xpPanelLabel);
         xpPanel.orientation = 'column';
         xpPanel.alignChildren = 'left';
-        xpPanel.size = {
+        xpPanel.preferredSize = {
             width: 180,
             height: undefined
         };
@@ -229,7 +279,7 @@ findNReplace.buildUI = function(thisObj) {
         var regexPanel = settingsGrp.add('panel', undefined, findNReplace.regexPanelLabel);
         regexPanel.orientation = 'column';
         regexPanel.alignChildren = 'left';
-        regexPanel.size = {
+        regexPanel.preferredSize = {
             width: 160,
             height: undefined
         };
@@ -587,7 +637,7 @@ findNReplace.getExpressions = function(theLayer, onlySelectedProps) {
 findNReplace.getProps = function(theLayer, onlySelectedProps) {
     var theProps = [];
     var newProps;
-    newProps = getPropertiesAndGroupsFromLayer(theLayer, onlySelectedProps);
+    newProps = findNReplace.getPropertiesAndGroupsFromLayer(theLayer, onlySelectedProps);
     for (var j = 0; j < newProps.length; j++) {
         theProps.push(newProps[j]);
     }
@@ -608,7 +658,7 @@ findNReplace.myPrefs = function(prefList) {
             return val
         }
     }
-    
+     
     this.getPref = function(preference) {
         if (app.settings.haveSetting(findNReplace.scriptName, preference.name)) {
             this.prefs[preference.name] = this.parsePref(app.settings.getSetting(findNReplace.scriptName, preference.name), preference.prefType);
