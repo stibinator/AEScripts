@@ -27,7 +27,7 @@ thisScript.buildGUI = function (thisObj) {
     .w
     .add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fil" +
         "l']}");
-  var linearIn = row1.add('iconbutton', {
+       var linearIn = row1.add('iconbutton', {
     'x': undefined,
     'y': undefined,
     'width': 33,
