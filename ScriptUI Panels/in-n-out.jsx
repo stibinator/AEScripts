@@ -116,7 +116,9 @@
                 return Math.pow(1 / n, dir);
             };
 
-            return eeze(1 - x, easeIn) / (eeze(x, easeOut) + eeze(1 - x, easeIn));
+            return (
+                eeze(1 - x, easeIn) / (eeze(x, easeOut) + eeze(1 - x, easeIn))
+            );
         }
         return 1;
     }
@@ -788,7 +790,11 @@
             "group{orientation:'row',  alignChildren:'left'}"
         );
         var easeOutSlider = easeOutGrp.add("slider", undefined, 0.5, 0, 1);
-        var easeOutLabel = easeOutGrp.add("staticText", [undefined, undefined, 24, 28], "Out");
+        var easeOutLabel = easeOutGrp.add(
+            "staticText",
+            [undefined, undefined, 24, 28],
+            "Out"
+        );
         var easeOutEdit = easeOutGrp.add(
             "editText",
             [undefined, undefined, 24, 28],
@@ -798,7 +804,11 @@
             "group{orientation:'row',  alignChildren:'left'}"
         );
         var easeInSlider = easeInGrp.add("slider", undefined, 0.5, 0, 1);
-        var easeInLabel = easeInGrp.add("staticText", [undefined, undefined, 24, 28], "In");
+        var easeInLabel = easeInGrp.add(
+            "staticText",
+            [undefined, undefined, 24, 28],
+            "In"
+        );
         var easeInEdit = easeInGrp.add(
             "editText",
             [undefined, undefined, 24, 28],
@@ -912,17 +922,15 @@
             fadeOutEdit.size =
             firstBttn.size =
             lastBttn.size =
-            {
-                width: 80,
-                height: 22,
-            };
-            easeOutEdit.size =
-            easeInEdit.size =
-            {
-                width: 46,
-                height: 22,
-            };
-            // panel sizes
+                {
+                    width: 80,
+                    height: 22,
+                };
+        easeOutEdit.size = easeInEdit.size = {
+            width: 46,
+            height: 22,
+        };
+        // panel sizes
         orderPanel.preferredSize =
             methodPanel.preferredSize =
             inoutPanel.preferredSize =
@@ -1260,7 +1268,7 @@
                 (sliderActualVal / 100) * longestLayer,
                 theComp ? app.project.activeItem.frameRate : 25
             );
-        }
+        };
 
         var updateCFSlider = function (theEdit) {
             try {
@@ -1279,7 +1287,7 @@
             } catch (e) {
                 updateCfText();
             }
-        }
+        };
 
         fadeOutSlider.onChange = fadeInSlider.onChange = function () {
             updateCfText(this);

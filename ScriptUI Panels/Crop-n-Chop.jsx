@@ -66,7 +66,7 @@ function cropNChop(reframe, useMotion, margin){
 //=================================UI guff=============================
 // cropNChopUI
 // ============
-function cloninateUI(thisObj) {
+function cropNChopUI(thisObj) {
     if (thisObj instanceof Panel) {
         cropNChopUI = thisObj;
     } else {
@@ -233,4 +233,4 @@ function cloninateUI(thisObj) {
     }
 }
 
-cloninateUI(this);
+cropNChopUI(this);

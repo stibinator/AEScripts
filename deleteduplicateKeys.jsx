@@ -1,6 +1,7 @@
 // @target aftereffects
 /* global app, getKeyAttributes, makeKeyWithAttributes*/
-
+// an initial attemp at a key reduction script
+// this is a WIP
 function getKeyAttributes(theProperty, keyIndex) {
 	//in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.
 	var theAttributes = {
@@ -97,7 +98,7 @@ function testkeyIsRedundant(theProperty, keyIndex, tolerance, preExpression) {
 }
 
 function vMag(vector) {
-    //returns magnitude of vecotrs of variable length
+    //returns magnitude of vectors of variable length
     if (vector.length) {
         var s = 0;
         for (var i = 0; i < vector.length; i++) {

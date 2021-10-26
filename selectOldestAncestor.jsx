@@ -1,6 +1,6 @@
 // @target aftereffects
 // selects un-parented layers
-// (function(){
+(function(){
     var theComp = app.project.activeItem;
     if (theComp && (theComp.selectedLayers.length === 1)){
         var theLayer = theComp.selectedLayers[0];
@@ -12,4 +12,4 @@
         oldestAncestor.locked = false;
         oldestAncestor.selected = true;
     }
-// })()
+})()

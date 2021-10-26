@@ -1,4 +1,8 @@
-//@target aftereffects
+// @target aftereffects
+// defines a "main" comp for a project
+// and lets you jump straight to it
+// without navigating the hierarchy
+
 var thisScript = this;
 thisScript.name = "Main Comp";
 
