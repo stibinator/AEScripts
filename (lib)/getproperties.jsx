@@ -25,12 +25,15 @@ function traversePropertyGroups(pGroup, inclusive) {
     if (pGroup) {
         var props = [];
         //alert(pGroup.numProperties);
-        if (typeof pGroup.numProperties !== 'undefined') {
+        if (typeof pGroup.numProperties !== "undefined") {
             if (inclusive) {
-                props.push(pGroup)
+                props.push(pGroup);
             }
             for (var pp = 1; pp <= pGroup.numProperties; pp++) {
-                var newProps = traversePropertyGroups(pGroup.property(pp), inclusive);
+                var newProps = traversePropertyGroups(
+                    pGroup.property(pp),
+                    inclusive
+                );
                 if (newProps.length) {
                     for (var i = 0; i < newProps.length; i++) {
                         props.push(newProps[i]);

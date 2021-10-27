@@ -314,7 +314,9 @@
                     switch (methods[this.selection.index]) {
                         case "frames":
                             if (app.project.activeItem) {
-                                quantiseLengthText.text = newVal/ app.project.activeItem.frameDuration;
+                                quantiseLengthText.text =
+                                    newVal /
+                                    app.project.activeItem.frameDuration;
                             }
                             break;
                         case "seconds":
@@ -326,12 +328,15 @@
                             break;
                         case "work area division":
                             if (app.project.activeItem) {
-                                quantiseLengthText.text = app.project.activeItem.workAreaDuration / newVal
+                                quantiseLengthText.text =
+                                    app.project.activeItem.workAreaDuration /
+                                    newVal;
                             }
                             break;
                         case "comp division":
                             if (app.project.activeItem) {
-                                quantiseLengthText.text = app.project.activeItem.duration / newVal;
+                                quantiseLengthText.text =
+                                    app.project.activeItem.duration / newVal;
                             }
                             break;
                     }
@@ -359,8 +364,6 @@
             quantise(methodDD.selection.index, getLength());
         }
     }
-
-    
 
     //---------------------------- ui prefs -----------------------------
     function Preferences(scriptName) {

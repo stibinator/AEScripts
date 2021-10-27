@@ -2,7 +2,7 @@
 // license below
 // more: https://blob.pureandapplied.com.au
 /* global app, Panel, Shape*/
-
+var thisScript = this;
 (function () {
     var scriptName = "points-n-handles";
     var ERR_NO_PATHS = "<!> Select at least\none pathNo to control";
@@ -14,8 +14,9 @@
     var NAME_CONTROL_GROUP = " control points";
     var NAME_CTRL = "ctrl ";
     var NAME_CTRL_LAYER = " ctrl ";
+    
 
-    function buildUI(thisObj) {
+    thisScript.buildUI = function (thisObj) {
         // DIALOG
         // ======
         var pal = thisObj;
@@ -214,7 +215,11 @@
         return pointExpression;
     }
 
-    buildUI(this);
+    newFunction();
+
+    function newFunction() {
+        thisScript.buildUI(this);
+    }
 
     function newCtrlGroup(pathInfo, ctrlGrpLayer) {
         //creates the vector group and sets the transform values.

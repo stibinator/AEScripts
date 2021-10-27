@@ -5,15 +5,66 @@
 // the cloninator clones an item in a comp and creates a
 // new source for it in the project (c)2016 Stephen Dixon
 
-
-
-/* @includepath "../(lib)" 
- @include "duplicate layer source.jsx" 
- @include "incrementCompName.jsx" 
-
- global app, Panel, $, isValid, duplicateLayerSource, makeUniqueCompName */
+ /* global app, Panel, $, isValid */
 
 var scriptName = 'cloninateLayer';
+
+function makeUniqueCompName(oldSource, prefix, suffix){
+  if (oldSource.name){
+      if (! suffix) {suffix = ''}
+      if (! prefix) {prefix = ''}
+      // Create a unique name, given a layer
+      // find a serialnumber suffix if one exists e.g. mypic.jpg_1 
+      // everyone stand back… 
+      // the RE matches any string that doesn't
+      // end in a number, followed by a number. eg foo99bar_9 will match
+      // (foo99bar_)(9)
+      var re = /(.*[^\d])*(\d*)$/;
+
+      var m = oldSource.name.match(re);
+      var oldSourceSerial = m[2];
+      var oldSourceBaseName = m[1];
+
+      //default serial number
+      var newSourceSerial = 1;
+
+      // if no match, then the source doesn't have a serial number. One of these
+      // should catch it
+      if (typeof(oldSourceSerial) === 'undefined' || oldSourceSerial === '' || isNaN(parseInt(oldSourceSerial, 10))) {
+          // since there was no serial we add a separator onto the base name so that it
+          // becomes basename_1 etc
+          oldSourceBaseName = oldSource.name + '_';
+      } else {
+          //there was a serial number, so increment it
+          newSourceSerial = 1 + parseInt(oldSourceSerial, 10);
+      }
+
+      if (!oldSourceBaseName) {
+          oldSourceBaseName = oldSource.name;
+      } //shouldn't happen, but you know, regex..
+      // we need to check to see if a source layer with the new serial number exists,
+      // and if it does we keep incrementing the serial until it doesn't
+      while (findDuplicateSourceItems('' + oldSourceBaseName + newSourceSerial)) {
+          newSourceSerial++;
+      }
+
+      return prefix + oldSourceBaseName + suffix + '_' + newSourceSerial;
+  } else {
+      return false;
+  }
+}
+
+function findDuplicateSourceItems(theName) {
+var allItems = app.project.items;
+var j;
+for (j = 1; j <= allItems.length; j++) {
+  if (app.project.items[j].name === theName) {
+    return true;
+  }
+}
+
+return false;
+}
 
 function reinstateButton(theButton) { //reinstate a button with an oldValue property
   if (!theButton.enabled) { //turn on the footage button and reinstate its value if needs be
@@ -22,6 +73,33 @@ function reinstateButton(theButton) { //reinstate a button with an oldValue prop
   }
 }
 
+function duplicateLayerSource(theLayer){
+  //first deselect all the layers
+  var oldLayerSelection = [];
+  var theComp = theLayer.containingComp;
+  for (i = 1; i<+ theComp.numLayers; i++){
+      if (theComp.layers[i].selected){
+          oldLayerSelection.push (i);
+          theComp.layers[i].selected = false;
+      }
+  }
+  
+  // select the layer we want to dupe the source for
+  theLayer.selected = true;
+  // so kludgy, but it's the only way
+  app.executeCommand(app.findMenuCommandId("Reveal Layer Source in Project"));
+  app.executeCommand(app.findMenuCommandId("Duplicate"));
+  // when we duplicate an item it will be selected
+  var newItem = app.project.selection[0];
+  
+  // now put all the selection back to how we found it
+ 
+  // now in the comp
+  for (var i = 1; i < oldLayerSelection.length; i++){
+      theComp.layer(oldLayerSelection[i]).selected = true;
+      }
+  return (newItem);
+}
 
 function cloninateComp(originalComp, recursionLimit, recurseFootageToo, recursionDepth) {
   var newSource;

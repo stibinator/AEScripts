@@ -8,12 +8,21 @@
 // @target aftereffects
 // license below
 // more: https://blob.pureandapplied.com.au
-//  @includepath "./(lib)/"
-//  @include "copyproperties-makekey.jsx"
-//  @include "jsextras.jsx"
+
 /* global getKeyAttributes, makeKeyWithAttributes, getPropertiesWithKeyFramesFromLayer, app, CompItem */
 
 (function () {
+    function makeRange(a, b, step) {
+        var A = [];
+        A[0] = a;
+        step = step || 1;
+        while (a + step <= b) {
+            a += step;
+            A[A.length] = a;
+        }
+        return A;
+    };
+
     function getKeyAttributes(theProperty, keyIndex) {
         //in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.
         var theAttributes = {};
@@ -127,8 +136,10 @@
     }
 
     function quantiseKeytimes(theComp, theProp, theKeyIndexes, beat) {
-        if (! beat){ beat = theComp.frameDuration}
-        for (var i = theKeyIndexes.length -1; i >= 0; i--) {
+        if (!beat) {
+            beat = theComp.frameDuration;
+        }
+        for (var i = theKeyIndexes.length - 1; i >= 0; i--) {
             var newKeyTime =
                 Math.floor(
                     theProp.keyTime(theKeyIndexes[i]) / theComp.frameDuration
@@ -177,7 +188,7 @@
                 var indices = theProp.selectedKeys;
                 // if the property is selected but no keys (can this happen?)
             } else {
-                var indices = Array.range(1, theProp.numKeys);
+                var indices = makeRange(1, theProp.numKeys);
             }
             quantiseKeytimes(theComp, theProp, indices);
         }

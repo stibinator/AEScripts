@@ -8,8 +8,16 @@
     // @target aftereffects
 // license below
 // more: https://blob.pureandapplied.com.au
-    // @includepath ./(lib)/
-    // @include compExtras.jsx
+
+    function getCompLayers(theComp, skipLocked){
+        var theLayers = [];
+        for (var i =1; i <= theComp.numLayers; i++){
+            if ((!skipLocked)||(! theComp.layer(i).locked)){
+            theLayers.push(theComp.layer(i));
+            }
+        }
+        return theLayers
+    }
 
     function trimLayersToFades(thisObj) {
         var proj = app.project;
