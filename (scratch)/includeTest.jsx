@@ -1,3 +1,0 @@
-// @target aftereffects
-
-alert("wtf")

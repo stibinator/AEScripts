@@ -265,6 +265,7 @@ function newShape(
     }
 }
 
+<<<<<<< HEAD
 /* global app, Folder */
 // eslint-disable-next-line no-unused-vars
 function readLabelColoursFromPrefs() {
