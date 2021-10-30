@@ -1,4 +1,6 @@
 // @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 /* global app, Panel, ShapeLayer*/
 
 var scriptName = "Simplify Duik Icons";
@@ -19,8 +21,8 @@ function setHandleStyle(
     anchorSize,
     anchorBrightness,
     anchorShape,
-    anchorPoints) {
-
+    anchorPoints
+) {
     var icon = theLayer.property("Contents").property("Icon");
     if (icon) {
         icon.remove();
@@ -44,14 +46,36 @@ function setHandleStyle(
     }
 
     var boneColour = getLabelColour(theLayer);
-    var anchorColour = boneColour * anchorBrightness / 100;
-    var iconSizeArr = (iconShape < 2) ? [iconSize, iconSize] : [iconSize, iconSize / 2];
-    var anchorSizeArr = (anchorShape < 2) ? [anchorSize, anchorSize] : [anchorSize, anchorSize / 2];
+    var anchorColour = (boneColour * anchorBrightness) / 100;
+    var iconSizeArr =
+        iconShape < 2 ? [iconSize, iconSize] : [iconSize, iconSize / 2];
+    var anchorSizeArr =
+        anchorShape < 2
+            ? [anchorSize, anchorSize]
+            : [anchorSize, anchorSize / 2];
     if (makeNewAnchors) {
-        newShape(theLayer, "Anchor", anchorSizeArr, false, anchorColour, 100, anchorShape, anchorPoints);
+        newShape(
+            theLayer,
+            "Anchor",
+            anchorSizeArr,
+            false,
+            anchorColour,
+            100,
+            anchorShape,
+            anchorPoints
+        );
     }
     if (makeNewIcons) {
-        newShape(theLayer, "Icon", iconSizeArr, boneColour, false, iconOpacity, iconShape, iconPoints);
+        newShape(
+            theLayer,
+            "Icon",
+            iconSizeArr,
+            boneColour,
+            false,
+            iconOpacity,
+            iconShape,
+            iconPoints
+        );
     }
 }
 
@@ -69,14 +93,26 @@ function getHandlePositionForLayerGroup(handlePos, selectedLyrs, useAverage) {
         }
     }
     var dif = max - min;
-    return (useAverage) ? [sum[0] / selectedLyrs.length, sum[1] / selectedLyrs.length, sum[2] / selectedLyrs.length] : [handlePos[0] / 2 * dif[0], handlePos[1] / 2 * dif[1], handlePos[2] / 2 * dif[2]]
+    return useAverage
+        ? [
+              sum[0] / selectedLyrs.length,
+              sum[1] / selectedLyrs.length,
+              sum[2] / selectedLyrs.length,
+          ]
+        : [
+              (handlePos[0] / 2) * dif[0],
+              (handlePos[1] / 2) * dif[1],
+              (handlePos[2] / 2) * dif[2],
+          ];
 }
 
 function findParent(aLayer, tree) {
-    if (tree == null) {tree = []}
+    if (tree == null) {
+        tree = [];
+    }
     if (aLayer.parent) {
         tree.push(aLayer.parent);
-        return (findParent(aLayer.parent, tree));
+        return findParent(aLayer.parent, tree);
     } else {
         return tree;
     }
@@ -85,7 +121,13 @@ function findParent(aLayer, tree) {
 function groupLayers(selectedLyrsArr, handlePos, useAverage) {
     if (selectedLyrsArr.length > 1) {
         var newHandle = app.project.activeItem.layers.addShape();
-        newHandle.position.setValue(getHandlePositionForLayerGroup(handlePos, selectedLyrsArr, useAverage));
+        newHandle.position.setValue(
+            getHandlePositionForLayerGroup(
+                handlePos,
+                selectedLyrsArr,
+                useAverage
+            )
+        );
         newHandle.parent = findLatestCommonAncestor(selectedLyrsArr);
         if (newHandle.parent && newHandle.parent.threeDLayer) {
             newHandle.threeDLayer = true;
@@ -111,15 +153,15 @@ function includes(theArr, theObj, exactMatching) {
     for (var a = 0; a < theArr.length; a++) {
         if (exactMatching) {
             if (theArr[a] === theObj) {
-                return true
+                return true;
             }
         } else {
             if (theArr[a] == theObj) {
-                return true
+                return true;
             }
         }
     }
-    return false
+    return false;
 }
 
 function findLatestCommonAncestor(theLayers) {
@@ -129,12 +171,18 @@ function findLatestCommonAncestor(theLayers) {
     if (theLayers[0].lineage.length > 0) {
         var latestCommonAncestor = null;
         var foundCommonAncestor = false;
-        for (var p = 0; p < theLayers[0].lineage.length && !foundCommonAncestor; p++) {
+        for (
+            var p = 0;
+            p < theLayers[0].lineage.length && !foundCommonAncestor;
+            p++
+        ) {
             latestCommonAncestor = theLayers[0].lineage[p];
             tl = 1;
             var keepLooking = true;
             while (tl < theLayers.length && keepLooking) {
-                if (includes(theLayers[tl].lineage, latestCommonAncestor, true)) {
+                if (
+                    includes(theLayers[tl].lineage, latestCommonAncestor, true)
+                ) {
                     tl++;
                     keepLooking = true;
                     foundCommonAncestor = true;
@@ -164,96 +212,139 @@ function makeHandleParentOfLayer(newHandle, theLayer, adoptTransforms) {
     theLayer.parent = newHandle;
 }
 
-function newShape(theLayer, shapeName, shapeSizeArr, fillColour, strokeColour, shapeOpac, shapeType, shapePoints) {
+function newShape(
+    theLayer,
+    shapeName,
+    shapeSizeArr,
+    fillColour,
+    strokeColour,
+    shapeOpac,
+    shapeType,
+    shapePoints
+) {
     var shapeStr = ["Rect", "Ellipse", "Star", "Star"];
-    var newGroup = theLayer.property("Contents").addProperty("ADBE Vector Group");
+    var newGroup = theLayer
+        .property("Contents")
+        .addProperty("ADBE Vector Group");
     newGroup.name = shapeName;
-    var newShapeItem = newGroup.content.addProperty("ADBE Vector Shape - " + shapeStr[shapeType]);
+    var newShapeItem = newGroup.content.addProperty(
+        "ADBE Vector Shape - " + shapeStr[shapeType]
+    );
 
     if (shapeType > 1) {
         newShapeItem.property("ADBE Vector Star Type").setValue(2);
         newShapeItem.property("ADBE Vector Star Points").setValue(shapePoints);
-        newShapeItem.property("ADBE Vector Star Outer Radius").setValue(shapeSizeArr[0]);
+        newShapeItem
+            .property("ADBE Vector Star Outer Radius")
+            .setValue(shapeSizeArr[0]);
         if (shapeType > 2) {
             newShapeItem.property("ADBE Vector Star Type").setValue(1);
-            newShapeItem.property("ADBE Vector Star Inner Radius").setValue(shapeSizeArr[1])
+            newShapeItem
+                .property("ADBE Vector Star Inner Radius")
+                .setValue(shapeSizeArr[1]);
         }
     } else {
-        newShapeItem.property("ADBE Vector " + shapeStr[shapeType] + " Size").setValue(shapeSizeArr);
+        newShapeItem
+            .property("ADBE Vector " + shapeStr[shapeType] + " Size")
+            .setValue(shapeSizeArr);
     }
     if (fillColour) {
-        var newFill = newGroup.content.addProperty("ADBE Vector Graphic - Fill");
+        var newFill = newGroup.content.addProperty(
+            "ADBE Vector Graphic - Fill"
+        );
         newFill.property("ADBE Vector Fill Color").setValue(fillColour);
         newFill.property("ADBE Vector Fill Opacity").setValue(shapeOpac);
     }
 
     if (strokeColour) {
-        var newStroke = newGroup.content.addProperty("ADBE Vector Graphic - Stroke");
+        var newStroke = newGroup.content.addProperty(
+            "ADBE Vector Graphic - Stroke"
+        );
         newStroke.property("ADBE Vector Stroke Color").setValue(strokeColour);
         newStroke.property("ADBE Vector Stroke Opacity").setValue(shapeOpac);
     }
 }
 
-// @target aftereffects
 /* global app, Folder */
 // eslint-disable-next-line no-unused-vars
 function readLabelColoursFromPrefs() {
     try {
-        // returns an array of colour objects corresponding to the label colours in the user's prefs
-        // colours are 8-bit rgb values with r g and b components
-        // eg. [{r: 255, g: 123, b:0}]
-        app.preferences.saveToDisk(); //flush any unsaved prefs to disk
-        var versionStr = "" + app.version.match(/[0-9]+.[0-9]+/);
-        var prefsFilePath = Folder.userData.absoluteURI + "/Adobe/After Effects/" + versionStr + "/Adobe After Effects " + versionStr + " Prefs-indep-general.txt";
-        var prefs = new File(prefsFilePath);
-        var labelColours = [];
-        if (prefs.exists) {
-            prefs.open("r")
-            var line = prefs.readln();
-            var notDoneYet = true
-            while ((!prefs.eof) & notDoneYet) {
-                if (line.match(/\["Label Preference Color Section.*/)) {
-                    line = prefs.readln();
-                    while (line) {
-                        var labelNum = line.match(/"Label Color ID 2 # ([0-9]+)"/);
-                        var labelVal = line.match(/.*= FF(.*)/);
-                        var encodedData = labelVal[1];
-                        var inQuotes = false;
-                        var colourStr = "";
-                        var colour = {
-                            "r": 0,
-                            "g": 0,
-                            "b": 0
-                        }
-                        for (var i = 0; i < encodedData.length; i++) {
-                            if (encodedData[i] === '"') {
-                                inQuotes = !inQuotes;
+    // returns an array of colour objects corresponding to the label colours in the user's prefs
+    // colours are 8-bit rgb values with r g and b components
+    // eg. [{r: 255, g: 123, b:0}]
+    app.preferences.saveToDisk(); //flush any unsaved prefs to disk
+    var versionStr = "" + app.version.match(/([0-9]+.[0-9]+)/)[1];
+    var prefsFilePath =
+        Folder.userData.absoluteURI +
+        "/Adobe/After Effects/" +
+        versionStr +
+        "/Adobe After Effects " +
+        versionStr +
+        " Prefs-indep-general.txt";
+    var prefs = new File(prefsFilePath);
+    // var labelColours = [];
+    // lets make rainbows
+    //note that label colours are 1-indexed because wtf adobe!?
+    // so label[16] exists
+    // also, label[0] is no label.
+    var labelColours = [{ r: 128, g: 128, b: 128 }]; // no label
+    // in case somt goes wrong reading the prefs. Shouldn't happen
+    for (var c = 1; c <= 16; c++) {
+        var colour = {};
+        var ph = (c / 16) * Math.PI;
+
+        colour.r = Math.pow(Math.cos(ph), 2) * 256;
+        colour.g = Math.pow(Math.cos(ph - (2 * Math.PI) / 3), 2) * 256;
+        colour.b = Math.pow(Math.cos(ph + (2 * Math.PI) / 3), 2) * 256;
+        labelColours[c] = colour;
+    }
+    if (prefs.exists) {
+        prefs.open("r");
+        var line = prefs.readln();
+        var notDoneYet = true;
+        while (!prefs.eof & notDoneYet) {
+            if (line.match(/\["Label Preference Color Section.*/)) {
+                line = prefs.readln();
+                while (line) {
+                    var labelNum = line.match(/"Label Color ID 2 # ([0-9]+)"/);
+                    var labelVal = line.match(/.*= FF(.*)/);
+                    var encodedData = labelVal[1];
+                    var inQuotes = false;
+                    var colourStr = "";
+                    var colour = {
+                        r: 0,
+                        g: 0,
+                        b: 0,
+                    };
+                    for (var i = 0; i < encodedData.length; i++) {
+                        if (encodedData[i] === '"') {
+                            inQuotes = !inQuotes;
+                        } else {
+                            if (inQuotes) {
+                                colourStr += encodedData
+                                    .charCodeAt(i)
+                                    .toString(16);
                             } else {
-                                if (inQuotes) {
-                                    colourStr += encodedData.charCodeAt(i).toString(16)
-                                } else {
-                                    colourStr += encodedData[i];
-                                }
+                                colourStr += encodedData[i];
                             }
                         }
-
-                        colour.r = parseInt(colourStr.slice(0, 2), 16)
-                        colour.g = parseInt(colourStr.slice(2, 4), 16)
-                        colour.b = parseInt(colourStr.slice(4), 16)
-                        // label colours aren't stored in numerical order, but in alphabetical order, I think. 
-                        // Anyway parsing the labelNum assigns the right label to the right index.
-                        labelColours[parseInt(labelNum[1], 10)] = colour;
-                        line = prefs.readln();
                     }
-                    notDoneYet = false;
+
+                    colour.r = parseInt(colourStr.slice(0, 2), 16);
+                    colour.g = parseInt(colourStr.slice(2, 4), 16);
+                    colour.b = parseInt(colourStr.slice(4), 16);
+                    // label colours aren't stored in numerical order, but in alphabetical order, I think.
+                    // Anyway parsing the labelNum assigns the right label to the right index.
+                    labelColours[parseInt(labelNum[1], 10)] = colour;
+                    line = prefs.readln();
                 }
-                line = prefs.readln();
+                notDoneYet = false;
             }
-            prefs.close();
-            return labelColours;
-        } else {
-            return false;
+            line = prefs.readln();
         }
+        prefs.close();
+    }
+    return labelColours;
     } catch (e) {
         alert(e);
         return false;
@@ -265,60 +356,65 @@ function getLabelColour(theLayer) {
         userLabelColours = readLabelColoursFromPrefs();
     }
     var label = theLayer.label;
-    return [userLabelColours[label].r / 255, userLabelColours[label].g / 255, userLabelColours[label].b / 255];
+    return [
+        userLabelColours[label].r / 255,
+        userLabelColours[label].g / 255,
+        userLabelColours[label].b / 255,
+    ];
 }
 
 function updateNumberField(offset) {
     try {
         var pts = parseInt(this.text);
         if (isNaN(pts)) {
-            pts = 6
+            pts = 6;
         }
-        if (!(typeof offset === 'undefined' || offset === null)) {
+        if (!(typeof offset === "undefined" || offset === null)) {
             pts += offset;
         }
         if (pts < 3) {
-            pts = 3
+            pts = 3;
         }
         this.text = "" + pts;
     } catch (e) {
-        this.text = "6"
+        this.text = "6";
     }
 }
-
 
 function myPrefs(prefList) {
     this.prefs = {};
 
-    this.parsePref = function(val, prefType) {
+    this.parsePref = function (val, prefType) {
         switch (prefType) {
             case "integer":
                 return parseInt(val, 10);
             case "float":
                 return parseFloat(val);
             case "bool":
-                return (val === "true")
+                return val === "true";
             default:
-                return val
+                return val;
         }
-    }
+    };
 
-    this.getPref = function(preference) {
+    this.getPref = function (preference) {
         if (app.settings.haveSetting(scriptName, preference.name)) {
-            this.prefs[preference.name] = this.parsePref(app.settings.getSetting(scriptName, preference.name), preference.prefType);
+            this.prefs[preference.name] = this.parsePref(
+                app.settings.getSetting(scriptName, preference.name),
+                preference.prefType
+            );
         } else {
             this.prefs[preference.name] = preference.factoryDefault;
             this.setPref(preference.name, preference.factoryDefault);
         }
-    }
+    };
 
-    this.setPref = function(prefname, value) {
+    this.setPref = function (prefname, value) {
         if (this.prefs[prefname] !== value) {
             this.prefs[prefname] = value;
             app.settings.saveSetting(scriptName, prefname, value);
         }
-    }
-
+    };
 
     for (var p = 0; p < prefList.length; p++) {
         this.getPref(prefList[p]);
@@ -326,7 +422,6 @@ function myPrefs(prefList) {
 }
 
 function buildUI(thisObj) {
-
     /* Original dialog came from here:
     Code for Import https://scriptui.joonas.me 
     */
@@ -337,7 +432,7 @@ function buildUI(thisObj) {
         var pal = thisObj;
     } else {
         pal = new Window("palette", scriptName, undefined, {
-            resizeable: true
+            resizeable: true,
         });
     }
     if (pal !== null) {
@@ -347,7 +442,7 @@ function buildUI(thisObj) {
         pal.margins = 16;
 
         var DoTheThingsBtn = pal.add("button", undefined, undefined, {
-            name: "DoTheThingsBtn"
+            name: "DoTheThingsBtn",
         });
         DoTheThingsBtn.text = "Create Handle";
         DoTheThingsBtn.preferredSize.width = 220;
@@ -356,21 +451,20 @@ function buildUI(thisObj) {
         // ========
 
         var deletBox = pal.add("panel", undefined, undefined, {
-            name: "deletBox"
+            name: "deletBox",
         });
         var deleteIKChkBx = deletBox.add("checkbox", undefined, undefined);
-        deleteIKChkBx.name = "deleteIKChkBx"
+        deleteIKChkBx.name = "deleteIKChkBx";
         deleteIKChkBx.text = "Delete DuIK IK lines";
         deleteIKChkBx.preferredSize.width = 200;
         deletBox.margins = [10, 6, 10, 2];
         // deleteIKChkBx.margins = 10, 10,;
 
-
         // GROUPLAYERS
         // ===================================================================================
         var GroupLayers = pal.add("panel", undefined, undefined, {
             name: "GroupLayers",
-            borderStyle: "black"
+            borderStyle: "black",
         });
         GroupLayers.text = "Group";
         GroupLayers.preferredSize.width = 200;
@@ -380,15 +474,14 @@ function buildUI(thisObj) {
         GroupLayers.margins = 10;
 
         var groupLayersBtn = GroupLayers.add("button", undefined, undefined);
-        groupLayersBtn.name = "groupChkBx"
+        groupLayersBtn.name = "groupChkBx";
         groupLayersBtn.helpTip = "Create a single handle for multiple layers.";
         groupLayersBtn.text = "Create 1 handle for all layers";
         groupLayersBtn.preferredSize.width = 200;
 
-
         // ==== slider text headers
         var headerText = GroupLayers.add("group", undefined, {
-            name: "XGrp"
+            name: "XGrp",
         });
         headerText.orientation = "row";
         headerText.alignChildren = ["left", "center"];
@@ -397,13 +490,13 @@ function buildUI(thisObj) {
         headerText.alignment = ["fill", "top"];
 
         var statictext1 = headerText.add("statictext", undefined, undefined, {
-            name: "statictext1"
+            name: "statictext1",
         });
         statictext1.text = "Handle Position";
         statictext1.preferredSize.width = 148;
 
         var statictext2 = headerText.add("statictext", undefined, undefined, {
-            name: "statictext2"
+            name: "statictext2",
         });
         statictext2.text = "Center";
 
@@ -415,7 +508,7 @@ function buildUI(thisObj) {
         // XGRP1
         // =====
         var XGrp = sliderGroup.add("group", undefined, {
-            name: "XGrp1"
+            name: "XGrp1",
         });
         XGrp.orientation = "row";
         XGrp.alignChildren = ["left", "center"];
@@ -424,11 +517,17 @@ function buildUI(thisObj) {
         XGrp.alignment = ["fill", "top"];
 
         var statictext3 = XGrp.add("statictext", undefined, undefined, {
-            name: "statictext3"
+            name: "statictext3",
         });
         statictext3.text = "X";
 
-        var xSlider = XGrp.add("slider", undefined, undefined, undefined, undefined);
+        var xSlider = XGrp.add(
+            "slider",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
         xSlider.name = "xSlider";
         xSlider.minvalue = 0;
         xSlider.maxvalue = 1;
@@ -440,7 +539,7 @@ function buildUI(thisObj) {
         // YGRP
         // ====
         var YGrp = sliderGroup.add("group", undefined, {
-            name: "YGrp"
+            name: "YGrp",
         });
         YGrp.orientation = "row";
         YGrp.alignChildren = ["left", "center"];
@@ -449,11 +548,17 @@ function buildUI(thisObj) {
         YGrp.alignment = ["fill", "top"];
 
         var statictext4 = YGrp.add("statictext", undefined, undefined, {
-            name: "statictext4"
+            name: "statictext4",
         });
         statictext4.text = "Y";
 
-        var ySlider = YGrp.add("slider", undefined, undefined, undefined, undefined);
+        var ySlider = YGrp.add(
+            "slider",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
         ySlider.name = "ySlider";
         ySlider.minvalue = 0;
         ySlider.maxvalue = 1;
@@ -465,7 +570,7 @@ function buildUI(thisObj) {
         // ZGRP
         // ====
         var ZGrp = sliderGroup.add("group", undefined, {
-            name: "ZGrp"
+            name: "ZGrp",
         });
         ZGrp.orientation = "row";
         ZGrp.alignChildren = ["left", "center"];
@@ -474,11 +579,17 @@ function buildUI(thisObj) {
         ZGrp.alignment = ["fill", "top"];
 
         var statictext5 = ZGrp.add("statictext", undefined, undefined, {
-            name: "statictext5"
+            name: "statictext5",
         });
         statictext5.text = "Z";
 
-        var zSlider = ZGrp.add("slider", undefined, undefined, undefined, undefined);
+        var zSlider = ZGrp.add(
+            "slider",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
         zSlider.name = "zSlider";
         zSlider.minvalue = 0;
         zSlider.maxvalue = 1;
@@ -488,18 +599,17 @@ function buildUI(thisObj) {
         zSlider.cntrChkBx.name = "zSlider.cntrChkBx";
 
         // average checkbox
-        var averageChkBx = GroupLayers.add("checkbox", undefined, undefined)
+        var averageChkBx = GroupLayers.add("checkbox", undefined, undefined);
         averageChkBx.name = "Average";
-        averageChkBx.helpTip = "Put the handle at the average position (not always the middle)";
+        averageChkBx.helpTip =
+            "Put the handle at the average position (not always the middle)";
         averageChkBx.text = "Average";
         averageChkBx.alignment = ["left", "top"];
-
-
 
         // CREATBOX
         // ================================================================================================
         var creatBox = pal.add("panel", undefined, undefined, {
-            name: "creatBox"
+            name: "creatBox",
         });
         creatBox.text = "Create";
         creatBox.orientation = "column";
@@ -507,13 +617,13 @@ function buildUI(thisObj) {
         creatBox.spacing = 6;
         creatBox.margins = [10, 16, 10, 6];
         var createIconsChkBx = creatBox.add("checkbox", undefined, undefined);
-        createIconsChkBx.name = "createIconsChkBx"
+        createIconsChkBx.name = "createIconsChkBx";
         createIconsChkBx.text = "Icons";
 
         // Icon size
         // ======
         var icnSizePanel = creatBox.add("panel", undefined, undefined, {
-            name: "icnSizePanel"
+            name: "icnSizePanel",
         });
         icnSizePanel.text = "Icon size";
         icnSizePanel.orientation = "row";
@@ -521,18 +631,28 @@ function buildUI(thisObj) {
         icnSizePanel.spacing = 10;
         icnSizePanel.margins = [10, 8, 10, 6];
 
-        var iconSizeSlider = icnSizePanel.add("slider", undefined, undefined, undefined, undefined);
-        iconSizeSlider.name = "iconSizeSlider"
+        var iconSizeSlider = icnSizePanel.add(
+            "slider",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
+        iconSizeSlider.name = "iconSizeSlider";
         iconSizeSlider.helpTip = "Icon size, from 5 - 500";
         iconSizeSlider.minvalue = 20;
         iconSizeSlider.maxvalue = 100;
         iconSizeSlider.preferredSize.width = 146;
-        var iconSizeText = icnSizePanel.add("statictext", undefined, iconSizeSlider.value);
+        var iconSizeText = icnSizePanel.add(
+            "statictext",
+            undefined,
+            iconSizeSlider.value
+        );
         iconSizeText.preferredSize.width = 20;
         // icon opacity
         // ======
         var iconOpacityPanel = creatBox.add("panel", undefined, undefined, {
-            name: "iconOpacityPanel"
+            name: "iconOpacityPanel",
         });
         iconOpacityPanel.text = "Icon Opacity";
         iconOpacityPanel.orientation = "column";
@@ -540,61 +660,82 @@ function buildUI(thisObj) {
         iconOpacityPanel.spacing = 10;
         iconOpacityPanel.margins = [10, 8, 10, 6];
 
-        var iconOpacitySlider = iconOpacityPanel.add("slider", undefined, undefined, undefined, undefined);
-        iconOpacitySlider.name = "iconOpacitySlider"
+        var iconOpacitySlider = iconOpacityPanel.add(
+            "slider",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
+        iconOpacitySlider.name = "iconOpacitySlider";
         iconOpacitySlider.helpTip = "Icon opacity";
         iconOpacitySlider.minvalue = 0;
         iconOpacitySlider.maxvalue = 100;
         iconOpacitySlider.preferredSize.width = 176;
 
-
         // icon shape
         // ======
         var icnShapeGrp = creatBox.add("group", undefined, {
-            name: "icnShapeGrp"
+            name: "icnShapeGrp",
         });
         icnShapeGrp.orientation = "row";
         icnShapeGrp.alignChildren = ["left", "center"];
         icnShapeGrp.spacing = 10;
         icnShapeGrp.margins = 0;
 
-        var iconShapeDDList = icnShapeGrp.add("dropdownlist", undefined, undefined, {
-            items: SHAPE_NAMES
-        });
-        iconShapeDDList.name = "iconShapeDDList"
+        var iconShapeDDList = icnShapeGrp.add(
+            "dropdownlist",
+            undefined,
+            undefined,
+            {
+                items: SHAPE_NAMES,
+            }
+        );
+        iconShapeDDList.name = "iconShapeDDList";
         iconShapeDDList.preferredSize.width = 90;
 
         // ----------[-] iconShapeDDList.txtBx [+] grouplet ----------
-        iconShapeDDList.minus = icnShapeGrp.add("Button", undefined, undefined, {
-            name: "iconShapeDDList.minus"
-        });
+        iconShapeDDList.minus = icnShapeGrp.add(
+            "Button",
+            undefined,
+            undefined,
+            {
+                name: "iconShapeDDList.minus",
+            }
+        );
         iconShapeDDList.minus.text = "-";
         iconShapeDDList.minus.preferredSize.width = 20;
-        iconShapeDDList.txtBx = icnShapeGrp.add("edittext", undefined, undefined, undefined, undefined);
+        iconShapeDDList.txtBx = icnShapeGrp.add(
+            "edittext",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
         iconShapeDDList.txtBx.name = "iconPoints";
         iconShapeDDList.txtBx.preferredSize.width = 30;
         iconShapeDDList.txtBx.update = updateNumberField;
         iconShapeDDList.plus = icnShapeGrp.add("Button", undefined, undefined, {
-            name: "iconShapeDDList.plus"
+            name: "iconShapeDDList.plus",
         });
         iconShapeDDList.plus.text = "+";
         iconShapeDDList.plus.preferredSize.width = 20;
 
         // ========
         var divider1 = creatBox.add("panel", undefined, undefined, {
-            name: "divider1"
+            name: "divider1",
         });
         divider1.alignment = "fill";
         //create anchors
         var createAnchorsChkBx = creatBox.add("checkbox", undefined, undefined);
-        createAnchorsChkBx.name = "createAnchorsChkBx"
+        createAnchorsChkBx.name = "createAnchorsChkBx";
 
         createAnchorsChkBx.text = "Anchors";
 
         // anchor size
         // ======
         var anchorSizePanel = creatBox.add("panel", undefined, undefined, {
-            name: "anchorSizePanel"
+            name: "anchorSizePanel",
         });
         anchorSizePanel.text = "Anchor Size";
         anchorSizePanel.orientation = "row";
@@ -602,29 +743,51 @@ function buildUI(thisObj) {
         anchorSizePanel.spacing = 10;
         anchorSizePanel.margins = [10, 8, 10, 6];
 
-        var anchorSizeSlider = anchorSizePanel.add("slider", undefined, undefined, undefined, undefined);
-        anchorSizeSlider.name = "anchorSizeSlider"
+        var anchorSizeSlider = anchorSizePanel.add(
+            "slider",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
+        anchorSizeSlider.name = "anchorSizeSlider";
         anchorSizeSlider.helpTip = "Anchor size from 0 - 500";
         anchorSizeSlider.minvalue = 20;
         anchorSizeSlider.maxvalue = 100;
         anchorSizeSlider.preferredSize.width = 146;
-        var anchorSizeText = anchorSizePanel.add("statictext", undefined, anchorSizeSlider.value);
+        var anchorSizeText = anchorSizePanel.add(
+            "statictext",
+            undefined,
+            anchorSizeSlider.value
+        );
         anchorSizeText.preferredSize.width = 20;
 
         // PANEL3
         // ======
-        var anchorBrightnessPanel = creatBox.add("panel", undefined, undefined, {
-            name: "anchorBrightnessPanel"
-        });
+        var anchorBrightnessPanel = creatBox.add(
+            "panel",
+            undefined,
+            undefined,
+            {
+                name: "anchorBrightnessPanel",
+            }
+        );
         anchorBrightnessPanel.text = "Anchor Brightness";
         anchorBrightnessPanel.orientation = "column";
         anchorBrightnessPanel.alignChildren = ["left", "top"];
         anchorBrightnessPanel.spacing = 10;
         anchorBrightnessPanel.margins = [10, 8, 10, 6];
 
-        var anchorBrightnessSlider = anchorBrightnessPanel.add("slider", undefined, undefined, undefined, undefined);
-        anchorBrightnessSlider.name = "anchorBrightnessSlider"
-        anchorBrightnessSlider.helpTip = "Brightness of anchor stroke, from black to white";
+        var anchorBrightnessSlider = anchorBrightnessPanel.add(
+            "slider",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
+        anchorBrightnessSlider.name = "anchorBrightnessSlider";
+        anchorBrightnessSlider.helpTip =
+            "Brightness of anchor stroke, from black to white";
         anchorBrightnessSlider.minvalue = 0;
         anchorBrightnessSlider.maxvalue = 150;
         anchorBrightnessSlider.preferredSize.width = 176;
@@ -632,109 +795,145 @@ function buildUI(thisObj) {
         // GROUP2
         // ======
         var anchorShapeGroup = creatBox.add("group", undefined, {
-            name: "anchorShapeGroup"
+            name: "anchorShapeGroup",
         });
         anchorShapeGroup.orientation = "row";
         anchorShapeGroup.alignChildren = ["left", "center"];
         anchorShapeGroup.spacing = 10;
         anchorShapeGroup.margins = 0;
 
-        var anchorShapeDDList = anchorShapeGroup.add("dropdownlist", undefined, undefined, {
-            items: SHAPE_NAMES
-        });
-        anchorShapeDDList.name = "anchorShapeDDList"
+        var anchorShapeDDList = anchorShapeGroup.add(
+            "dropdownlist",
+            undefined,
+            undefined,
+            {
+                items: SHAPE_NAMES,
+            }
+        );
+        anchorShapeDDList.name = "anchorShapeDDList";
         anchorShapeDDList.preferredSize.width = 90;
 
         // ----------[-] anchorPoints [ grouplet ----------+]
-        anchorShapeDDList.minus = anchorShapeGroup.add("Button", undefined, undefined, {
-            name: "anchorShapeDDList.minus"
-        });
+        anchorShapeDDList.minus = anchorShapeGroup.add(
+            "Button",
+            undefined,
+            undefined,
+            {
+                name: "anchorShapeDDList.minus",
+            }
+        );
         anchorShapeDDList.minus.text = "-";
         anchorShapeDDList.minus.preferredSize.width = 20;
-        anchorShapeDDList.txtBx = anchorShapeGroup.add("edittext", undefined, undefined, undefined, undefined);
+        anchorShapeDDList.txtBx = anchorShapeGroup.add(
+            "edittext",
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        );
         anchorShapeDDList.txtBx.name = "anchorShapeDDList.txtBx";
         anchorShapeDDList.txtBx.preferredSize.width = 30;
         anchorShapeDDList.txtBx.update = updateNumberField;
 
-        anchorShapeDDList.plus = anchorShapeGroup.add("Button", undefined, undefined, {
-            name: "anchorShapeDDList.plus"
-        });
+        anchorShapeDDList.plus = anchorShapeGroup.add(
+            "Button",
+            undefined,
+            undefined,
+            {
+                name: "anchorShapeDDList.plus",
+            }
+        );
         anchorShapeDDList.plus.text = "+";
         anchorShapeDDList.plus.preferredSize.width = 20;
 
         // ------------------------- Preferences ---------------------------------
 
-        var prefs = new myPrefs(
-            [{
+        var prefs = new myPrefs([
+            {
                 name: "deleteIconsChkBx",
                 factoryDefault: true,
-                prefType: "bool"
-            }, {
+                prefType: "bool",
+            },
+            {
                 name: "deleteAnchorsChkBx",
                 factoryDefault: true,
-                prefType: "bool"
-            }, {
+                prefType: "bool",
+            },
+            {
                 name: "deleteIKChkBx",
                 factoryDefault: true,
-                prefType: "bool"
-            }, {
+                prefType: "bool",
+            },
+            {
                 name: "createIconsChkBx",
                 factoryDefault: true,
-                prefType: "bool"
-            }, {
+                prefType: "bool",
+            },
+            {
                 name: "iconSizeSlider",
                 factoryDefault: 50,
-                prefType: "float"
-            }, {
+                prefType: "float",
+            },
+            {
                 name: "iconOpacitySlider",
                 factoryDefault: 50,
-                prefType: "float"
-            }, {
+                prefType: "float",
+            },
+            {
                 name: "iconShapeDDList",
                 factoryDefault: 1,
-                prefType: "integer"
-            }, {
+                prefType: "integer",
+            },
+            {
                 name: "iconPoints",
                 factoryDefault: 6,
-                prefType: "integer"
-            }, {
+                prefType: "integer",
+            },
+            {
                 name: "createAnchorsChkBx",
                 factoryDefault: 1,
-                prefType: "bool"
-            }, {
+                prefType: "bool",
+            },
+            {
                 name: "anchorSizeSlider",
                 factoryDefault: 10,
-                prefType: "float"
-            }, {
+                prefType: "float",
+            },
+            {
                 name: "anchorBrightnessSlider",
                 factoryDefault: 10,
-                prefType: "float"
-            }, {
+                prefType: "float",
+            },
+            {
                 name: "anchorShapeDDList",
                 factoryDefault: 0,
-                prefType: "integer"
-            }, {
+                prefType: "integer",
+            },
+            {
                 name: "anchorShapeDDList.txtBx",
                 factoryDefault: 6,
-                prefType: "integer"
-            }, {
+                prefType: "integer",
+            },
+            {
                 name: "xSlider",
                 factoryDefault: 0.5,
-                prefType: "float"
-            }, {
+                prefType: "float",
+            },
+            {
                 name: "ySlider",
                 factoryDefault: 0.5,
-                prefType: "float"
-            }, {
+                prefType: "float",
+            },
+            {
                 name: "zSlider",
                 factoryDefault: 0.5,
-                prefType: "float"
-            }]
-        );
-
+                prefType: "float",
+            },
+        ]);
 
         // initialise stuff
-        var uiValues = [deleteIKChkBx,
+        var uiValues = [
+            deleteIKChkBx,
             groupLayersBtn,
             xSlider,
             ySlider,
@@ -744,15 +943,16 @@ function buildUI(thisObj) {
             iconOpacitySlider,
             createAnchorsChkBx,
             anchorSizeSlider,
-            anchorBrightnessSlider
-        ]
+            anchorBrightnessSlider,
+        ];
         for (var u = 0; u < uiValues.length; u++) {
             uiValues[u].value = prefs.prefs[uiValues[u].name];
         }
         iconShapeDDList.selection = prefs.prefs[iconShapeDDList.name];
         anchorShapeDDList.selection = prefs.prefs[anchorShapeDDList.name];
         iconShapeDDList.txtBx.text = prefs.prefs[iconShapeDDList.txtBx.name];
-        anchorShapeDDList.txtBx.text = prefs.prefs[anchorShapeDDList.txtBx.name];
+        anchorShapeDDList.txtBx.text =
+            prefs.prefs[anchorShapeDDList.txtBx.name];
 
         activateControls(anchorShapeDDList);
         activateControls(iconShapeDDList);
@@ -761,107 +961,111 @@ function buildUI(thisObj) {
         iconSizeText.text = scaledIconSize;
         anchorSizeText.text = scaledAnchorSize;
 
-        averageChkBx.onClick = function() {
+        averageChkBx.onClick = function () {
             sliderGroup.enabled = !this.value;
             prefs.setPref(averageChkBx.name, averageChkBx.value);
-        }
+        };
         var handlePos = [xSlider.value, ySlider.value, zSlider.value];
         var slidrs = [xSlider, ySlider, zSlider];
         for (var slidr = 0; slidr < slidrs.length; slidr++) {
             slidrs[slidr].cntrChkBx.value = slidrs[slidr].value === 0.5;
-            slidrs[slidr].onChange = function() {
-                this.cntrChkBx.value = (this.value === 0.5);
+            slidrs[slidr].onChange = function () {
+                this.cntrChkBx.value = this.value === 0.5;
                 handlePos = [xSlider.value, ySlider.value, zSlider.value];
                 prefs.setPref(this.name, this.value);
-            }
+            };
         }
 
-        xSlider.cntrChkBx.onClick = function() {
+        xSlider.cntrChkBx.onClick = function () {
             xSlider.value = 0.5;
             prefs.setPref(xSlider.name, xSlider.value);
-        }
-        ySlider.cntrChkBx.onClick = function() {
+        };
+        ySlider.cntrChkBx.onClick = function () {
             ySlider.value = 0.5;
             prefs.setPref(ySlider.name, ySlider.value);
-        }
-        zSlider.cntrChkBx.onClick = function() {
+        };
+        zSlider.cntrChkBx.onClick = function () {
             zSlider.value = 0.5;
             prefs.setPref(zSlider.name, zSlider.value);
-        }
-
+        };
 
         deleteIKChkBx.onClick =
             createIconsChkBx.onClick =
             createAnchorsChkBx.onClick =
-            function() {
-                prefs.setPref(this.name, this.value);
-                adjustIconShape(true);
-            }
+                function () {
+                    prefs.setPref(this.name, this.value);
+                    adjustIconShape(true);
+                };
 
-        iconSizeSlider.onChange =
-            anchorSizeSlider.onChange =
-            function() {
+        iconSizeSlider.onChange = anchorSizeSlider.onChange = function () {
+            prefs.setPref(this.name, this.value);
+            scaledIconSize = scaleUIElements(iconSizeSlider.value);
+            scaledAnchorSize = scaleUIElements(anchorSizeSlider.value);
+            iconSizeText.text = scaledIconSize;
+            anchorSizeText.text = scaledAnchorSize;
+            adjustIconShape(false);
+        };
+        iconOpacitySlider.onChange = anchorBrightnessSlider.onChange =
+            function () {
                 prefs.setPref(this.name, this.value);
-                scaledIconSize = scaleUIElements(iconSizeSlider.value);
-                scaledAnchorSize = scaleUIElements(anchorSizeSlider.value);
-                iconSizeText.text = scaledIconSize;
-                anchorSizeText.text = scaledAnchorSize;
-                adjustIconShape(false);
-            }
-        iconOpacitySlider.onChange =
-            anchorBrightnessSlider.onChange =
-            function() {
-                prefs.setPref(this.name, this.value);
-                adjustIconShape(false);
-            }
-
-        iconShapeDDList.onChange =
-            anchorShapeDDList.onChange =
-            function() {
-                prefs.setPref(this.name, this.selection.index);
-                activateControls(this);
                 adjustIconShape(false);
             };
 
-        iconShapeDDList.txtBx.onChange = function() {
+        iconShapeDDList.onChange = anchorShapeDDList.onChange = function () {
+            prefs.setPref(this.name, this.selection.index);
+            activateControls(this);
+            adjustIconShape(false);
+        };
+
+        iconShapeDDList.txtBx.onChange = function () {
             this.update();
             prefs.setPref(this.name, parseInt(this.text));
             adjustIconShape(false);
         };
-        anchorShapeDDList.txtBx.onChange = function() {
+        anchorShapeDDList.txtBx.onChange = function () {
             this.update();
             prefs.setPref(this.name, parseInt(this.text));
             adjustIconShape(false);
         };
 
-        iconShapeDDList.plus.onClick = function() {
+        iconShapeDDList.plus.onClick = function () {
             iconShapeDDList.txtBx.update(1);
-            prefs.setPref(iconShapeDDList.txtBx.name, parseInt(iconShapeDDList.txtBx.text));
+            prefs.setPref(
+                iconShapeDDList.txtBx.name,
+                parseInt(iconShapeDDList.txtBx.text)
+            );
             adjustIconShape(false);
-        }
-        iconShapeDDList.minus.onClick = function() {
+        };
+        iconShapeDDList.minus.onClick = function () {
             iconShapeDDList.txtBx.update(-1);
-            prefs.setPref(iconShapeDDList.txtBx.name, parseInt(iconShapeDDList.txtBx.text));
+            prefs.setPref(
+                iconShapeDDList.txtBx.name,
+                parseInt(iconShapeDDList.txtBx.text)
+            );
             adjustIconShape(false);
-        }
+        };
 
-        anchorShapeDDList.plus.onClick = function() {
-            anchorShapeDDList.txtBx.update(1)
-            prefs.setPref(anchorShapeDDList.txtBx.name, parseInt(anchorShapeDDList.txtBx.text));
+        anchorShapeDDList.plus.onClick = function () {
+            anchorShapeDDList.txtBx.update(1);
+            prefs.setPref(
+                anchorShapeDDList.txtBx.name,
+                parseInt(anchorShapeDDList.txtBx.text)
+            );
             adjustIconShape(false);
-        }
-        anchorShapeDDList.minus.onClick = function() {
+        };
+        anchorShapeDDList.minus.onClick = function () {
             anchorShapeDDList.txtBx.update(-1);
-            prefs.setPref(anchorShapeDDList.txtBx.name, parseInt(anchorShapeDDList.txtBx.text));
+            prefs.setPref(
+                anchorShapeDDList.txtBx.name,
+                parseInt(anchorShapeDDList.txtBx.text)
+            );
             adjustIconShape(false);
-        }
-
+        };
 
         // ------------------------- do the things -------------------------------
-        DoTheThingsBtn.onClick = function() {
+        DoTheThingsBtn.onClick = function () {
             adjustIconShape(true);
         };
-
 
         if (pal instanceof Window) {
             pal.center();
@@ -869,28 +1073,33 @@ function buildUI(thisObj) {
         } else {
             pal.layout.layout(true);
         }
-
     }
 
     function activateControls(ddList) {
-        ddList.txtBx.enabled = (ddList.selection.index > 1); // activate the points controls for poly and star
-        ddList.minus.enabled = (ddList.selection.index > 1);
-        ddList.plus.enabled = (ddList.selection.index > 1);
+        ddList.txtBx.enabled = ddList.selection.index > 1; // activate the points controls for poly and star
+        ddList.minus.enabled = ddList.selection.index > 1;
+        ddList.plus.enabled = ddList.selection.index > 1;
     }
 
     function scaleUIElements(theSize) {
         if (app.project && app.project.activeItem) {
-            var compBiggestDimension = Math.max(app.project.activeItem.width, app.project.activeItem.height);
+            var compBiggestDimension = Math.max(
+                app.project.activeItem.width,
+                app.project.activeItem.height
+            );
         } else {
             compBiggestDimension = 1920;
         }
         //make the biggest possible icon 1/3 of the comp's largest dimension. Smalles size is 6 pixels
-        return Math.max(Math.round(compBiggestDimension / 3 * (Math.pow(theSize / 100, 3))), 6);
+        return Math.max(
+            Math.round((compBiggestDimension / 3) * Math.pow(theSize / 100, 3)),
+            6
+        );
     }
 
     function getSelectedLayers() {
         //make a proper array, instead of a stupid layerCollection object
-        var selectedLyrsArr = []; 
+        var selectedLyrsArr = [];
         for (var s = 0; s < app.project.activeItem.selectedLayers.length; s++) {
             selectedLyrsArr.push(app.project.activeItem.selectedLayers[s]);
         }
@@ -900,7 +1109,11 @@ function buildUI(thisObj) {
     groupLayersBtn.onClick = function () {
         app.beginUndoGroup("create handle for selected");
         var selectedLyrsArr = getSelectedLayers();
-        var groupHandle = groupLayers(selectedLyrsArr, handlePos, averageChkBx.value);
+        var groupHandle = groupLayers(
+            selectedLyrsArr,
+            handlePos,
+            averageChkBx.value
+        );
         var iconPointsInt = parseInt(iconShapeDDList.txtBx.text);
         var anchorPointsInt = parseInt(anchorShapeDDList.txtBx.text);
         setHandleStyle(
@@ -918,8 +1131,7 @@ function buildUI(thisObj) {
             anchorPointsInt
         );
         app.endUndoGroup();
-    }
-    
+    };
 
     function adjustIconShape(createNew) {
         app.beginUndoGroup("Create Handle");
@@ -936,7 +1148,6 @@ function buildUI(thisObj) {
                 newShapeLyr.selected = true;
                 selectedLyrsArr.push(newShapeLyr);
             }
-
 
             for (var b = 0; b < selectedLyrsArr.length; b++) {
                 var theLayer = selectedLyrsArr[b];
@@ -960,7 +1171,6 @@ function buildUI(thisObj) {
                     anchorPointsInt
                 );
             }
-
         }
         // } catch (e) {
         //     alert(e);
@@ -970,3 +1180,16 @@ function buildUI(thisObj) {
 }
 
 buildUI(this);
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

@@ -1,4 +1,6 @@
-//@target aftereffects
+// @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 (function (thisObj) {
     var scriptName = "ticks-n-tocks";
     var versionNum = 0.1;
@@ -312,7 +314,9 @@
                     switch (methods[this.selection.index]) {
                         case "frames":
                             if (app.project.activeItem) {
-                                quantiseLengthText.text = newVal/ app.project.activeItem.frameDuration;
+                                quantiseLengthText.text =
+                                    newVal /
+                                    app.project.activeItem.frameDuration;
                             }
                             break;
                         case "seconds":
@@ -324,12 +328,15 @@
                             break;
                         case "work area division":
                             if (app.project.activeItem) {
-                                quantiseLengthText.text = app.project.activeItem.workAreaDuration / newVal
+                                quantiseLengthText.text =
+                                    app.project.activeItem.workAreaDuration /
+                                    newVal;
                             }
                             break;
                         case "comp division":
                             if (app.project.activeItem) {
-                                quantiseLengthText.text = app.project.activeItem.duration / newVal;
+                                quantiseLengthText.text =
+                                    app.project.activeItem.duration / newVal;
                             }
                             break;
                     }
@@ -357,8 +364,6 @@
             quantise(methodDD.selection.index, getLength());
         }
     }
-
-    
 
     //---------------------------- ui prefs -----------------------------
     function Preferences(scriptName) {
@@ -441,3 +446,17 @@
     //--------------------- go ahead and run ----------------------
     buildGUI(thisObj);
 })(this);
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

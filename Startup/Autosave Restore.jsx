@@ -1,20 +1,10 @@
 // Autosave Restore by stib
-// if AE crashes it finds if there are autosaved copies your project that are newer than the saved one
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 // @target aftereffects
+
+// if AE crashes this finds if there are autosaved copies your project that are newer than the saved one
+
+// license below
+// more: https://blob.pureandapplied.com.au
 (function () {
     var scriptName = this.name = "AutoSave Restore";
     var prefName = "ignoredAutoSaves";
@@ -191,10 +181,6 @@
         var autoName = File.decode(autoSave.name);
         var autoDate = formateDate(autoSave.modified);
 
-        /*
-        Code for Import https://scriptui.joonas.me — (Triple click to select): 
-        {"activeId":11,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":null,"windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"AutoSave alert!","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":10,"alignChildren":["center","top"]}},"item-1":{"id":1,"type":"StaticText","parentId":0,"style":{"enabled":true,"varName":null,"creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"The Autosaved version of the\nlast opened project is newer\nthan the saved version.","justify":"left","preferredSize":[200,0],"alignment":null,"helpTip":null}},"item-2":{"id":2,"type":"EditText","parentId":12,"style":{"enabled":true,"varName":null,"creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"EditText","justify":"left","preferredSize":[340,0],"alignment":null,"helpTip":null}},"item-3":{"id":3,"type":"Button","parentId":0,"style":{"enabled":true,"varName":null,"text":"Restore from autosave","justify":"center","preferredSize":[200,0],"alignment":null,"helpTip":null}},"item-4":{"id":4,"type":"StaticText","parentId":7,"style":{"enabled":true,"varName":"lastSavedProject","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Last.aep","justify":"left","preferredSize":[90,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"StaticText","parentId":7,"style":{"enabled":true,"varName":"lastProjDate","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"StaticText","justify":"left","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-7":{"id":7,"type":"Panel","parentId":0,"style":{"enabled":true,"varName":null,"creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Last saved project","preferredSize":[200,0],"margins":10,"orientation":"row","spacing":10,"alignChildren":["left","top"],"alignment":null}},"item-8":{"id":8,"type":"Panel","parentId":0,"style":{"enabled":true,"varName":null,"creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Last autosave","preferredSize":[200,0],"margins":10,"orientation":"row","spacing":10,"alignChildren":["left","top"],"alignment":null}},"item-9":{"id":9,"type":"StaticText","parentId":8,"style":{"enabled":true,"varName":"lastAutosavSave","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Last.aep","justify":"left","preferredSize":[90,0],"alignment":null,"helpTip":null}},"item-10":{"id":10,"type":"StaticText","parentId":8,"style":{"enabled":true,"varName":"lastProjDate","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"StaticText","justify":"left","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"Checkbox","parentId":12,"style":{"enabled":true,"varName":null,"text":"Open after restoring","preferredSize":[10,0],"alignment":null,"helpTip":null}},"item-12":{"id":12,"type":"Panel","parentId":0,"style":{"enabled":true,"varName":null,"creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Restore as","preferredSize":[200,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["left","top"],"alignment":null}}},"order":[0,1,7,4,5,8,9,10,3,12,2,11],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"None"}}
-        */
 
         // DIALOG
         // ======
@@ -354,3 +340,31 @@
         dialog.show();
     }
 })();
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

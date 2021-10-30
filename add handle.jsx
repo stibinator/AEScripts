@@ -1,10 +1,14 @@
 // @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 /* global app */
 //add a handle to all unparented layers
 // @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 function addHandleNull(theLayer, theHandle) {
-    if (theLayer){
-        if (! theLayer.parent) {
+    if (theLayer) {
+        if (!theLayer.parent) {
             theLayer.parent = theHandle;
         }
     }
@@ -17,7 +21,7 @@ function addCompHandle() {
     // change this to true if you want to leave locked layers untouched.
     var doLockedLayers = true;
     if (proj) {
-        var averagePosition = [0,0,0]
+        var averagePosition = [0, 0, 0];
         app.beginUndoGroup(scriptName);
         var comp = app.project.activeItem;
         if (comp) {
@@ -25,7 +29,7 @@ function addCompHandle() {
             //to avoid weirdness when we add a null
             var theLayers = comp.selectedLayers;
             if (theLayers.length > 0) {
-            //use selected layers if some layers are selected,
+                //use selected layers if some layers are selected,
                 for (var i = 0; i < theLayers.length; i++) {
                     existingLayers.push(theLayers[i]);
                 }
@@ -33,19 +37,17 @@ function addCompHandle() {
                 // use all if not
                 for (var i = 1; i <= comp.layers.length; i++) {
                     existingLayers.push(comp.layers[i]);
-                    averagePosition += comp.layers[i].transform.position.value;
                 }
             }
-            averagePosition /= existingLayers.length;
+
             //here comes the hoo-ha:
             //make the handle layer
             var theHandle = comp.layers.addNull();
             theHandle.name = "comp handle";
-            theHandle.transform.position.setValue(averagePosition);
             //loop through and parent the layers to the handle
             for (var i = 0; i < existingLayers.length; i++) {
-                if ( existingLayers[i].locked ){
-                    if (doLockedLayers){
+                if (existingLayers[i].locked) {
+                    if (doLockedLayers) {
                         existingLayers[i].locked = false;
                         addHandleNull(existingLayers[i], theHandle);
                         existingLayers[i].locked = true;
@@ -65,3 +67,17 @@ function addCompHandle() {
 }
 
 addCompHandle();
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

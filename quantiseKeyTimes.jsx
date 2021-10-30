@@ -1,15 +1,28 @@
 // @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 // snaps keyframes to frame boundaries. Useful to avoid problems when you have more than one keyframe per frame
 // if you select some keyframes it will quantise just them,
 //  or if you select a layer it will quantise all the keyframes in the layer
 // or if nothing is selected it will quantise all the keys in the comp.
 // @target aftereffects
-//  @includepath "./(lib)/"
-//  @include "copyproperties-makekey.jsx"
-//  @include "jsextras.jsx"
+// license below
+// more: https://blob.pureandapplied.com.au
+
 /* global getKeyAttributes, makeKeyWithAttributes, getPropertiesWithKeyFramesFromLayer, app, CompItem */
 
 (function () {
+    function makeRange(a, b, step) {
+        var A = [];
+        A[0] = a;
+        step = step || 1;
+        while (a + step <= b) {
+            a += step;
+            A[A.length] = a;
+        }
+        return A;
+    };
+
     function getKeyAttributes(theProperty, keyIndex) {
         //in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.
         var theAttributes = {};
@@ -123,8 +136,10 @@
     }
 
     function quantiseKeytimes(theComp, theProp, theKeyIndexes, beat) {
-        if (! beat){ beat = theComp.frameDuration}
-        for (var i = theKeyIndexes.length -1; i >= 0; i--) {
+        if (!beat) {
+            beat = theComp.frameDuration;
+        }
+        for (var i = theKeyIndexes.length - 1; i >= 0; i--) {
             var newKeyTime =
                 Math.floor(
                     theProp.keyTime(theKeyIndexes[i]) / theComp.frameDuration
@@ -173,10 +188,24 @@
                 var indices = theProp.selectedKeys;
                 // if the property is selected but no keys (can this happen?)
             } else {
-                var indices = Array.range(1, theProp.numKeys);
+                var indices = makeRange(1, theProp.numKeys);
             }
             quantiseKeytimes(theComp, theProp, indices);
         }
     }
     app.endUndoGroup();
 })();
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

@@ -1,6 +1,9 @@
 // @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 /* global app, getKeyAttributes, makeKeyWithAttributes*/
-
+// an initial attemp at a key reduction script
+// this is a WIP
 function getKeyAttributes(theProperty, keyIndex) {
 	//in lieu of a proper keyframe object this returns all the details of a keyframe, given a property and key index.
 	var theAttributes = {
@@ -97,7 +100,7 @@ function testkeyIsRedundant(theProperty, keyIndex, tolerance, preExpression) {
 }
 
 function vMag(vector) {
-    //returns magnitude of vecotrs of variable length
+    //returns magnitude of vectors of variable length
     if (vector.length) {
         var s = 0;
         for (var i = 0; i < vector.length; i++) {
@@ -108,3 +111,16 @@ function vMag(vector) {
         return Math.abs(vector);
     }
 }
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

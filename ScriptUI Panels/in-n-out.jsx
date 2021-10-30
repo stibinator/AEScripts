@@ -1,4 +1,6 @@
 // @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 // In-n-out by stib ©2016 Stephen Dixon sequences layers in a variety of ways
 
 /* global app, Panel, CompItem, timeToCurrentFormat, currentFormatToTime, writeln */
@@ -116,7 +118,9 @@
                 return Math.pow(1 / n, dir);
             };
 
-            return eeze(1 - x, easeIn) / (eeze(x, easeOut) + eeze(1 - x, easeIn));
+            return (
+                eeze(1 - x, easeIn) / (eeze(x, easeOut) + eeze(1 - x, easeIn))
+            );
         }
         return 1;
     }
@@ -788,7 +792,11 @@
             "group{orientation:'row',  alignChildren:'left'}"
         );
         var easeOutSlider = easeOutGrp.add("slider", undefined, 0.5, 0, 1);
-        var easeOutLabel = easeOutGrp.add("staticText", [undefined, undefined, 24, 28], "Out");
+        var easeOutLabel = easeOutGrp.add(
+            "staticText",
+            [undefined, undefined, 24, 28],
+            "Out"
+        );
         var easeOutEdit = easeOutGrp.add(
             "editText",
             [undefined, undefined, 24, 28],
@@ -798,7 +806,11 @@
             "group{orientation:'row',  alignChildren:'left'}"
         );
         var easeInSlider = easeInGrp.add("slider", undefined, 0.5, 0, 1);
-        var easeInLabel = easeInGrp.add("staticText", [undefined, undefined, 24, 28], "In");
+        var easeInLabel = easeInGrp.add(
+            "staticText",
+            [undefined, undefined, 24, 28],
+            "In"
+        );
         var easeInEdit = easeInGrp.add(
             "editText",
             [undefined, undefined, 24, 28],
@@ -912,17 +924,15 @@
             fadeOutEdit.size =
             firstBttn.size =
             lastBttn.size =
-            {
-                width: 80,
-                height: 22,
-            };
-            easeOutEdit.size =
-            easeInEdit.size =
-            {
-                width: 46,
-                height: 22,
-            };
-            // panel sizes
+                {
+                    width: 80,
+                    height: 22,
+                };
+        easeOutEdit.size = easeInEdit.size = {
+            width: 46,
+            height: 22,
+        };
+        // panel sizes
         orderPanel.preferredSize =
             methodPanel.preferredSize =
             inoutPanel.preferredSize =
@@ -1260,7 +1270,7 @@
                 (sliderActualVal / 100) * longestLayer,
                 theComp ? app.project.activeItem.frameRate : 25
             );
-        }
+        };
 
         var updateCFSlider = function (theEdit) {
             try {
@@ -1279,7 +1289,7 @@
             } catch (e) {
                 updateCfText();
             }
-        }
+        };
 
         fadeOutSlider.onChange = fadeInSlider.onChange = function () {
             updateCfText(this);
@@ -1362,3 +1372,17 @@
 
     buildGUI(thisObj);
 })(this);
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/
