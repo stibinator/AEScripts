@@ -266,6 +266,11 @@ function newShape(
 }
 
 <<<<<<< HEAD
+=======
+// @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
+>>>>>>> release
 /* global app, Folder */
 // eslint-disable-next-line no-unused-vars
 function readLabelColoursFromPrefs() {
