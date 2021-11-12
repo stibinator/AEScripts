@@ -2,16 +2,18 @@
 // license below
 // more: https://blob.pureandapplied.com.au
 /* global app, CompItem */
-app.beginUndoGroup("Hide Guide layers");
-var theComp = app.project.activeItem;
-if (theComp instanceof CompItem){
-    for (var i=1; i <= theComp.numLayers; i++){
-        if (theComp.layer(i).guideLayer){theComp.layer(i).enabled = false;
+(function () {
+    app.beginUndoGroup("Hide Guide layers");
+    var theComp = app.project.activeItem;
+    if (theComp instanceof CompItem) {
+        for (var i = 1; i <= theComp.numLayers; i++) {
+            if (theComp.layer(i).guideLayer) {
+                theComp.layer(i).enabled = false;
+            }
         }
-    }   
-}
-app.endUndoGroup();
-//
+    }
+    app.endUndoGroup();
+})()
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or

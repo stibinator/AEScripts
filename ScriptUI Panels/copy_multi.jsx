@@ -1,7 +1,6 @@
 // @target aftereffects
 // license below
 // more: https://blob.pureandapplied.com.au
-// @includepath "../(lib)"
 
 (function (thisObj) {
     scriptTitle = "copyMultiLayer";
@@ -39,7 +38,7 @@
             (theProperty.propertyValueType ==
                 PropertyValueType.ThreeD_SPATIAL ||
                 theProperty.propertyValueType ==
-                    PropertyValueType.TwoD_SPATIAL);
+                PropertyValueType.TwoD_SPATIAL);
 
         if (theAttributes.isSpatial) {
             theAttributes.keyInSpatialTangent =
@@ -50,7 +49,6 @@
         return theAttributes;
     }
 
-    // eslint-disable-next-line no-unused-vars
     function makeKeyWithAttributes(theProperty, keyAttributes, keyTime) {
         //turns theAttributes from getKeyAttributes into a new keyframe
         if (theProperty.canVaryOverTime) {
@@ -255,8 +253,8 @@
             thisObj instanceof Panel
                 ? thisObj
                 : new Window("palette", scriptTitle, undefined, {
-                      resizeable: true,
-                  });
+                    resizeable: true,
+                });
         pal.alignChildren = ["left", "top"];
         //text = "vers. 0.1.1";
         var beforeBtnImg = "copy_multi/before-ph.png";
@@ -646,7 +644,7 @@
             (theProperty.propertyValueType ==
                 PropertyValueType.ThreeD_SPATIAL ||
                 theProperty.propertyValueType ==
-                    PropertyValueType.TwoD_SPATIAL);
+                PropertyValueType.TwoD_SPATIAL);
 
         if (theAttributes.isSpatial) {
             theAttributes.keyInSpatialTangent =

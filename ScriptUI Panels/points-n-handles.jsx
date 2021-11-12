@@ -2,13 +2,12 @@
 // license below
 // more: https://blob.pureandapplied.com.au
 /* global app, Panel, Shape*/
-var thisScript = this;
-(function () {
+(function (thisScript) {
     var scriptName = "points-n-handles";
-    var ERR_NO_PATHS = "<!> Select at least\none pathNo to control";
+    var ERR_NO_PATHS = "<!> Select at least\none path to control";
     var ERR_CONVERT_SHAPES =
         "Convert shape items to Bezier paths\nbefore using.";
-    var RESULT_PTS_CREATED = " points were created on layer\n";
+    var RESULT_PTS_CREATED = " paths were converted on layer\n";
     var TXT_DOTHETHINGSBTN = "Create Path Controls";
     // var TXT_NEWCTRLBTN = "New point";
     var NAME_CONTROL_GROUP = " control points";
@@ -31,7 +30,7 @@ var thisScript = this;
             pal.orientation = "column";
             pal.alignChildren = ["center", "top"];
             pal.spacing = 16;
-            pal.margins = [0, 16, 0, 12];
+            pal.margins = [12, 16, 12, 12];
 
             var doTheThingsBtn = pal.add("button", undefined, undefined);
             doTheThingsBtn.name = "doTheThingsBtn";
@@ -48,9 +47,9 @@ var thisScript = this;
             // newCtrlBtn.text = TXT_NEWCTRLBTN;
 
             var infoText = pal.add("statictext", undefined, undefined);
-            infoText.text = "";
+            infoText.text = scriptName;
             infoText.alignment = ["left", "top"];
-            infoText.preferredSize.width = 200;
+            infoText.preferredSize.width = 160;
             infoText.preferredSize.height = 100;
 
             doTheThingsBtn.onClick = function () {
@@ -250,7 +249,7 @@ var thisScript = this;
         }
         return { group: newGroup, xformXps: xformExpressions };
     }
-})();
+})(this);
 
 //
 // This program is free software: you can redistribute it and/or modify

@@ -10,7 +10,10 @@
             "request": "launch",
             "name": "Current file",
             "program": "${file}",
-            "stopOnEntry": false
+            "stopOnEntry": false,
+            "compilerOptions": {
+                "experimentalDecorators": true
+            }
         },
         {
             "type": "extendscript-debug",
