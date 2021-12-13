@@ -2,15 +2,14 @@
 // license below
 // more: https://blob.pureandapplied.com.au
 // @includepath "../(lib)/"
-// @include "preferences.jsx"
 /* global app, Panel, Folder, PrefsFile*/
 
-(function () {
+(function (thisObj) {
     var scriptName = "proxinator";
 
     var prefsFile = new PrefsFile("AE_proxinator.prefs");
 
-    buildUI(this, prefsFile);
+    buildUI(thisObj, prefsFile);
 
     function proxinate(proxyFolder, items) {
         // set a proxy for all selected items by matching file names in a folder
@@ -24,7 +23,7 @@
                 // try {
                 var originalBaseName = originals[i].name;
                 if (originals[i].typeName === "Footage") {
-                    originalBaseName = originals[i].name.replace(/\..+$/, ""); //trim extension
+                    originalBaseName = originals[i].name.replace(/_(\[\d+-\d+\])*\..+$/, ""); //trim extension
                 }
                 // possible matches for the proxy, from the reasonable to the silly
                 var suffixes = [
@@ -117,8 +116,8 @@
         var commands = [];
         for (var i = 0; i < clips.length; i++) {
             if (clips[i].typeName === "Footage") {
-                var scaleX = clips[i].width * proxySettings.scaleFactor;
-                var scaleY = clips[i].height * proxySettings.scaleFactor;
+                var scaleX = Math.round(clips[i].width * proxySettings.scaleFactor / 2) * 2;
+                var scaleY = Math.round( clips[i].height * proxySettings.scaleFactor/ 2) * 2;
                 var clipScale = "" + scaleX + ":" + scaleY;
                 var cmd =
                     "ffmpeg -i " +
@@ -322,7 +321,7 @@
     // var proxyFolder = chooseProxyFolder(lastFolder);
     // prefsFile.saveToPrefs(proxyFolder);
     // proxinate(proxyFolder);
-})();
+})(this);
 
 //
 // This program is free software: you can redistribute it and/or modify

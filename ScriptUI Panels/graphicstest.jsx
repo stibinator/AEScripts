@@ -1,15 +1,12 @@
 //@target aftereffects
+
 (function (thisObj) {
     var scriptName = "graphicstest";
     var versionNum = 0.1;
     var methods = ["apples", "oranges", "pears", "the void"];
     var prefs = Preferences(scriptName);
 
-    function decodeSVG(srcSVG) {
-        var components = [];
-
-    }
-    function conComponent(
+    function IconComponent(
         // individual drawing objects, can have their own stroke and fill
         type,
         strokeColour,
@@ -21,73 +18,106 @@
         this.strokeColour = strokeColour; // [r, g, b, a] from [0.0, 0.0, 0.0, 0.0] to [1.0, 1.0, 1.0, 1.0]
         this.strokeWidth = strokeWidth;    //in pixels
         this.fillColour = fillColour;  //rgba array as above
-        this.coord = coords; //array of [x, y] points
+        this.coords = coords; //array of [x, y] points
+        this.draw = function (icon) {
+            var thePen = icon.graphics.newPen(icon.graphics.PenType.SOLID_COLOR, icon.strokeColour, icon.strokeWidth);
+            var theBrush = icon.graphics.newBrush(icon.graphics.BrushType.SOLID_COLOR, icon.fillColour);
+            var thePath = icon.graphics.newPath();
+            if (this.strokeColour) { thePen.color = this.strokeColour }
+            if (this.strokeWidth !== null) { thePen.lineWidth = this.strokeWidth }
+            if (this.fillColour) { theBrush.color = this.fillColour }
+            if (this.type === "polyline") {
+                icon.graphics.moveTo(this.coords[0][0], this.coords[0][1]);
+                for (var p = 0; p < this.coords.length; p++) {
+                    icon.graphics.lineTo(this.coords[p][0], this.coords[p][1]);
+                }
+            }
+            if (this.type === "rectangle") {
+                // icon.graphics.moveTo(this.coords[0][0], this.coords[0][1]);
+                // controlObj.graphics.rectPath (left, top[, width, height])
+               icon.graphics.rectPath(this.coords.left, this.coords.top, this.coords.width, this.coords.height);
+               }
+            if (this.type === "polygon") {
+                icon.graphics.moveTo(this.coords[0][1], this.coords[0][1]);
+                for (var p = 0; p < this.coords.length; p++) {
+                    icon.graphics.lineTo(this.coords[p][0], this.coords[p][1]);
+                }
+                icon.graphics.closePath();
+            }
+            if (this.type === "ellipse") {
+                // icon.graphics.moveTo(this.coords[0][1], this.coords[0][1]);
+                // controlObj.graphics.ellipsePath (left, top[, width, height])
+                icon.graphics.ellipsePath(this.coords.left, this.coords.top, this.coords.width, this.coords.height)
+            }
+            // if there's a visible stroke
+            if (thePen.lineWidth && thePen.color[3]) { icon.graphics.strokePath(thePen) }
+            // if there's visible fill
+            if (theBrush.color[3]) { icon.graphics.fillPath(theBrush) }
+
+        }
         return this;
+
     }
 
-    function Icon(svg, graphics) {
-        this.graphics = graphics;
-        this.xml = new XML(svg);
-        this.items = this.xml.elements;
-        this.width = this.xml.svg.@width;
-        this.height = this.xml.svg.@height;
-
-        // set default stroke and fill, if not specified make invisible
-        //default stroke colour for icon, [r, g, b, a] from [0.0, 0.0, 0.0, 0.0] to [1.0, 1.0, 1.0, 1.0]
-        this.strokeColour = strokeColour || [0.0, 0.0, 0.0, 0.0];
-         //default stroke width for icon in pixels
-        this.strokeWidth = strokeWidth || 0;
+    function decodeSVG(svg, icon) {
+        icon.size = svg.size || [200, 200]
+        icon.strokeColour = svg.strokeColour || [0.0, 0.0, 0.0, 0.0];
+        //default stroke width for icon in pixels
+        icon.strokeWidth = svg.strokeWidth || 0;
         //default fill colour for polygons rects and ellipses, rgba array as above
-        this.fillColour = fillColour || [0.0, 0.0, 0.0, 0.0];
+        icon.fillColour = svg.fillColour || [0.0, 0.0, 0.0, 0.0];
         // array of IconComponent
-        this.components = components || [];
-        
-        this.draw = function() {
-            for (var c = 0; c < this.components.length; c++) {
-                var component = this.components[c];
-                var iconStrokeColour = this.strokeColour || [0.0, 0.0, 0.0, 0.0];
-                var iconStrokeWidth = this.strokeWidth || 0.0;
-                var iconFillColor = this.fillColour || [0.0, 0.0, 0.0, 0.0];
-                var thePen = this.graphics.newPen(ScriptUIGraphics.PenType.SOLID_COLOR, iconStrokeColour, iconStrokeWidth);
-                var theBrush = this.graphics.newBrush(ScriptUIGraphics.BrushType.SOLID_COLOR, iconFillColor);
-                var thePath = this.graphics.newPath();
-                if (component.strokeColour) { thePen.color = component.strokeColour }
-                if (component.strokeWidth) { thePen.width = component.strokeWidth }
-                if (component.fillColour) { theBrush.color = component.fillColour }
-                if (component.type === "polyline") {
-                    this.graphics.moveTo(component.coords[0][1], component.coords[0][1]);
-                    for (var p = 0; p < component.coords.length; p++) {
-                        this.graphics.lineTo(component.coords[p][0], component.coords[p][1]);
-                    }
-                }
-                if (component.type = "rectangle") {
-                    this.graphics.moveTo(component.coords[0][1], component.coords[0][1]);
-                    this.graphics.rectPath(component.coords[1][0], component.coords[1][1]);
-                }
-                if (component.type === "polygon") {
-                    this.graphics.moveTo(component.coords[0][1], component.coords[0][1]);
-                    for (var p = 0; p < component.coords.length; p++) {
-                        this.graphics.lineTo(component.coords[p][0], component.coords[p][1]);
-                    }
-                    this.graphics.closePath();
-                }
-                if (component.type === "ellipse") {
-                    this.graphics.moveTo(component.coords[0][1], component.coords[0][1]);
-                    this.graphics.ellipsePath(component.coords[1][0], component.coords[1][1]);
-                }
-                // if there's a visible stroke
-                if (thePen.width && thePen.color[3]) { this.graphics.strokePath(thePen, thePath) }
-                // if there's visible fill
-                if (theBrush.color[3]) { this.graphics.fillPath(theBrush, thePath) }
+        icon.components = svg.components || [];
+    }
 
+
+    function Icon(iconSvg, graphics) {
+        if (iconSvg) {
+            this.graphics = graphics;
+            decodeSVG(iconSvg, this);
+
+            // set default stroke and fill, if not specified make invisible
+            //default stroke colour for icon, [r, g, b, a] from [0.0, 0.0, 0.0, 0.0] to [1.0, 1.0, 1.0, 1.0]
+
+
+            this.draw = function () {
+                for (var c = 0; c < this.components.length; c++) {
+                    this.components[c].draw(this);
+                }
+            }
+            return this
+        }
+        return null;
+    }
+
+
+    function buttonColorVector(parentObj, iconSvg, hoverIconSvg) {
+        var baseIcon = new Icon(iconSvg, parentObj.graphics);
+        var btn = parentObj.add("button", [0, 0, baseIcon.size[0], baseIcon.size[1], undefined]);
+        btn.icon = baseIcon;
+        btn.onDraw = btn.icon.draw();
+
+        if (hoverIconSvg) {
+            var hoverIcon = new Icon(hoverIconSvg, parentObj.graphics);
+            try {
+                btn.addEventListener("mouseover", function () {
+                    btn.icon = hoverIcon;
+                    pal.layout.layout(true); // auto layout
+                    pal.layout.resize(); // resize everything
+                });
+                btn.addEventListener("mouseout", function () {
+                    btn.icon = baseIcon;
+                    pal.layout.layout(true); // auto layout
+                    pal.layout.resize(); // resize everything
+                });
+            }
+            catch (err) {
+                // fail silently
             }
         }
 
-        return this;
-}
-
-
-
+        return btn;
+    }
 
     function buildGUI(thisObj) {
         // thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
@@ -100,34 +130,29 @@
         // ----------------------- UI Elements here ---------------------
 
         // modified version of Adam Plouff's BattleStyle UI
-        function buttonColorVector(parentObj, iconSvg, hoverIconSvg) {
-            var btn = parentObj.add("button", [0, 0, size[0], size[1], undefined]);
-            btn.baseIcon = new Icon(iconSvg);
-            btn.icon = btn.baseIcon;
-            btn.hoverIcon = new Icon(hoverIconSvg);
-            btn.onDraw = btn.icon.draw;
-
-            if (hoverIconSvg) {
-                try {
-                    btn.addEventListener("mouseover", function () {
-                        btn.icon = btn.hoverIcon;
-                        pal.layout.layout(true); // auto layout
-                        pal.layout.resize(); // resize everything
-                    });
-                    btn.addEventListener("mouseout", function () {
-                        btn.icon = btn.baseIcon;
-                        pal.layout.layout(true); // auto layout
-                        pal.layout.resize(); // resize everything
-                    });
-                }
-                catch (err) {
-                    // fail silently
-                }
-            }
-
-            return btn;
+        var testSVG = {
+            size: [300, 200],
+            strokeColour: [0.0, 0.0, 0.0, 1.0],
+            strokeWidth: 2.0,
+            fillColour: [1.0, 1.0, 1.0, 1.0],
+            components: [
+                new IconComponent(
+                    type = "rectangle",
+                    strokeColour = [0.6, 1.0, 0.0, 1.0],
+                    strokeWidth = 2.0,
+                    fillColour = [0.1, 0.0, 0.5, 1.0],
+                    coords = { left: 10, top: 0, width: 20, height: 20 }
+                )//,
+                // new IconComponent(
+                //     type = "polygon",
+                //     strokeColour = null,
+                //     strokeWidth = null,
+                //     fillColour = [0.1, 0.0, 0.5, 1.0],
+                //     coords =[[0,0], [10,100], [100,80], [120, 8]]
+                // )
+            ]
         }
-
+        var newIconBtn = new buttonColorVector(pal, testSVG, null)
 
         //------------------------ build the GUI ------------------------
         if (pal instanceof Window) {

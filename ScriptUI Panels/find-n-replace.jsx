@@ -26,7 +26,8 @@ var findNReplace = {
     xpPanelLabel: "Search Patterns",
     xpressionsLabel: "Expressions",
     jsSearchStrPanelLabel: "JS search pattern",
-    layerOptsPanelLabel: "Target options"
+    layerOptsPanelLabel: "Target options",
+    fixExpressionsLabel: "Auto fix expressions for layer names"
 }
 findNReplace.escapeRegexChars = function(theString) {
     return theString.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -152,6 +153,11 @@ findNReplace.buildUI = function(thisObj) {
                 name: "includeLockedCheckBox",
                 factoryDefault: false,
                 prefType: "bool"
+            },
+            {
+                name: "fixExpressionsCheckBox",
+                factoryDefault: true,
+                prefType: "bool"
             }
         ])
         //=========================================== UI Elements and Layout =====================================
@@ -224,6 +230,12 @@ findNReplace.buildUI = function(thisObj) {
         includeLockedCheckBox.name = "includeLockedCheckBox";
         includeLockedCheckBox.value = prefs.prefs[includeLockedCheckBox.name];
         includeLockedCheckBox.oldValue = includeLockedCheckBox.value; // see below
+        // ================= fixExpressionsCheckBox =================
+        var fixExpressionsCheckBox = layerOptsPanel.add("checkbox", [
+            undefined, undefined, 200, 22
+        ], findNReplace.fixExpressionsLabel);
+        fixExpressionsCheckBox.name = "fixExpressionsCheckBox";
+        fixExpressionsCheckBox.value = prefs.prefs[fixExpressionsCheckBox.name];
         // ======================= xpPanel =============================
         var xpPanel = pal.add('panel', undefined, findNReplace.xpPanelLabel);
         xpPanel.orientation = 'column';
@@ -502,53 +514,31 @@ findNReplace.buildUI = function(thisObj) {
                 var theLayer = theLayers[i];
                 var wasLocked = theLayer.locked;
                 theLayer.locked = false;
+
+                //------------- find n replace expressions -------------
                 if (xpressionsChkBx.value) {
                     // alert("finding expressions");
                     findNReplace.findNReplaceInExpressions(theLayer, selectedPropsOnlyCheckbox.value, theSearchPattern, replaceEditText.text);
                 }
+
+                //------------- find n replace layers -------------
                 if (layersChkBx.value) {
-                    var layerNameResult = findNReplace.findNReplaceInLayerNames(theLayer, theSearchPattern, replaceEditText.text);
+                    var layerNameResult = findNReplace.findNReplaceInLayerNames(theLayer, theSearchPattern, replaceEditText.text, fixExpressionsCheckBox.value);
                     if (layerNameResult) {
                         changedLayerNames.push(layerNameResult);
                     }
                 }
+                
+                //------------- find n replace props -------------
                 if (propsChkBx.value) {
                     findNReplace.findNReplaceInProperties(theLayer, selectedPropsOnlyCheckbox.value, theSearchPattern, replaceEditText.text);
                 }
+                
+                //------------- find n replace text -------------
                 if (textChkBx.value) {
                     findNReplace.findNReplaceInTextLayers(theLayer, theSearchPattern, replaceEditText.text);
                 }
                 theLayer.locked = wasLocked;
-            }
-            if (changedLayerNames.length) {
-                var currentComp = app.project.activeItem;
-                // replace all references to this layer
-                for (var n = 0; n < changedLayerNames.length; n++) {
-                    var theOldNameEscd = findNReplace.escapeRegexChars(changedLayerNames[n][0]);
-                    var theNewNameEscd = findNReplace.escapeRegexChars(changedLayerNames[n][1]);
-                    // search in current comp for thisComp.layer(<old Layer Name>)
-                    var theSearchText = "(thisComp\\.layer\\s*\\(\\s*[\"'])" + theOldNameEscd + "([\"']\\s*\\))";
-                    var theSearchPattern = new RegExp(theSearchText, "g");
-                    var theReplaceText = "$1" + theNewNameEscd  + "$2";
-                    for (var lyr = 1; lyr <= currentComp.numLayers; lyr++) {
-                        theLayer = currentComp.layer(lyr);
-                        findNReplace.findNReplaceInExpressions(theLayer, false, theSearchPattern,theReplaceText);
-                    }
-                    var theCompNameEscd = findNReplace.escapeRegexChars(currentComp.name);
-                    // var theSearchText = "(((thisComp|comp\\(\\s*[\"']" + activeCompName + "[\"']\\s*\\)))\\.layer\\s*\\([\"'])" + theChangedName + "([\"']\\s*\\))"
-                    theSearchText = "(comp\\(\\s*[\"']" + theCompNameEscd + "[\"']\\s*\\)\\.layer\\s*\\([\"'])" + theOldNameEscd + "([\"']\\s*\\))";
-                    theSearchPattern = new RegExp(theSearchText, "g");
-                    var theReplaceText = "$1" + theNewNameEscd + "$2";
-                    for (var c = 1; c <= app.project.numItems; c++) {
-                        if (app.project.item(c).typeName === "Composition") {
-                            var theComp = app.project.item(c);
-                            for (var lyr = 1; lyr <= theComp.numLayers; lyr++) {
-                                theLayer = theComp.layer(lyr);
-                                findNReplace.findNReplaceInExpressions(theLayer, false, theSearchPattern, theReplaceText);
-                            }
-                        }
-                    }
-                }
             }
             app.endUndoGroup();
         };
@@ -590,13 +580,13 @@ findNReplace.findNReplaceInExpressions = function(theLayer, onlySelectedProps, t
     }
 }
 
-findNReplace.findNReplaceInLayerNames = function(theLayer, theSearchPattern, replaceString) {
+findNReplace.findNReplaceInLayerNames = function(theLayer, theSearchPattern, replaceString, autoFixExpressions) {
     if (theLayer.name.match(theSearchPattern)) { //only change the name if it matches
         //even if the result is the same, setting it sets theLayer.isNameFromSource to false
         //which may not be wanted
         var oldLayerName = theLayer.name;
         theLayer.name = theLayer.name.replace(theSearchPattern, replaceString);
-        return ([oldLayerName, theLayer.name]);
+        if (autoFixExpressions){ app.project.autoFixExpressions(oldLayerName, theLayer.name)}
     }
     return (false);
 }
