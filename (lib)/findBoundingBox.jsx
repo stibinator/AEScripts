@@ -1,7 +1,6 @@
 // @target aftereffects
 // license below
 // more: https://blob.pureandapplied.com.au
-// @include "./LST-master/LST.js"
 
 function findBoundingBox(theComp, theLayers, useMotion) {
     // returns the left, right, top and bottom most point of a layer or set of layers in comp space
@@ -10,6 +9,12 @@ function findBoundingBox(theComp, theLayers, useMotion) {
     var boundingBox = { left: null, right: null, bottom: null, top: null };
     for (var i = 0; i < theLayers.length; i++) {
         var lyr = theLayers[i];
+        var ptCtrlTL = lyr.property("Effects").addProperty("ADBE Point Control");
+        ptCtrlTL.name = "temp_Top_Left_ToComp";
+        ptCtrlTL.property("point").expression = "let sr = thisLayer.sourceRectAtTime(time); thisLayer.toComp([sr.left, sr.top])";
+        var ptCtrlBR = lyr.property("Effects").addProperty("ADBE Point Control");
+        ptCtrlBR.name = "temp_Bottom_Right_ToComp";
+        ptCtrlBR.property("point").expression = "let sr = thisLayer.sourceRectAtTime(time); thisLayer.toComp([sr.width, sr.height]+[sr.left, sr.top]) ";
         var currTime = theComp.time;
         if (useMotion) {
             startTime = lyr.inPoint > 0 ? lyr.inPoint : 0;
@@ -22,37 +27,17 @@ function findBoundingBox(theComp, theLayers, useMotion) {
         }
         for (t = startTime; t <= endTime; t += theComp.frameDuration) {
             theComp.time = t;
-            var corners = [
-                [0, 0],
-                [lyr.width, 0],
-                [lyr.width, lyr.height],
-                [0, lyr.height],
-            ];
-            for (c = 0; c < 4; c++) {
-                var corner = LST.toComp(lyr, corners[c]);
-                if (boundingBox.left === null) {
-                    //first point, initialise boundingBox
-                    boundingBox.left = boundingBox.right = corner[0];
-                    boundingBox.top = boundingBox.bottom = corner[1];
-                } else {
-                    if (corner[0] < boundingBox.left) {
-                        boundingBox.left = corner[0];
-                    }
-                    if (corner[0] > boundingBox.right) {
-                        boundingBox.right = corner[0];
-                    }
-                    if (corner[1] < boundingBox.top) {
-                        boundingBox.top = corner[1];
-                    }
-                    if (corner[1] > boundingBox.bottom) {
-                        boundingBox.bottom = corner[1];
-                    }
-                }
-            }
+            var leftTop = lyr.property("Effects").property("temp_Top_Left_ToComp").property("Point").valueAtTime(t, false);
+            var rightBot = lyr.property("Effects").property("temp_Bottom_Right_ToComp").property("Point").valueAtTime(t, false);
+            if (null === boundingBox.left | boundingBox.left > leftTop[0]){boundingBox.left = leftTop[0]}
+            if (null === boundingBox.right | boundingBox.right < rightBot[0]){boundingBox.right = rightBot[0]}
+            if (null === boundingBox.top | boundingBox.top > leftTop[1]){boundingBox.top = leftTop[1]}
+            if (null === boundingBox.bottom | boundingBox.bottom < rightBot[1]){boundingBox.bottom = rightBot[1]}
         }
         theComp.time = currTime;
+        // lyr.property("Effects").property("temp_Top_Left_ToComp").remove();
+        // lyr.property("Effects").property("temp_Bottom_Right_ToComp").remove();
     }
-
     return boundingBox;
 }
 
