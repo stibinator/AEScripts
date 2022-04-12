@@ -17,6 +17,7 @@
 **/
 // @target aftereffects
 //encapsulate the script in a function to avoid global variables
+
 (function (thisObj) {
 
 	//================ VARIABLES ======================

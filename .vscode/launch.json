@@ -7,7 +7,7 @@
     
         {
             "type": "extendscript-debug",
-            "request": "launch",
+            "request": "attach",
             "name": "Current file",
             "program": "${file}",
             "stopOnEntry": false,
@@ -17,14 +17,14 @@
         },
         {
             "type": "extendscript-debug",
-            "request": "launch",
+            "request":  "attach",
             "name": "Current file- stop on entry",
             "program": "${file}",
             "stopOnEntry": true
         },
         {
             "type": "extendscript-debug",
-            "request": "launch",
+            "request":  "attach",
             "name": "Current file with logging",
             "program": "${file}",
             "stopOnEntry": false,
@@ -34,7 +34,7 @@
         },
         {
             "type": "extendscript-debug",
-            "request": "launch",
+            "request":  "attach",
             "name": "Ask for script name",
             "program": "${workspaceFolder}/${command:AskForScriptName}",
             "stopOnEntry": false

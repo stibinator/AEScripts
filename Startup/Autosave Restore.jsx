@@ -7,7 +7,8 @@
 // more: https://blob.pureandapplied.com.au
 (function () {
     var scriptName = this.name = "AutoSave Restore";
-    var prefName = "ignoredAutoSaves";
+    var ignoredPrefName = "ignoredAutoSaves";
+    var openAfterPrefname = "openAfterCheckBoxValue"
 
     if (app.project) {
         //if run by user with a file open
@@ -21,12 +22,13 @@
         var lastAutoSave = findLastAutoSave(lastProj);
         if (lastAutoSave) {
             ignoredAutoSaves = getListOfIgnoredAutosaves(this.name);
-            if(notInIgnoredList(lastAutoSave, ignoredAutoSaves)){
-            if (isNewer(lastAutoSave, lastProj)) {
-                if (askUserAboutRestoring(lastProj, lastAutoSave)) {
-                    restoreAutoSave(lastProj, lastAutoSave);
+            if (notInIgnoredList(lastAutoSave, ignoredAutoSaves)) {
+                if (isNewer(lastAutoSave, lastProj)) {
+                    if (askUserAboutRestoring(lastProj, lastAutoSave)) {
+                        restoreAutoSave(lastProj, lastAutoSave);
+                    }
                 }
-            }}
+            }
         }
     }
 
@@ -47,7 +49,7 @@
             //TODO localised strings
             var autoSaveFolder = new Folder(
                 String(lastProjectFile.parent) +
-                    "/Adobe After Effects Auto-Save"
+                "/Adobe After Effects Auto-Save"
             );
             if (autoSaveFolder.exists) {
                 //TODO localised strings
@@ -78,14 +80,14 @@
 
     function getListOfIgnoredAutosaves() {
         var ignoredAutoSaves = [];
-        if (app.settings.haveSetting(scriptName, prefName)) {
-            ignoredAutoSaves = app.settings.getSetting(scriptName, prefName).split(":\n");
+        if (app.settings.haveSetting(scriptName, ignoredPrefName)) {
+            ignoredAutoSaves = app.settings.getSetting(scriptName, ignoredPrefName).split(":\n");
         }
         return ignoredAutoSaves;
     }
-    function notInIgnoredList(lastAutoSave, ignoredAutoSaves){
+    function notInIgnoredList(lastAutoSave, ignoredAutoSaves) {
         var lastAutoSaveURI = lastAutoSave.absoluteURI;
-        for (var i = 0; i < ignoredAutoSaves.length; i++){
+        for (var i = 0; i < ignoredAutoSaves.length; i++) {
             if (ignoredAutoSaves[i] === lastAutoSaveURI) {
                 return false;
             }
@@ -96,10 +98,10 @@
         var ignoredAutoSaves = getListOfIgnoredAutosaves();
         var newIgnoredList = [lastAutoSave.absoluteURI];
         // remember a maximum of 10 ignored autosaves.
-        for (var i = 0; i < 10 && ignoredAutoSaves.length > i; i++){
-                newIgnoredList.push(ignoredAutoSaves[i])
+        for (var i = 0; i < 10 && ignoredAutoSaves.length > i; i++) {
+            newIgnoredList.push(ignoredAutoSaves[i])
         }
-        app.settings.saveSetting(scriptName, prefName, newIgnoredList.join(":\n"))
+        app.settings.saveSetting(scriptName, ignoredPrefName, newIgnoredList.join(":\n"))
     }
 
     function isNewer(fileOne, fileTwo) {
@@ -129,26 +131,32 @@
         );
     }
 
-    function incrementName(theName) {
-        try {
-            var serial = 1;
-            var serialStr = theName.match(/(\d+)\.aep$/);
-            if (parseInt(serialStr)) {
-                serial = parseInt(serialStr) + 1;
-            }
-            return theName.replace(/\s*\d*\.aep$/, "") + " " + serial + ".aep";
-        } catch (e) {
-            return theName;
+    function incrementName(proj) {
+
+        var serial = 1;
+        var origName = File.decode(proj.name);
+        var serialStr = origName.match(/(\d+)\.aep$/);
+        if (serialStr) {
+            serial = parseInt(serialStr[1]) + 1 | 1;
         }
+        var fileName = origName.replace(/\s*\d*\.aep$/, "") + " " + serial + ".aep"
+        var fullname = File.encode(File.decode(proj.parent) + "/" + fileName);
+        while (new File(fullname).exists) {
+            serial++;
+            fileName = origName.replace(/\s*\d*\.aep$/, "") + " " + serial + ".aep";
+            fullname = File.encode(File.decode(proj.parent) + "/" + fileName);
+        }
+        return fileName;
+
     }
 
     function restoreFromAutoSave(project, autoSave, restoreAs, openAfterwards) {
         if (autoSave.exists) {
             var newProjName = File.encode(
                 File.decode(project.parent) +
-                    "/" +
-                    restoreAs.replace(/\.aep$/, "") +
-                    ".aep"
+                "/" +
+                restoreAs.replace(/\.aep$/, "") +
+                ".aep"
             );
             if (autoSave.copy(newProjName)) {
                 if (openAfterwards) {
@@ -158,18 +166,21 @@
         }
     }
 
-    function checkText(proj, fileName) {
-        var statusReport = { text: "", status: true };
-        filename = fileName.replace(/\.aep$/i, "") + ".aep";
-        if (fileName.match(/[:\\\/]/)) {
-            statusReport.text = "Can't use : / or  in file name.";
+    function checkText(proj, candidateName) {
+        var statusReport = { msg: "", status: true };
+        candidateName = candidateName.replace(/\.aep$/i, "") + ".aep";
+
+        var badchars = candidateName.match(/[\\\/\?<>:\*\|":]+/);
+        if (badchars) {
+            statusReport.msg = "Can't use the characters '" + badchars[0] + "'  in file name.";
             statusReport.status = false;
+            return statusReport;
         }
         if (
-            new File(File.encode(File.decode(proj.parent) + "/" + fileName))
+            new File(File.encode(File.decode(proj.parent) + "/" + candidateName))
                 .exists
         ) {
-            statusReport.text = "A file with that name exists.";
+            statusReport.msg = "A file with that name exists.";
             statusReport.status = false;
         }
         return statusReport;
@@ -281,17 +292,17 @@
         panel3.margins = [10, 16, 10, 6];
         var buttonGrp = panel3.add("group");
         buttonGrp.orientation = "row";
-        var restoreButton = buttonGrp.add("button", undefined, undefined, {
-            name: "restoreButton",
-        });
-        restoreButton.text = "Restore from autosave";
-        restoreButton.preferredSize.width = 270;
-        
         var yeahNahButton = buttonGrp.add("button", undefined, undefined, {
             name: "yeahNahButton",
         });
         yeahNahButton.text = "Ignore";
         yeahNahButton.preferredSize.width = 60;
+
+        var restoreButton = buttonGrp.add("button", undefined, undefined, {
+            name: "restoreButton",
+        });
+        restoreButton.text = "Restore from autosave";
+        restoreButton.preferredSize.width = 270;
 
         var infoTextRow = panel3.add("group");
         infoTextRow.orientation = "row";
@@ -306,28 +317,34 @@
         var edittext1 = panel3.add(
             'edittext {properties: {name: "edittext1"}}'
         );
-        edittext1.text = incrementName(projName);
+        edittext1.text = incrementName(proj);
         edittext1.preferredSize.width = 340;
         function checkValidity() {
-            var fileNameStatus = checkText(proj, edittext1.text);
-            infoText.text = fileNameStatus.text;
-            restoreButton.enabled = fileNameStatus.status;
+            var nameOk = checkText(proj, edittext1.text);
+            infoText.text = nameOk.msg;
+            restoreButton.enabled = nameOk.status;
         }
-        edittext1.onChange = checkValidity;
+        edittext1.onChanging = checkValidity;
         checkValidity();
 
-        var checkbox1 = panel3.add("checkbox", undefined, undefined, {
-            name: "checkbox1",
+        var openAfterChkBx = panel3.add("checkbox", undefined, undefined, {
+            name: "openAfterChkBx",
         });
-        checkbox1.text = "Open after restoring";
-        checkbox1.preferredSize.width = 340;
+        openAfterChkBx.text = "Open after restoring";
+        openAfterChkBx.preferredSize.width = 340;
+        openAfterChkBx.value = (app.settings.haveSetting(scriptName, openAfterPrefname)) ?
+            app.settings.getSetting(scriptName, openAfterPrefname) :
+            true;
+        openAfterChkBx.onChange = function () {
+            app.settings.saveSetting(scriptName, openAfterPrefname, openAfterChkBx.value);
+        }
 
         restoreButton.onClick = function () {
             restoreFromAutoSave(
                 proj,
                 autoSave,
                 edittext1.text,
-                checkbox1.value
+                openAfterChkBx.value
             );
             dialog.close();
         };

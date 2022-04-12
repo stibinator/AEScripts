@@ -38,8 +38,8 @@
                 if (null === boundingBox.bottom | boundingBox.bottom < rightBot[1]){boundingBox.bottom = rightBot[1]}
             }
             theComp.time = currTime;
-            // lyr.property("Effects").property("temp_Top_Left_ToComp").remove();
-            // lyr.property("Effects").property("temp_Bottom_Right_ToComp").remove();
+            lyr.property("Effects").property("temp_Top_Left_ToComp").remove();
+            lyr.property("Effects").property("temp_Bottom_Right_ToComp").remove();
         }
         return boundingBox;
     }

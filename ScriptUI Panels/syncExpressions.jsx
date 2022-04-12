@@ -12,7 +12,7 @@
         new Window("palette", thisObj.scriptTitle, undefined, { resizeable: true });
         pal.preferredSize.height = 120;
         // ----------------------- UI Elements here ---------------------
-        var expressionsDropDown = pal.add("dropdownlist", [undefined, undefined, 180, 22], ["Expression 1"]);
+        var expressionsDropDown = pal.add("dropdownlist", [undefined, undefined, 180, 22], ["Expression 1", "2", "-", "foo"]);
         var idGrp = pal.add("group");
         idGrp.orientation = "row";
         var expressionIDText = idGrp.add("editText", [undefined, undefined, 120, 22], "Expression 1");
@@ -33,7 +33,8 @@
         synchExpressionsBtn.enabled = false;
         
         expressionsDropDown.onActivate = function () {
-            this.items = getAllExpressionIDs(this.items);
+            var lst = getAllExpressionIDs(this.items);
+            this.items = lst;
         }
         
         expressionIDText.onChange = function () {
@@ -226,7 +227,7 @@
             }
         }
         if (!inList) {
-            theArr.push(item);
+            theArr[theArr.length] = item;
         }
     }
     
