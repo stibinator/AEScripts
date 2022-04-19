@@ -1,39 +1,56 @@
 // @target aftereffects
-// @include "./LST/LST.js" 
+// license below
+// more: https://blob.pureandapplied.com.au
 
-function findBoundingBox(theComp, theLayers, useMotion){
+function findBoundingBox(theComp, theLayers, useMotion) {
     // returns the left, right, top and bottom most point of a layer or set of layers in comp space
     // if motion is enabled it goes through all the frames looking for the bounding box containing all the motion.
     // note that this it calculates the value for the whole layer, even transparent parts.
-    var bounds = {"unSet": true};
-    for (var i = 0; i < theLayers.length; i++){
+    var boundingBox = { left: null, right: null, bottom: null, top: null };
+    for (var i = 0; i < theLayers.length; i++) {
         var lyr = theLayers[i];
+        var ptCtrlTL = lyr.property("Effects").addProperty("ADBE Point Control");
+        ptCtrlTL.name = "temp_Top_Left_ToComp";
+        ptCtrlTL.property("point").expression = "let sr = thisLayer.sourceRectAtTime(time); thisLayer.toComp([sr.left, sr.top])";
+        var ptCtrlBR = lyr.property("Effects").addProperty("ADBE Point Control");
+        ptCtrlBR.name = "temp_Bottom_Right_ToComp";
+        ptCtrlBR.property("point").expression = "let sr = thisLayer.sourceRectAtTime(time); thisLayer.toComp([sr.width, sr.height]+[sr.left, sr.top]) ";
         var currTime = theComp.time;
-        if (useMotion){
-            startTime = (lyr.inPoint > 0)? lyr.inPoint: 0;
-            endTime = (lyr.outPoint < theComp.duration)? lyr.outPoint: theComp.duration;
+        if (useMotion) {
+            startTime = lyr.inPoint > 0 ? lyr.inPoint : 0;
+            endTime =
+                lyr.outPoint < theComp.duration
+                    ? lyr.outPoint
+                    : theComp.duration;
         } else {
             startTime = endTime = currTime;
         }
-        for (t = startTime; t <= endTime; t += theComp.frameDuration){
+        for (t = startTime; t <= endTime; t += theComp.frameDuration) {
             theComp.time = t;
-            var corners = [[0,0], [lyr.width, 0], [lyr.width, lyr.height], [0, lyr.height]];
-            for (c=0; c < 4; c++){
-                var corner = LST.toComp(lyr, corners[c]);
-                if (bounds.unSet){ //first point, initialise bounds
-                    bounds.left = bounds.right = corner[0];
-                    bounds.top = bounds.bottom = corner[1];
-                    bounds.unSet = false;
-                } else {
-                    if (corner[0] < bounds.left) bounds.left = corner[0];
-                    if (corner[0] > bounds.right) bounds.right = corner[0];
-                    if (corner[1] < bounds.top) bounds.top = corner[1];
-                    if (corner[1] > bounds.bottom) bounds.bottom = corner[1];
-                }
-            }
+            var leftTop = lyr.property("Effects").property("temp_Top_Left_ToComp").property("Point").valueAtTime(t, false);
+            var rightBot = lyr.property("Effects").property("temp_Bottom_Right_ToComp").property("Point").valueAtTime(t, false);
+            if (null === boundingBox.left | boundingBox.left > leftTop[0]){boundingBox.left = leftTop[0]}
+            if (null === boundingBox.right | boundingBox.right < rightBot[0]){boundingBox.right = rightBot[0]}
+            if (null === boundingBox.top | boundingBox.top > leftTop[1]){boundingBox.top = leftTop[1]}
+            if (null === boundingBox.bottom | boundingBox.bottom < rightBot[1]){boundingBox.bottom = rightBot[1]}
         }
         theComp.time = currTime;
+        // lyr.property("Effects").property("temp_Top_Left_ToComp").remove();
+        // lyr.property("Effects").property("temp_Bottom_Right_ToComp").remove();
     }
-    
-    return bounds;
+    return boundingBox;
 }
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

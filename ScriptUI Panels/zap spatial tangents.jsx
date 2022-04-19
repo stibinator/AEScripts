@@ -1,9 +1,10 @@
 // @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 // @script "zap spatial tangents"
 // @includepath "../(lib)/"
 // @include "getproperties.jsx" 
-// @include "jsextras.jsx"
-/* global app, Panel, KeyframeInterpolationType, getIndividualProperties,PropertyValueType, contains */
+/* global app, Panel, KeyframeInterpolationType, getIndividualProperties,PropertyValueType */
 
 var thisScript = this;
 thisScript.scriptTitle = 'copyMultiLayer';
@@ -13,6 +14,18 @@ thisScript.run = function () {
   // thisScript.prefs = new PrefsFile(thisScript.scriptTitle);
   this.buildGUI(thisScript);
 };
+
+
+thisScript.contains = function (arr, obj) { //eslint-disable-line no-unused-vars
+  var i = arr.length;
+  while (i--) {
+    if (arr[i] === obj) {
+      return true;
+    }
+  }
+  return false;
+}
+
 
 thisScript.buildGUI = function (thisObj) {
   //thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
@@ -25,18 +38,18 @@ thisScript.buildGUI = function (thisObj) {
     .w
     .add("group{orientation:'row', alignment: ['fill','fill'], alignChildren: ['left','fil" +
         "l']}");
-  var linearIn = row1.add('iconbutton', {
+       var linearIn = row1.add('iconbutton', {
     'x': undefined,
     'y': undefined,
     'width': 33,
     'height': 24
-  }, new File('spatial_tangents/LinearIn.png'));
+  }, new File('./spatial_tangents/LinearIn.png'));
   var linearOut = row1.add('iconbutton', {
     'x': undefined,
     'y': undefined,
     'width': 35,
     'height': 24
-  }, new File('spatial_tangents/LinearOut.png'));
+  }, new File('./spatial_tangents/LinearOut.png'));
   // var bezierInOut = row2.add("iconbutton", undefined, new
   // File("spatial_tangents/bezierInOut.png"));
   var linearInOut = row1.add('iconbutton', {
@@ -44,13 +57,13 @@ thisScript.buildGUI = function (thisObj) {
     'y': undefined,
     'width': 32,
     'height': 24
-  }, new File('spatial_tangents/LinearInOut.png'));
+  }, new File('./spatial_tangents/LinearInOut.png'));
   var linearPair = row1.add('iconbutton', {
     'x': undefined,
     'y': undefined,
     'width': 50,
     'height': 24
-  }, new File('spatial_tangents/LinearPair.png'));
+  }, new File('./spatial_tangents/LinearPair.png'));
 
   linearIn.helpTip = 'Linear In';
   linearOut.helpTip = 'Linear Out';
@@ -130,7 +143,7 @@ function setKeyFrameInterp (theProps, interpIn, interpOut, multiple) {
       for (var k = 0; k < theKeys.length; k++) {
         //if we're looking for chains of keys to zap
         if (multiple) {
-          if (contains(theKeys, theKeys[k] - 1)) {
+          if (thisScript.contains(theKeys, theKeys[k] - 1)) {
             spatialTangentIn = [0, 0, 0];
           } else {
             //set the handles to [0,0,0] for linear keyframes
@@ -138,7 +151,7 @@ function setKeyFrameInterp (theProps, interpIn, interpOut, multiple) {
               ? [0, 0, 0]
               : theIndividualProps[p].keyInSpatialTangent(theKeys[k]);
           }
-          if (contains(theKeys, theKeys[k] + 1)) {
+          if (thisScript.contains(theKeys, theKeys[k] + 1)) {
             spatialTangentOut = [0, 0, 0];
           } else {
             spatialTangentOut = (interpOut === KeyframeInterpolationType.LINEAR)
@@ -160,3 +173,17 @@ function setKeyFrameInterp (theProps, interpIn, interpOut, multiple) {
 }
 
 thisScript.run();
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/

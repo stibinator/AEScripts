@@ -1,4 +1,6 @@
-//@target aftereffects
+// @target aftereffects
+// license below
+// more: https://blob.pureandapplied.com.au
 (function (thisObj) {
     var scriptName = "syncExpressions";
     
@@ -10,7 +12,7 @@
         new Window("palette", thisObj.scriptTitle, undefined, { resizeable: true });
         pal.preferredSize.height = 120;
         // ----------------------- UI Elements here ---------------------
-        var expressionsDropDown = pal.add("dropdownlist", [undefined, undefined, 180, 22], ["Expression 1"]);
+        var expressionsDropDown = pal.add("dropdownlist", [undefined, undefined, 180, 22], ["Expression 1", "2", "-", "foo"]);
         var idGrp = pal.add("group");
         idGrp.orientation = "row";
         var expressionIDText = idGrp.add("editText", [undefined, undefined, 120, 22], "Expression 1");
@@ -31,7 +33,8 @@
         synchExpressionsBtn.enabled = false;
         
         expressionsDropDown.onActivate = function () {
-            this.items = getAllExpressionIDs(this.items);
+            var lst = getAllExpressionIDs(this.items);
+            this.items = lst;
         }
         
         expressionIDText.onChange = function () {
@@ -224,7 +227,7 @@
             }
         }
         if (!inList) {
-            theArr.push(item);
+            theArr[theArr.length] = item;
         }
     }
     
@@ -394,3 +397,16 @@
     //--------------------- go ahead and run ----------------------
     buildGUI(thisObj);
 })(this)
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see https://www.gnu.org/licenses/
