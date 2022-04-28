@@ -374,7 +374,7 @@
             alert("choose some layers in a comp");
         } else {
             var theLayers = theComp.selectedLayers;
-            if (theLayers.length > 2) {
+            if (theLayers && theLayers.length > 2) {
                 switch (order) {
                     // --------- index----------
                     case orders.index:
