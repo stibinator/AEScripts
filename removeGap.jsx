@@ -11,7 +11,7 @@
     var lastOutPointBeforeGap = 0;
     var firstInPointAfterGap = curComp.duration;
     for (i = 1; i <= theLayers.length; i++) {
-        if ((ignoreLockedLayers && ! theLayers[i].locked) || (! ignoreLockedLayers)) { 
+        if (! (theLayers[i].locked && ignoreLockedLayers) )  { 
             if (theLayers[i].inPoint > curTime) {
                 afterGapLayers.push(theLayers[i]);
                 if (theLayers[i].inPoint < firstInPointAfterGap) {
