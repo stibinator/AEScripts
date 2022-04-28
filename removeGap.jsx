@@ -3,6 +3,7 @@
 // more: https://blob.pureandapplied.com.au
 (function () {
     app.beginUndoGroup("removeGap");
+    var ignoreLockedLayers = true; //if true locked layers will not be counted when looking for gaps
     var curComp = app.project.activeItem;
     var curTime = curComp.time;
     var theLayers = curComp.layers;
@@ -10,14 +11,16 @@
     var lastOutPointBeforeGap = 0;
     var firstInPointAfterGap = curComp.duration;
     for (i = 1; i <= theLayers.length; i++) {
-        if (theLayers[i].inPoint > curTime) {
-            afterGapLayers.push(theLayers[i]);
-            if (theLayers[i].inPoint < firstInPointAfterGap) {
-                firstInPointAfterGap = theLayers[i].inPoint;
-            }
-        } else {
-            if (theLayers[i].outPoint > lastOutPointBeforeGap) {
-                lastOutPointBeforeGap = theLayers[i].outPoint;
+        if ((ignoreLockedLayers && ! theLayers[i].locked) || (! ignoreLockedLayers)) { 
+            if (theLayers[i].inPoint > curTime) {
+                afterGapLayers.push(theLayers[i]);
+                if (theLayers[i].inPoint < firstInPointAfterGap) {
+                    firstInPointAfterGap = theLayers[i].inPoint;
+                }
+            } else {
+                if (theLayers[i].outPoint > lastOutPointBeforeGap) {
+                    lastOutPointBeforeGap = theLayers[i].outPoint;
+                }
             }
         }
     }
