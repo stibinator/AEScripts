@@ -1,14 +1,18 @@
 // @target aftereffects
 // license below
 // more: https://blob.pureandapplied.com.au
-(function(){
-    this.name = "selectAllLayersAfterPlayhead";
+(function () {
+    this.name = "selectAllLayersBeforePlayhead";
     app.beginUndoGroup(this.name);
     var theComp = app.project.activeItem;
-    if (theComp ){
-        for(var i = 1; i <= theComp.numLayers; i++){
-            theComp.layer(i).selected = (theComp.layer(i).inPoint < theComp.time && theComp.layer(i).outPoint < theComp.time );
-            
+    var shiftHeld = ScriptUI.environment.keyboardState.shiftKey;
+    if (theComp) {
+        for (var i = 1; i <= theComp.numLayers; i++) {
+            if (shiftHeld) {
+                theComp.layer(i).selected = (theComp.layer(i).inPoint < theComp.time || theComp.layer(i).outPoint < theComp.time);
+            } else {
+                theComp.layer(i).selected = (theComp.layer(i).inPoint < theComp.time && theComp.layer(i).outPoint < theComp.time);
+            }
         }
     }
     app.endUndoGroup();
