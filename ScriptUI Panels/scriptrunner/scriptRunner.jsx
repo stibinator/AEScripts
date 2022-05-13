@@ -43,7 +43,7 @@
         // ----------dropDownList-------------------
         var scriptsList = pal.add(
             "listbox",
-            [undefined, undefined, 180, 222],
+            [undefined, undefined, 200, 300],
             [],
             {resizeable: true}
         );
@@ -54,14 +54,14 @@
         //-----------info text-------------------------
         var infoText =  pal.add(
             "statictext",
-            [undefined, undefined, 180, 44],
+            [undefined, undefined, 200, 44],
             scriptName + " v. " + versionNum
         );
 
         //-----------Button-------------------------
         var doTheThingsBtn = pal.add(
             "button",
-            [undefined, undefined, 180, 22],
+            [undefined, undefined, 200, 22],
             "Do the Things"
         );
 
@@ -111,7 +111,7 @@
                 "icon": (this.isFolder ? DEFAULT_FOLDER_ICON : DEFAULT_FILE_ICON)
             }
             //how many lines of script to scan for info, to speed up loading
-            var sidecar = new File(this.fsItem.name.replace(/(\.jsx?(bin)*)*$/, "_info.json"));
+            var sidecar = new File(File.decode(this.fsItem.fullName) + "/" + this.fsItem.name.replace(/(\.jsx?(bin)*)*$/, "_info.json"));
             var infoFiles = [];
             if (sidecar.exists) { //get info from sidecar if it exists
                 infoFiles = [sidecar];
@@ -132,7 +132,6 @@
             var isJSONFile = theFile.name.match("\.json", "i");
             if (theFile.open()) {
                 var infoData = "";
-                var line = theFile.readln();
                 if (!isJSONFile) {
                     var lc = 0;
                     var foundHeader = false;
@@ -142,9 +141,9 @@
                         !foundHeader &&
                         lc < scriptRunnerPrefs.maxLinesToRead
                     ) {
-                        foundHeader = line.match("^\\s*\\/*\\s*scriptrunner info", "i");
                         lc++;
                         line = theFile.readln();
+                        foundHeader = line.match("^\\s*\\/*\\s*scriptrunner info", "i");
                     }
 
                 }
@@ -153,6 +152,7 @@
                     // will stop reading once it hits an empty line
                     var keepReadingJSON = true;
                     while (!theFile.eof && keepReadingJSON) {
+                        line = theFile.readln();
                         if (!isJSONFile) {
                             // in script files, keep reading until a break in the comments
                             var infoLine = line.match(/\s*\/\/(.*)/);
@@ -166,7 +166,6 @@
                         if (line) {
                             infoData += line;
                         }
-                        line = theFile.readln();
                     }
                     var info = JSON.parse(infoData);
                     for (var key in info) {
@@ -365,6 +364,7 @@
         };
 
         this.getPref = function (anObject) {
+            var result;
             if (anObject.name) {
                 if (app.settings.haveSetting(this.prefsName, anObject.name)) {
                     // get prefs for UI control
