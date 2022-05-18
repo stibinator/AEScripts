@@ -175,7 +175,7 @@
             }
         }
         this.isThisAScript = function (theFile) {
-            if (theFile instanceof String) {
+            if (typeof theFile === "string") {
                 theFile = File(theFile);
             }
             return (
@@ -308,8 +308,8 @@
         //   isThisAScript()
         //   checkShouldDisplay()
         //   listContents()
-        if (theItem instanceof String) {
-            this.fsItem = File(File.decode(theFolder)); //Actual file system file/folder
+        if (typeof theItem === "string") {
+            this.fsItem = File(File.decode(theItem)); //Actual file system file/folder
         } else {
             this.fsItem = theItem;
         }
@@ -339,8 +339,8 @@
             }
         };
 
-        this.setPref = function (anObject) {
-            var currentVal;
+        this.setPref = function (anObject, value) {
+            var currentVal = value;
             if (anObject.name) {
                 if (anObject.hasOwnProperty("value")) {
                     currentVal = anObject.value;

@@ -216,7 +216,7 @@
             var filterPanel = selectionModePanel.add(
                 "panel",
                 undefined,
-                "filter"
+                "Select only:"
             );
             filterPanel.orientation = "row";
             filterPanel.alignChildren = "top";
