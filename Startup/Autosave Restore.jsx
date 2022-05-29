@@ -9,6 +9,7 @@
     var scriptName = this.name = "AutoSave Restore";
     var ignoredPrefName = "ignoredAutoSaves";
     var openAfterPrefname = "openAfterCheckBoxValue"
+    var lastProj;
 
     if (app.project) {
         //if run by user with a file open
@@ -16,7 +17,7 @@
     }
     if (!lastProj) {
         //run at startup before opening project
-        var lastProj = findLastProj();
+        lastProj = findLastProj();
     }
     if (lastProj) {
         var lastAutoSave = findLastAutoSave(lastProj);
@@ -37,7 +38,7 @@
             "Most Recently Used (MRU) Search v2",
             "MRU Project Path ID # 0, File Path"
         );
-        if (lastProjectPath.length) {
+        if (lastProjectPath && lastProjectPath.length) {
             var lastProjectFile = new File(lastProjectPath);
             return lastProjectFile;
         }
@@ -158,10 +159,14 @@
                 restoreAs.replace(/\.aep$/, "") +
                 ".aep"
             );
-            if (autoSave.copy(newProjName)) {
-                if (openAfterwards) {
-                    app.open(new File(newProjName));
+            try {
+                if (autoSave.copy(newProjName)) {
+                    if (openAfterwards) {
+                        app.open(new File(newProjName));
+                    }
                 }
+            } catch (err) {
+                alert (err.message);
             }
         }
     }

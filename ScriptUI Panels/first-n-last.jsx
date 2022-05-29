@@ -172,7 +172,7 @@
   }
 
   function buildUI(thisObj) {
-    var imgFolder = './first-n-last/'; //for production
+    var imgFolder =File.decode(File( $.fileName).parent.fullName + "/first-n-last/"); //for production
    
     var scriptName = "first n last";
     var pal;
