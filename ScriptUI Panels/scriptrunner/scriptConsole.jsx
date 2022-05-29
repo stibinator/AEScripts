@@ -8,24 +8,45 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
     var SCRIPT_NAME = "scriptConsole";
     var VERSION_NUM = 0.1;
     // consts
-    var SCRIPT_FOLDER_PREF = "script_folder"
+    var SCRIPT_FOLDERS_PREF = "script_folders"
     var imgsFolder = $.fileName.replace(SCRIPT_NAME + ".jsx", "/images/")
     var DEFAULT_FILE_ICON = new File(imgsFolder + "scriptIcon.png");
     var FILE_NOT_FOUND = "The script file was not found."
-    var MAX_LINES_TO_READ = 16;
     var DEFAULT_INFO_TEXT = SCRIPT_NAME + " v. " + VERSION_NUM;
     // initialise
     var prefs = new myPreferences(SCRIPT_NAME);
-    var myScriptFolder = new Folder(Folder.decode(prefs.getPref(SCRIPT_FOLDER_PREF)));
-    if (!myScriptFolder.exists) {
-        myScriptFolder = Folder.selectDialog("Select a scripts folder");
-        if (myScriptFolder.exists) {
-            prefs.setPref({ "name": SCRIPT_FOLDER_PREF, "value": Folder.encode(myScriptFolder) })
-        }
-    }
-    var scriptList = new ScriptFolder(myScriptFolder);
+    var scriptList = getScripts(SCRIPT_NAME, false);
+
+
     popUPWindow(SCRIPT_NAME);
 
+
+    function getScripts(addNewFolder) {
+        var folderPrefs = prefs.getPref(SCRIPT_FOLDERS_PREF); 4
+        var folders = [];
+        var scripts = [];
+        var folderList = [];
+        if (folderPrefs) {
+            folderList = JSON.parse(folderPrefs);
+        }
+        for (var f = 0; f < folderList.length; f++) {
+            var myScriptFolder = new Folder(Folder.decode(folderList[f]));
+            if (!myScriptFolder.exists) {
+                folders.push(myScriptFolder);
+            }
+        }
+        if (folders.length < 1 || addNewFolder) {
+            newScriptFolder = Folder.selectDialog("Select a scripts folder");
+            if (newScriptFolder.exists) {
+                folders.push(newScriptFolder);
+                prefs.setPref({ "name": SCRIPT_FOLDERS_PREF, "value": JSON.stringify(folders) })
+            }
+        }
+        for (var f = 0; f < folders.length; f++) {
+            scripts.concat(scanScriptFolder(folders[f]));
+        }
+        return scripts;
+    }
     function findMatchingScripts(theScripts, searchText) {
         var matchingScripts = [];
         for (var i = 0; i < theScripts.length; i++) {
@@ -55,7 +76,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         var group1 = dialog.add("group", undefined, { name: "group1" });
         group1.orientation = "row";
         group1.alignChildren = ["left", "top"];
-        group1.spacing = 6;
+        group1.spacing = 12;
         group1.margins = 0;
 
         // GROUP2
@@ -77,36 +98,45 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         var choiceList_array = ["Item 1", "Item 2", "item 3", "item 4"];
         var choiceList = group2.add("listbox", undefined, undefined, { name: "choiceList", items: choiceList_array });
         choiceList.selection = 0;
-        choiceList.preferredSize.height = 100;
+        choiceList.preferredSize.height = 150;
 
         // GROUP3
         // ======
-        var group3 = group1.add("group", undefined, { name: "group3" });
-        group3.orientation = "column";
-        group3.alignChildren = ["left", "center"];
-        group3.spacing = 6;
-        group3.margins = 0;
+        var rightGroup = group1.add("group", undefined, { name: "rightGroup" });
+        rightGroup.orientation = "column";
+        rightGroup.preferredSize.height = textInput.preferredSize.height + choiceList.preferredSize.height + group2.spacing / 2;
+        rightGroup.alignChildren = ["right", "top"];
+        rightGroup.spacing = 12;
+        rightGroup.margins = 0;
+        // dialog.graphics.newBrush(ScriptUIGraphics.BrushType.SOLID_COLOR, [1,0,0,0])
+        rightGroup.backgroundColor = [128, 0, 0, 0];
 
-        var descriptionGroup = group3.add("group");
-        descriptionGroup.preferredSize.width = 200;
+        var descriptionGroup = rightGroup.add("group");
+        descriptionGroup.preferredSize.width = 300;
         descriptionGroup.preferredSize.height = 100;
         descriptionGroup.orientation = "column";
-        descriptionGroup.alignment = ["top", "left"];
+        descriptionGroup.alignment = ["left", "top"];
+        descriptionGroup.alignChildren = ["left", "top"];
         descriptionGroup.spacing = 0;
 
         var scriptInfoStaticText = descriptionGroup.add(
             "statictext",
             undefined,
             "Script description goes here",
-            { name: "description", multiline: true, scrolling: true, alignment: ['top', 'left'] }
+            { name: "description", multiline: true, alignment: ['top', 'left'] }
         );
-        scriptInfoStaticText.preferredSize.width = 200;
+        // scriptInfoStaticText.multiline = true;
+        // scriptInfoStaticText.preferredSize.width = descriptionGroup.preferredSize.width ;
         // description.preferredSize.height = 100; 
-        var doTheThingsBtn = group3.add('button', [undefined, undefined, 200, 22], "Do the Things")
-
+        var btnGrp = rightGroup.add('Group', undefined);
+        btnGrp.alignment = ['right', 'bottom'];
+        var doTheThingsBtn = btnGrp.add('button', [undefined, undefined, 120, 22], "Execute Script")
+        var setTheSettingsingsBtn = btnGrp.add('button', [undefined, undefined, 60, 22], "Settings")
+        btnGrp.orientation = 'row';
         function handleReturn() {
             prefs.setPref(textInput);
             if (choiceList.selection) {
+                dialog.close();
                 choiceList.selection.payload.exec();
             }
         }
@@ -115,7 +145,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
             choiceList.removeAll();
             scriptInfoStaticText.text = DEFAULT_INFO_TEXT;
             if (textInput.text) {
-                var matchingScripts = findMatchingScripts(scriptList.scriptFiles, textInput.text, choiceList);
+                var matchingScripts = findMatchingScripts(scriptList, textInput.text, choiceList);
                 for (var i = 0; i < matchingScripts.length; i++) {
                     matchingScripts[i].displayInListBox(choiceList);
                 }
@@ -127,12 +157,15 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         }
 
         function updateInfoPanel(selectedScript) {
-            var desc = (selectedScript && selectedScript.info) ? selectedScript.info.shortname : DEFAULT_INFO_TEXT;
+            var desc = (selectedScript && selectedScript.info) ?
+                selectedScript.info.shortname + "\n" + selectedScript.info.fsPath :
+                DEFAULT_INFO_TEXT;
             if (selectedScript.info.description) {
                 desc = selectedScript.info.description
             }
             scriptInfoStaticText.text = desc;
         }
+
         function handleChoiceListChange() {
             if (null !== this.selection) {
                 var selectedScript = this.selection.payload;
@@ -140,19 +173,16 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
             }
         }
 
-        function handleDoubleClick() {
-            alert(this);
-        }
-
         updateChoiceListAndInfo(); //initialise the choicelist and infor, according to the last text from prefs
         updateInfoPanel(choiceList.selection ? choiceList.selection.payload : null);
-        textInput.active = true;
         textInput.onEnterKey =
             doTheThingsBtn.onClick =
             choiceList.onDoubleClick =
             handleReturn;
+        setTheSettingsingsBtn.onClick = settingsWindow;
         textInput.onChanging = updateChoiceListAndInfo;
         choiceList.onChange = handleChoiceListChange;
+        textInput.active = true;
         dialog.show()
     }
 
@@ -171,69 +201,72 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
             // see the top of this file for an example
             this.info = {
                 "shortname": File.decode(this.fsItem.name).replace("\.jsx*(bin)*$", "", "i"),
-                "icon": DEFAULT_FILE_ICON
+                "icon": DEFAULT_FILE_ICON,
+                "fsPath": File.decode(this.fsItem.fullName)
             }
-            //how many lines of script to scan for info, to speed up loading
             var sidecar = new File(File.decode(this.fsItem.name.replace(/(\.jsx?(bin)*)*$/, "_info.json")));
-            var infoFiles = [];
+            // var infoFiles = [];
             if (sidecar.exists) { //get info from sidecar if it exists
-                infoFiles = [sidecar];
-            }
-            if (this.fsItem.name.match("\\.jsx*$")) {
+                // infoFiles = [sidecar];
+                // }
+                // if (this.fsItem.name.match("\\.jsx*$")) {
                 // also look inside jsx and js files
-                infoFiles.push(this.fsItem);
+                // infoFiles.push(this.fsItem);
+                // }
+                // for (var f = 0; f < infoFiles.length; f++) {
+                //     this.readInfoFromFile(infoFiles[f]);
+                this.readInfoFromFile(sidecar)
             }
-            for (var f = 0; f < infoFiles.length; f++) {
-                this.readInfoFromFile(infoFiles[f]);
-            }
-            if (infoFiles[f]) { infoFiles[f].close(); }
+
+            // if (infoFiles[f]) { infoFiles[f].close(); }
         }
 
         this.readInfoFromFile = function (theFile) {
-            var isJSONFile = theFile.name.match("\.json", "i");
+            // var isJSONFile = theFile.name.match("\.json", "i");
             try {
                 if (theFile.open()) {
                     var infoData = "";
-                    if (!isJSONFile) {
-                        var lc = 0;
-                        var foundHeader = false;
-                        // when reading script files scan the first MAX_INFO_LINES lines looking for the header
-                        while (
-                            (!theFile.eof) &&
-                            !foundHeader &&
-                            lc < MAX_LINES_TO_READ
-                        ) {
-                            lc++;
-                            line = theFile.readln();
-                            foundHeader = line.match("^\\s*\\/*\\s*scriptrunner info", "i");
-                        }
+                    // if (!isJSONFile) {
+                    //     var lc = 0;
+                    //     var foundHeader = false;
+                    //     // when reading script files scan the first MAX_INFO_LINES lines looking for the header
+                    //     while (
+                    //         (!theFile.eof) &&
+                    //         !foundHeader &&
+                    //         lc < MAX_LINES_TO_READ
+                    //     ) {
+                    //         lc++;
+                    //         line = theFile.readln();
+                    //         foundHeader = line.match("^\\s*\\/*\\s*scriptrunner info", "i");
+                    //     }
 
-                    }
-                    if (isJSONFile || foundHeader) {
-                        // read the next lines as JSON, stripping off the comment slashes
-                        // will stop reading once it hits an empty line
-                        var keepReadingJSON = true;
-                        while (!theFile.eof && keepReadingJSON) {
-                            line = theFile.readln();
-                            if (!isJSONFile) {
-                                // in script files, keep reading until a break in the comments
-                                var infoLine = line.match(/\s*\/\/(.*)/);
-                                if (infoLine) {
-                                    line = infoLine[1]; //strip off the slashes to return the JSON payload
-                                } else {
-                                    line = null;
-                                    keepReadingJSON = false;
-                                }
-                            }
-                            if (line) {
-                                infoData += line;
-                            }
-                        }
-                        var info = JSON.parse(infoData);
-                        for (var key in info) {
-                            this.info[key] = info[key];
+                    // }
+                    // if (isJSONFile || foundHeader) {
+                    // read the next lines as JSON, stripping off the comment slashes
+                    // will stop reading once it hits an empty line
+                    var keepReadingJSON = true;
+                    while (!theFile.eof && keepReadingJSON) {
+                        line = theFile.readln();
+                        // if (!isJSONFile) {
+                        //     // in script files, keep reading until a break in the comments
+                        //     var infoLine = line.match(/\s*\/\/(.*)/);
+                        //     if (infoLine) {
+                        //         line = infoLine[1]; //strip off the slashes to return the JSON payload
+                        //     } else {
+                        //         line = null;
+                        //         keepReadingJSON = false;
+                        //     }
+                        // }
+                        if (line) {
+                            infoData += line;
                         }
                     }
+                    theFile.close();
+                    var info = JSON.parse(infoData);
+                    for (var key in info) {
+                        this.info[key] = info[key];
+                    }
+                    // }
                 }
             } catch (e) {
                 try {
@@ -274,6 +307,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         this.exec = function () {
             try {
                 if (this.fsItem.exists) {
+                    alert(this.fsItem.fsName);
                     $.evalFile(this.fsItem.fsName);
                 } else {
                     alert(FILE_NOT_FOUND)
@@ -339,8 +373,8 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         if (this.shouldDisplay) { this.getInfo() };
     }
 
-    function ScriptFolder(theItem) {
-        this.recursiveScan = function (folderItem) {
+    function scanScriptFolder(theItem) {
+        function recursiveScan (folderItem) {
             var scriptFiles = [];
             if (folderItem instanceof Folder &&
                 folderItem.exists &&
@@ -351,30 +385,134 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
                         var newScriptFile = new ScriptFile(folderContents[f]);
                         if (newScriptFile.shouldDisplay) { scriptFiles.push(newScriptFile) };
                     } else {
-                        var innerFolderContents = this.recursiveScan(folderContents[f]);
+                        var innerFolderContents = recursiveScan(folderContents[f]);
                         for (var i = 0; i < innerFolderContents.length; i++) {
                             scriptFiles[scriptFiles.length] = innerFolderContents[i];
                         };
-                        $.writeln(folderContents[f].name + " " + innerFolderContents.length);
-                        $.writeln(scriptFiles.length);
+                        // $.writeln(folderContents[f].name + " " + innerFolderContents.length);
+                        // $.writeln(scriptFiles.length);
                     }
                 }
             }
             return scriptFiles
         }
-
+        var fsItem;
         if (typeof theItem === "string") {
-            this.fsItem = File(File.decode(theItem)); //Actual file system file
+            fsItem = File(File.decode(theItem)); //Actual file system file
         } else {
-            this.fsItem = theItem;
+            fsItem = theItem;
         }
-        this.scriptFiles = [];
-        if (this.fsItem instanceof Folder &&
-            this.fsItem.exists &&
-            (!File.decode(this.fsItem.name).match(/(^\.|^\(.*\)$)/))) {
-            this.scriptFiles = this.recursiveScan(this.fsItem);
+        var scriptFiles = [];
+        if (fsItem instanceof Folder &&
+            fsItem.exists &&
+            (!File.decode(fsItem.name).match(/(^\.|^\(.*\)$)/))) {
+            scriptFiles = recursiveScan(fsItem);
         }
+        return scriptFiles;
     }
+
+    function settingsWindow() {
+
+        /*
+        Code for Import https://scriptui.joonas.me — (Triple click to select): 
+        {"activeId":21,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":null,"windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Dialog","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":10,"alignChildren":["left","top"]}},"item-6":{"id":6,"type":"Button","parentId":13,"style":{"enabled":true,"varName":"installPNABtn","text":"Install PnA Scripts","justify":"center","preferredSize":[140,0],"alignment":null,"helpTip":null}},"item-7":{"id":7,"type":"Panel","parentId":0,"style":{"enabled":true,"varName":"foldersPnl","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Scripts Folders","preferredSize":[0,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["left","top"],"alignment":null}},"item-8":{"id":8,"type":"Group","parentId":7,"style":{"enabled":true,"varName":"scriptsGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","top"],"alignment":null}},"item-9":{"id":9,"type":"Group","parentId":8,"style":{"enabled":true,"varName":"btnGrp","preferredSize":[0,0],"margins":0,"orientation":"column","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-10":{"id":10,"type":"ListBox","parentId":8,"style":{"enabled":true,"varName":null,"creationProps":{"multiselect":false,"numberOfColumns":1,"columnWidths":"[]","columnTitles":"[]","showHeaders":false},"listItems":"","preferredSize":[400,80],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"Button","parentId":9,"style":{"enabled":true,"varName":"addBtn","text":"Add","justify":"center","preferredSize":[140,0],"alignment":null,"helpTip":null}},"item-12":{"id":12,"type":"Button","parentId":9,"style":{"enabled":true,"varName":"removeBtn","text":"Remove","justify":"center","preferredSize":[140,0],"alignment":null,"helpTip":null}},"item-13":{"id":13,"type":"Group","parentId":7,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":"right"}},"item-16":{"id":16,"type":"Group","parentId":0,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":[0,10,0,0],"orientation":"row","spacing":10,"alignChildren":["right","center"],"alignment":"right"}},"item-17":{"id":17,"type":"Button","parentId":16,"style":{"enabled":true,"varName":"cancelBtn","text":"Cancel","justify":"center","preferredSize":[140,0],"alignment":"right","helpTip":null}},"item-19":{"id":19,"type":"Button","parentId":16,"style":{"enabled":true,"varName":"installPNABtn","text":"Save Settings","justify":"center","preferredSize":[140,0],"alignment":"right","helpTip":null}},"item-20":{"id":20,"type":"Checkbox","parentId":21,"style":{"enabled":true,"varName":"searchDescriptionsBtn","text":"Search Descriptions","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-21":{"id":21,"type":"Panel","parentId":0,"style":{"enabled":true,"varName":"stgsPnl","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Settings","preferredSize":[0,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["left","top"],"alignment":null}}},"order":[0,7,8,10,9,11,12,13,6,21,20,16,17,19],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"None"}}
+        */
+
+        // DIALOG
+        // ======
+        var settingsPanel = new Window("dialog");
+        settingsPanel.text = "ScriptConsole Settings";
+        settingsPanel.orientation = "column";
+        settingsPanel.alignChildren = ["left", "top"];
+        settingsPanel.spacing = 10;
+        settingsPanel.margins = 16;
+
+        // FOLDERSPNL
+        // ==========
+        var foldersPnl = settingsPanel.add("panel", undefined, undefined, { name: "foldersPnl" });
+        foldersPnl.text = "Scripts Folders";
+        foldersPnl.orientation = "column";
+        foldersPnl.alignChildren = ["left", "top"];
+        foldersPnl.spacing = 10;
+        foldersPnl.margins = 10;
+
+        // SCRIPTSGRP
+        // ==========
+        var scriptsGrp = foldersPnl.add("group", undefined, { name: "scriptsGrp" });
+        scriptsGrp.orientation = "row";
+        scriptsGrp.alignChildren = ["left", "top"];
+        scriptsGrp.spacing = 10;
+        scriptsGrp.margins = 0;
+
+        var listbox1 = scriptsGrp.add("listbox", undefined, undefined, { name: "listbox1" });
+        listbox1.preferredSize.width = 400;
+        listbox1.preferredSize.height = 80;
+
+        // BTNGRP
+        // ======
+        var btnGrp = scriptsGrp.add("group", undefined, { name: "btnGrp" });
+        btnGrp.orientation = "column";
+        btnGrp.alignChildren = ["left", "center"];
+        btnGrp.spacing = 10;
+        btnGrp.margins = 0;
+
+        var addBtn = btnGrp.add("button", undefined, undefined, { name: "addBtn" });
+        addBtn.text = "Add";
+        addBtn.preferredSize.width = 140;
+
+        var removeBtn = btnGrp.add("button", undefined, undefined, { name: "removeBtn" });
+        removeBtn.text = "Remove";
+        removeBtn.preferredSize.width = 140;
+
+        // GROUP1
+        // ======
+        var group1 = foldersPnl.add("group", undefined, { name: "group1" });
+        group1.orientation = "row";
+        group1.alignChildren = ["left", "center"];
+        group1.spacing = 10;
+        group1.margins = 0;
+        group1.alignment = ["right", "top"];
+
+        var installPNABtn = group1.add("button", undefined, undefined, { name: "installPNABtn" });
+        installPNABtn.text = "Install PnA Scripts";
+        installPNABtn.preferredSize.width = 140;
+
+        // STGSPNL
+        // =======
+        var stgsPnl = settingsPanel.add("panel", undefined, undefined, { name: "stgsPnl" });
+        stgsPnl.text = "Settings";
+        stgsPnl.orientation = "column";
+        stgsPnl.alignChildren = ["left", "top"];
+        stgsPnl.spacing = 10;
+        stgsPnl.margins = 10;
+
+        var searchDescriptionsBtn = stgsPnl.add("checkbox", undefined, undefined, { name: "searchDescriptionsBtn" });
+        searchDescriptionsBtn.text = "Search Descriptions";
+
+        // GROUP2
+        // ======
+        var group2 = settingsPanel.add("group", undefined, { name: "group2" });
+        group2.orientation = "row";
+        group2.alignChildren = ["right", "center"];
+        group2.spacing = 10;
+        group2.margins = [0, 0, 10, 0];
+        group2.alignment = ["right", "top"];
+
+        var cancelBtn = group2.add("button", undefined, undefined, { name: "cancelBtn" });
+        cancelBtn.text = "Cancel";
+        cancelBtn.preferredSize.width = 140;
+        cancelBtn.alignment = ["right", "bottom"];
+
+        var installPNABtn1 = group2.add("button", undefined, undefined, { name: "installPNABtn1" });
+        installPNABtn1.text = "Save Settings";
+        installPNABtn1.preferredSize.width = 140;
+        installPNABtn1.alignment = ["right", "bottom"];
+
+        settingsPanel.show();
+
+
+    }
+
 
     function myPreferences(SCRIPT_NAME) {
         // look for preferences for this object
