@@ -3,6 +3,9 @@
 // more: https://blob.pureandapplied.com.au
 (function () {
     var theComp = app.project.activeItem;
+    var BEFORE = ScriptUI.environment.keyboardState.shiftKey;
+    var AFTER = ScriptUI.environment.keyboardState.altKey;
+    var AT = !BEFORE && !AFTER
     if (theComp) {
         var theLayers = theComp.selectedLayers;
         if (theLayers.length === 0) {
@@ -17,14 +20,59 @@
                 var theProp = props[p];
                 for (var k = 1; k <= theProp.numKeys; k++)
                     try {
-                        theProp.setSelectedAtKey(
-                            k,
-                            theProp.keyTime(k) > theComp.time
-                        );
+                        if (BEFORE) {
+                            theProp.setSelectedAtKey(
+                                k,
+                                theProp.keyTime(k) < theComp.time
+                            )
+                        }
+                        if (AFTER) {
+                            theProp.setSelectedAtKey(
+                                k,
+                                theProp.keyTime(k) > theComp.time
+                            )
+                        }
+                        if (AT) {
+                            // select all keys that happen during the current frame, 
+                            // which means up to, but not including, 1 frame later than current time
+                            theProp.setSelectedAtKey(
+                                k,
+                                (theProp.keyTime(k) - theComp.time) < theComp.frameDuration &&
+                                (theProp.keyTime(k) >= theComp.time)
+                            )
+                        }
+
                     } catch (e) {
                         // writln(e);
                     }
             }
+        }
+    }
+    function traversePropertyGroups(pGroup, inclusive) {
+        // walks through property groups, returning properties
+        // if inclusive is true, returns property groups as well
+        if (pGroup) {
+            var props = [];
+            //alert(pGroup.numProperties);
+            if (typeof pGroup.numProperties !== "undefined") {
+                if (inclusive) {
+                    props.push(pGroup);
+                }
+                for (var pp = 1; pp <= pGroup.numProperties; pp++) {
+                    var newProps = traversePropertyGroups(
+                        pGroup.property(pp),
+                        inclusive
+                    );
+                    if (newProps.length) {
+                        for (var i = 0; i < newProps.length; i++) {
+                            props.push(newProps[i]);
+                        }
+                    }
+                }
+            } else {
+                props.push(pGroup);
+            }
+            return props;
         }
     }
 

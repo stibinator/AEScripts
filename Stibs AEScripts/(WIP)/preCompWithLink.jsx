@@ -6,9 +6,9 @@
     app.beginUndoGroup(scriptName);
     var theComp = app.project.activeItem;
     if (theComp) {
+        var indices = [];
         if (theComp.selectedLayers.length) {
             var newCompName = theComp.selectedLayers[0].name + " precomp";
-            var indices = [];
             for (var i = 0; i < theComp.selectedLayers.length; i++) {
                 theComp.selectedLayers[i].wasSelected = true;
             }

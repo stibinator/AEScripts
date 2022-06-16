@@ -2,16 +2,29 @@
 // license below
 // more: https://blob.pureandapplied.com.au
 (function () {
-    this.name = "selectAllLayersBeforePlayhead";
+    var BEFORE = ScriptUI.environment.keyboardState.shiftKey;
+    var AFTER = ScriptUI.environment.keyboardState.altKey;
+    var AT = !BEFORE && !AFTER
+    this.name = "selectAllLayersBeforeNAfterPlayhead";
     app.beginUndoGroup(this.name);
     var theComp = app.project.activeItem;
-    var shiftHeld = ScriptUI.environment.keyboardState.shiftKey;
     if (theComp) {
         for (var i = 1; i <= theComp.numLayers; i++) {
-            if (shiftHeld) {
-                theComp.layer(i).selected = (theComp.layer(i).inPoint < theComp.time || theComp.layer(i).outPoint < theComp.time);
-            } else {
-                theComp.layer(i).selected = (theComp.layer(i).inPoint < theComp.time && theComp.layer(i).outPoint < theComp.time);
+            if (BEFORE) {
+                theComp.layer(i).selected = (
+                    theComp.layer(i).inPoint < theComp.time && theComp.layer(i).outPoint < theComp.time
+                )
+            }
+            if (AFTER) {
+                theComp.layer(i).selected = (
+                    theComp.layer(i).inPoint > theComp.time && theComp.layer(i).outPoint > theComp.time
+                )
+            }
+            if (AT) {
+                theComp.layer(i).selected = (
+                    theComp.layer(i).inPoint < theComp.time && theComp.layer(i).outPoint > theComp.time ||
+                    theComp.layer(i).inPoint > theComp.time && theComp.layer(i).outPoint < theComp.time
+                )
             }
         }
     }

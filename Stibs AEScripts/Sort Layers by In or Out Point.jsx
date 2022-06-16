@@ -4,8 +4,10 @@
 (function () {
     // Sort Layers by In Point.jsx
     //
-    // This script reorders layers in the active comp, sorted by outPoint.
+    // This script reorders layers in the active comp, sorted by inpoint or if ctrl is held down, outPoint.
     //
+    var DOWN = ScriptUI.environment.keyboardState.shiftKey;
+    var OUT = ScriptUI.environment.keyboardState.ctrlKey;
 
     function SortLayersByoutPoint(thisObj) {
         var proj = app.project;
@@ -16,10 +18,20 @@
             while (total_number >= 2) {
                 var layer_was_moved = false;
                 for (j = 1; j <= total_number; j++) {
-                    // if you want to reverse the sort order, use "<" instead of ">".
                     if (
-                        comp_layers[j].outPoint >
-                        comp_layers[total_number].outPoint
+                        (DOWN && !OUT &&
+                            comp_layers[j].inPoint >
+                            comp_layers[total_number].inPoint) ||
+                        (DOWN && OUT &&
+                            comp_layers[j].outPoint >
+                            comp_layers[total_number].outPoint) ||
+                        (!DOWN && !OUT &&
+                            comp_layers[j].inPoint <
+                            comp_layers[total_number].inPoint) ||
+                        (!DOWN && OUT &&
+                            comp_layers[j].outPoint <
+                            comp_layers[total_number].outPoint)
+
                     ) {
                         if (comp_layers[j].locked) {
                             if (unlockedOnly == false) {

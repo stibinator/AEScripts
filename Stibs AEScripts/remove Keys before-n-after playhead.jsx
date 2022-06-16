@@ -25,7 +25,7 @@
     app.beginUndoGroup("remove keys after playhead");
     var theComp = app.project.activeItem;
     if (theComp instanceof CompItem) {
-        removeKeys(theComp.selectedProperties, theComp.time, AFTER);
+        removeKeys(theComp.selectedProperties, theComp.time, ScriptUI.environment.keyboardState.shiftKey);
     }
     app.endUndoGroup();
 })()

@@ -6,11 +6,14 @@
 // project items
 (function () {
     theitems = app.project.selection;
+    if (theitems.length === 0) {
+        theitems = app.project.items;
+    }
     for (var i = 0; i < theitems.length; i++) {
         if (theitems[i].width < theitems[i].height) {
-            theitems[i].label = 12;
+            theitems[i].label = 12; //brown by default
         } else {
-            theitems[i].label = 10;
+            theitems[i].label = 10; //purple by default
         }
     }
 })()

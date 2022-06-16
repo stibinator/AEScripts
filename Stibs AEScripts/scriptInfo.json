@@ -1,0 +1,366 @@
+[
+  {
+    "name": "add FS shape layer.jsx",
+    "info":{
+      "description": "Ads a shape layer the size of the current comp.\nLike adding a solid, but without creating a new solid\nThe colour of the shape is set randomly.",
+      "shortName": "Add Full Screen shape layer"
+    }
+  },
+  {
+    "name": "add handle at average.jsx",
+    "info":{
+      "description": "add a null as parent to all unparented layers, at the average position of them all",
+      "shortName": "Add parent null at average"
+    }
+  },
+  {
+    "name": "add handle.jsx",
+    "info":{
+      "description": "add a null as parent to all unparented layers\nThe new null will be at [0,0]",
+      "shortName": "Add null as comp parent"
+    }
+  },
+  {
+    "name": "Add_Scale_Layer_to_Cam_Expression.jsx",
+    "info":{
+      "description": "Adds an expression to layers that scale it to fill the current 3D camera",
+      "shortName": "Add Scale-Layer-to-Cam Expression"
+    }
+  },
+  {
+    "name": "addMatteSolid.jsx",
+    "info":{
+      "description": "Adds a solid layer and makes it a track matte of the current layer",
+      "shortName": "Add Matte Solid"
+    }
+  },
+  {
+    "name": "addwiggle.jsx",
+    "info":{
+      "description": "Adds a wiggle expression to the selected property and sets up sliders for amplitude and frequency.",
+      "shortName": "Add wiggle and sliders"
+    }
+  },
+  {
+    "name": "AlignChildrensInAndOutPointsToParents.jsx",
+    "info":{
+      "description": "Aligns the in and out point of child layers to match their parent layers",
+      "shortName": "Align Childrens In And Out Points To Parents"
+    }
+  },
+  {
+    "name": "AlignChildrensStartTimeToParents.jsx",
+    "info":{
+      "description": "Aligns the start time of child layers to their parents' start time",
+      "shortName": "Align Childrens Start Time To Parents"
+    }
+  },
+  {
+    "name": "alignSelectedKFsToCurrentTime.jsx",
+    "info":{
+      "description": "moves all selected Keyframes to the current comp time",
+      "shortName": "Align Selected KFs To Current Time"
+    }
+  },
+  {
+    "name": "alignSourceTimes.jsx",
+    "info":{
+      "description": "Aligns layers' source start time, independant of their in and out points",
+      "shortName": "Align Source Times"
+    }
+  },
+  {
+    "name": "centre children on parent.jsx",
+    "info":{
+      "description": "Centers a child layer on its parent",
+      "shortName": "Centre children on parent"
+    }
+  },
+  {
+    "name": "Collect with relative paths.jsx",
+    "info":{
+      "description": "Same as collect files from the Dependencies menu, but keeps the folder structure of source items",
+      "shortName": "Collect with relative paths"
+    }
+  },
+  {
+    "name": "continue motion from last KF.jsx",
+    "info":{
+      "description": "Adds a keyframe to the selected property so that it continues at the same speed as it is moving at the last keyframe, until the end of the current comp.",
+      "shortName": "Continue motion from last  KF"
+    }
+  },
+  {
+    "name": "delete broekn expressions.jsx",
+    "info":{
+      "description": "Removes all expressions that are causing errors",
+      "shortName": "Delete broekn expressions"
+    }
+  },
+  {
+    "name": "extendProperty.jsx",
+    "info":{
+      "description": "Adds keyFrames to properties at the start and end of the composition, so that the property will continue moving at the same speed as is going before the first and after the last keyframes. Like loopIn and loopOut, but without expressions",
+      "shortName": "Extend Property"
+    }
+  },
+  {
+    "name": "fitAllLayersToCompHeight.jsx",
+    "info":{
+      "description": "Fits all layers in a comp to the comp height",
+      "shortName": "Fit All Layers To Comp Height"
+    }
+  },
+  {
+    "name": "fitAllLayersToCompWidth.jsx",
+    "info":{
+      "description": "Fits all layers in a comp to the comp width",
+      "shortName": "Fit All Layers To Comp Width"
+    }
+  },
+  {
+    "name": "hide guide layers.jsx",
+    "info":{
+      "description": "Hides all layers marked as guide layers",
+      "shortName": "Hide guide layers"
+    }
+  },
+  {
+    "name": "jumpToMainComp.jsx",
+    "info":{
+      "description": "If you have set a comp as the Main Comp for a project using the setMainComp script, this will jump to it, without having to use tab or find it in the project panel",
+      "shortName": "Jump To Main Comp"
+    }
+  },
+  {
+    "name": "labelPortrait.jsx",
+    "info":{
+      "description": "set the label of all items that are portrait aspect (taller than wide) to label 12 (brown by default) and all landscape (wider than tall) items to purple.\nIf items are selected it will only apply to them, if no items are selected it will apply to all project items",
+      "shortName": "Label Portrait"
+    }
+  },
+  {
+    "name": "labelUnused.jsx",
+    "info":{
+      "description": "Set the label of all unused items to <no label>.\nIf any project items are selected it will only apply to them, if no items are selected it will apply to all project items.",
+      "shortName": "Label Unused"
+    }
+  },
+  {
+    "name": "lightview camera.jsx",
+    "info":{
+      "description": "Adds a camera to a light so that you can 'look' through the light to see where it is aiming",
+      "shortName": "Lightview camera"
+    }
+  },
+  {
+    "name": "lockShyLayers.jsx",
+    "info":{
+      "description": "Locks all shy layers in a comp.",
+      "shortName": "Lock Shy Layers"
+    }
+  },
+  {
+    "name": "moveAnchorPtToMiddleOfComp-XY_Only.jsx",
+    "info":{
+      "description": "Moves the anchor point of a layer to the middle of a comp - only affecting the x and y axis. I don't remember what this was for.",
+      "shortName": "Move Anchor Pt To Middle Of Comp-XY_Only"
+    }
+  },
+  {
+    "name": "moveAnchorPtToMiddleOfComp.jsx",
+    "info":{
+      "description": "Moves the anchor point of a layer to the middle of the comp.",
+      "shortName": "Move Anchor Pt To Middle Of Comp"
+    }
+  },
+  {
+    "name": "Mum-n-Dad.jsx",
+    "info":{
+      "description": "If multiple layers are selected creates a null that acts as the parent for all selected layers\nIf one layer is selected makes that the parent for the everything in the comp\\nIf nothing is selected, makes a new null the parent of everything in the comp",
+      "shortName": "Mum Dad"
+    }
+  },
+  {
+    "name": "remove disabled effects.jsx",
+    "info":{
+      "description": "Deletes any effects that have been disabled",
+      "shortName": "Remove disabled effects"
+    }
+  },
+  {
+    "name": "remove Keys before-n-after playhead.jsx",
+    "info":{
+      "description": "Removes keys from selected properties after the playhead, or before the playhead if the SHIFT key is held down",
+      "shortName": "Remove Keys before-n-after playhead"
+    }
+  },
+  {
+    "name": "remove_All_Comp_Markers.jsx",
+    "info":{
+      "description": "Removes all the comp markers",
+      "shortName": "Remove All_ Comp_ Markers"
+    }
+  },
+  {
+    "name": "removeGap.jsx",
+    "info":{
+      "description": "Removes a gap in the comp (area where no layers are active) wherever the playhead is parked. Ripples all later layers up.",
+      "shortName": "Remove Gap"
+    }
+  },
+  {
+    "name": "removeSingleKeyFramesFromProperties.jsx",
+    "info":{
+      "description": "Removes all keyframes from properties that only have a single key, turning off animation for those properties.",
+      "shortName": "Remove Single Key Frames From Properties"
+    }
+  },
+  {
+    "name": "renderCompSplits.jsx",
+    "info":{
+      "description": "Enables you to split the current comp into sections when rendering.\nMultiple copies of the comp will be added to the render queue, split ito sections at each comp marker. Each section will render to a sequentially named file.",
+      "shortName": "Render Comp Splits"
+    }
+  },
+  {
+    "name": "resizeMatteToTarget.jsx",
+    "info":{
+      "description": "Resizes solids that are matte layers to fit their target layers",
+      "shortName": "Resize Matte To Target"
+    }
+  },
+  {
+    "name": "Scale_Layer_to_Cam.jsx",
+    "info":{
+      "description": "Fits 3D layers to fit the current camera's view",
+      "shortName": "Scale Layer to Cam"
+    }
+  },
+  {
+    "name": "selectKeyFramesBefore-at-AfterCurrentTime.jsx",
+    "info":{
+      "description": "If SHIFT is held down, selects all keys on all layers before the current time\nIf ALT/OPT is held down, selects all keys on all layers after the current time.\nIf no keys held down selects all keys that happen during the current frame.",
+      "shortName": "Select Key Frames Before / At / After CurrentTime"
+    }
+  },
+  {
+    "name": "selectAllLayersBefor-At-AfterPlayhead.jsx",
+    "info":{
+      "description": "If SHIFT is held down, selects all layers that start and end before the current time\nIf ALT/OPT is held down, selects all layers that start after the current time.\nIf no keys held down selects all keys that are active at the current time.",
+      "shortName": "Select All Layers Before / At / After Playhead"
+    }
+  },
+  {
+    "name": "selectAncestors.jsx",
+    "info":{
+      "description": "The inverse of the select children function. Selects all parents and parent's parents of the selected layers",
+      "shortName": "Select Ancestors"
+    }
+  },
+  {
+    "name": "Selected_as_Spine.jsx",
+    "info":{
+      "description": "this script will take the selected group of layers and from them create an animatable spine; each vertebra is parented to the one below it, and each vertebra above the lowermost (base) vertebra has an expression that is linked to the base vertebra's x rotation.",
+      "shortName": "Selected as Spine"
+    }
+  },
+  {
+    "name": "selectImmediateChildLayers.jsx",
+    "info":{
+      "description": "Selects the children of the current layer, but not their children",
+      "shortName": "Select Immediate Child Layers"
+    }
+  },
+  {
+    "name": "selectOldestAncestor.jsx",
+    "info":{
+      "description": "Selects the layer that is at the top of a parent hierarchy for the current layer. So if the current layer has a parent, which itself has a parent, which itself has a parent, the great-grandparent layer will be selected.",
+      "shortName": "Select Oldest Ancestor"
+    }
+  },
+  {
+    "name": "selectOrphans.jsx",
+    "info":{
+      "description": "Select all layers without a parent. Aww. Sad.",
+      "shortName": "Select Orphans"
+    }
+  },
+  {
+    "name": "selectSiblings.jsx",
+    "info":{
+      "description": "Select all layers with the same parent as the current layer",
+      "shortName": "Select Siblings"
+    }
+  },
+  {
+    "name": "setEasingTo100.jsx",
+    "info":{
+      "description": "When easy ease just isn't eased enough. This turns the easing on the selected keyframes up to 11. Or, actually 100%, since AE is afraid to turn it up to 11. ☠☢↯†☭‼ WEAK!",
+      "shortName": "Set Easing To 100%"
+    }
+  },
+  {
+    "name": "setMainComp.jsx",
+    "info":{
+      "description": "Use in conjunction with the Jump to Main Comp script. This sets the current comp as the project's Main Comp, to allow you to do one click jumps to it",
+      "shortName": "Set Main Comp"
+    }
+  },
+  {
+    "name": "show guide layers.jsx",
+    "info":{
+      "description": "Show any guide layers that are hidden",
+      "shortName": "Show guide layers"
+    }
+  },
+  {
+    "name": "shuffleSelectedLayers.jsx",
+    "info":{
+      "description": "Randomly set the order of selected layers in the layer stack",
+      "shortName": "Shuffle Selected Layers"
+    }
+  },
+  {
+    "name": "shy locked layers.jsx",
+    "info":{
+      "description": "Set any locked layers to shy, so they can be hidden in the timeline window",
+      "shortName": "Shy locked layers"
+    }
+  },
+  {
+    "name": "Sort Layers by In or Out Point.jsx",
+    "info":{
+      "description": "Sorts the layers of a comp by their in-point, or if CTRL key is pressed, by their out-point. To sort in descending order hold the SHIFT key",
+      "shortName": "Sort Layers by In or Out Point"
+    }
+  },
+  {
+    "name": "trimLayersThatFade.jsx",
+    "info":{
+      "description": "Trims off the start and end of layers that fade up from 0% opacity, or fade down to 0% opacity.\nHold shift to apply to locked layers as well.",
+      "shortName": "Trim Layers That Fade"
+    }
+  },
+  {
+    "name": "trimToLayerBelowAndSetAsAlphaMatte.jsx",
+    "info":{
+      "description": "Trims the start and end of selected layers to match the layer below, and sets it as the alpha matte for the layer below.\nHold SHIFT to set as alpha inverted,\nHold ALT to set as luma,\nand SHIFT+ALT to set as luma inverted",
+      "shortName": "Trim To Layer Below And Set As Alpha Matte"
+    }
+  },
+  {
+    "name": "uncompose.jsx",
+    "info":{
+      "description": "Reverses the precompose function. Layers from a selected precomposition will be brought into the main comp",
+      "shortName": "Uncompose"
+    }
+  },
+  {
+    "name": "unparent.jsx",
+    "info":{
+      "description": "Unparents the selected layer with the transforms they got from their parents baked-in",
+      "shortName": "Unparent"
+    }
+  }
+]

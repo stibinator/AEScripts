@@ -1,17 +1,24 @@
 // @target aftereffects
 // license below
 // more: https://blob.pureandapplied.com.au
-(function(){
-    this.name = "selectAllLayersAfterPlayhead";
-    app.beginUndoGroup(this.name);
-    var theComp = app.project.activeItem;
-    if (theComp ){
-        for(var i = 1; i <= theComp.numLayers; i++){
-            theComp.layer(i).selected = (theComp.layer(i).inPoint > theComp.time && theComp.layer(i).outPoint > theComp.time );
-            
+// sets the label for all unused items
+(function () {
+    theitems = app.project.selection;
+    //do all if nothing is selected
+    if (theitems.length === 0) {
+        for (var i = 1; i <= app.project.items.length; i++) {
+            //convert 1-index collection to normal array. Thanks, Adobe.
+            theitems.push(app.project.item(i));
+        };
+    }
+    for (var i = 0; i < theitems.length; i++) {
+        var uses = theitems[i].usedIn;
+        if (uses && uses.length > 0) {
+            // theitems[i].label = 14;
+        } else {
+            theitems[i].label = 0;
         }
     }
-    app.endUndoGroup();
 })()
 
 //

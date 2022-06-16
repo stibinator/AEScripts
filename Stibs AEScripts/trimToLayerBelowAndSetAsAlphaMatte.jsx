@@ -6,6 +6,9 @@
 // to match the length of the layers below them
 // and sets them as layer mattes
 (function () {
+    var INVERTED = ScriptUI.environment.keyboardState.shiftKey;
+    var LUMA = ScriptUI.environment.keyboardState.altKey;
+
     var scriptName = "trimToLayerBelowAndSetAsAlphaMatte";
     app.beginUndoGroup(scriptName);
     var theComp = app.project.activeItem;
@@ -16,8 +19,14 @@
                 var targetLayer = theComp.layer(theLayer.index + 1);
                 theLayer.inPoint = targetLayer.inPoint;
                 theLayer.outPoint = targetLayer.outPoint;
-                targetLayer.trackMatteType = TrackMatteType.ALPHA;
+                if (LUMA) {
+                    targetLayer.trackMatteType = (INVERTED) ? TrackMatteType.LUMA_INVERTED : TrackMatteType.LUMA
+                } else {
+                    targetLayer.trackMatteType = (INVERTED) ? TrackMatteType.ALPHA_INVERTED : TrackMatteType.ALPHA
+                }
+
             }
+            
         }
     }
     app.endUndoGroup();

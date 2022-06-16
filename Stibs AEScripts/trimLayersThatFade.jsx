@@ -4,6 +4,8 @@
 // more: https://blob.pureandapplied.com.au
 
 (function () {
+    var doLockedLayers = ScriptUI.environment.keyboardState.shiftKey;
+
     function doSomethingWithSelectedLayersOrAllIfNoneSelected(doTheThing, theParams) {
         var theComp = app.project.activeItem;
         if (theComp) {
@@ -12,7 +14,7 @@
             var theLayers = theComp.selectedLayers;
             if (theLayers.length === 0) {
                 firstLayer = 1;
-                theLayers = theComp.layers
+                theLayers = theComp.layers;
             }
             for (var lyr = firstLayer; lyr < theLayers.length + firstLayer; lyr++) {
                 doTheThing(theLayers[lyr], theParams)
@@ -29,22 +31,33 @@
         var firstTime = Math.max(compStart, theLayer.inPoint);
         var lastTime = Math.min(compEnd, theLayer.outPoint);
 
-        if (theOpac.expressionEnabled) {
-            for (var t = firstTime; t < theLayer.outPoint && theOpac.valueAtTime(t, false) === 0; t += frameDur) {
-                theLayer.inPoint = t;
-            }
-            for (var t = lastTime; t > theLayer.inPoint && theOpac.valueAtTime(t, false) === 0; t -= frameDur) {
-                theLayer.outPoint = t;
-            }
-        } else {
-            if (theOpac.numKeys > 1) {
-                for (var k = 1; k <= theOpac.numKeys && theOpac.keyValue(k) === 0; k++) {
-                    theLayer.inPoint = theOpac.keyTime(k);
+        if (theLayer.locked && doLockedLayers) {
+            theLayer.wasLocked = true;
+            theLayer.locked = false;
+        }
+        if (! theLayer.locked) {
+            if (theOpac.expressionEnabled) {
+                for (var t = firstTime; t < theLayer.outPoint && theOpac.valueAtTime(t, false) === 0; t += frameDur) {
+                    theLayer.inPoint = t;
                 }
-                for (var k = theOpac.numKeys; k > 1 && theOpac.keyValue(k) === 0; k--) {
-                    theLayer.outPoint = theOpac.keyTime(k);
+                for (var t = lastTime; t > theLayer.inPoint && theOpac.valueAtTime(t, false) === 0; t -= frameDur) {
+                    theLayer.outPoint = t;
+                }
+            } else {
+                if (theOpac.numKeys > 1) {
+                    for (var k = 1; k <= theOpac.numKeys && theOpac.keyValue(k) === 0; k++) {
+                        theLayer.inPoint = theOpac.keyTime(k);
+                    }
+                    for (var k = theOpac.numKeys; k > 1 && theOpac.keyValue(k) === 0; k--) {
+                        theLayer.outPoint = theOpac.keyTime(k);
+                    }
                 }
             }
+        }
+        if (theLayer.wasLocked) {
+            // put stuff back like we found it
+            theLayer.wasLocked = undefined;
+            theLayer.locked = true;
         }
     }
     doSomethingWithSelectedLayersOrAllIfNoneSelected(trimLayerFades, null);

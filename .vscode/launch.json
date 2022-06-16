@@ -1,39 +1,11 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [
-    
+    "configurations": [ 
         {
             "type": "extendscript-debug",
             "request": "attach",
             "name": "es dbg attach",
             "hiddenTypes": ["builtin"],
-        },
-        // {
-        //     "type": "extendscript-debug",
-        //     "request":  "attach",
-        //     "name": "Current file- stop on entry",
-        //     // "program": "${file}",
-        //     // "stopOnEntry": true
-        // },
-        // {
-        //     "type": "extendscript-debug",
-        //     "request":  "attach",
-        //     "name": "Current file with logging",
-        //     "program": "${file}",
-        //     "stopOnEntry": false,
-        //     "trace": true,
-        //     "traceString": "V",
-        //     "logFile": "extendscriptlog.txt"
-        // },
-        // {
-        //     "type": "extendscript-debug",
-        //     "request":  "attach",
-        //     "name": "Ask for script name",
-        //     "program": "${workspaceFolder}/${command:AskForScriptName}",
-        //     "stopOnEntry": false
-        // }
+        }
     ]
 }
