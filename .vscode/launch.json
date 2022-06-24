@@ -6,6 +6,12 @@
             "request": "attach",
             "name": "es dbg attach",
             "hiddenTypes": ["builtin"],
+        },
+        {
+            "type": "extendscript-debug",
+            "request": "launch",
+            "name": "es dbg launch",
+            "hiddenTypes": ["builtin"],
         }
     ]
 }

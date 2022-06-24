@@ -4,7 +4,7 @@
 Code for Import https://scriptui.joonas.me — (Triple click to select): 
 {"activeId":22,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"text":"Import Multiple PDF pages","preferredSize":[0,0],"margins":16,"orientation":"row","spacing":10,"alignChildren":["left","top"],"varName":null,"windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"enabled":true}},"item-20":{"id":20,"type":"Group","parentId":23,"style":{"preferredSize":[0,0],"margins":0,"orientation":"column","spacing":10,"alignChildren":["fill","top"],"alignment":null,"varName":null,"enabled":true}},"item-21":{"id":21,"type":"EditText","parentId":20,"style":{"enabled":true,"varName":"textInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":true,"enterKeySignalsOnChange":true},"softWrap":false,"text":"EditText","justify":"left","preferredSize":[300,26],"alignment":null,"helpTip":"Type here!"}},"item-22":{"id":22,"type":"ListBox","parentId":20,"style":{"enabled":true,"varName":"choiceList","creationProps":{"multiselect":false,"numberOfColumns":"1","columnWidths":"","columnTitles":"","showHeaders":false},"listItems":"Item 1, Item 2, item 3, item 4","preferredSize":[0,100],"alignment":null,"helpTip":null,"selection":[0]}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":23,"style":{"enabled":true,"varName":null,"preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"StaticText","parentId":24,"style":{"enabled":true,"varName":"description","creationProps":{"truncate":"none","multiline":true,"scrolling":true},"softWrap":false,"text":"Script \ndescription\ngoes\nhere","justify":"left","preferredSize":[160,100],"alignment":null,"helpTip":""}}},"order":[0,23,20,21,22,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"functionWrapper":false,"compactCode":false,"showDialog":true,"afterEffectsDockable":false,"itemReferenceList":"None"}}
 */
-(function () {
+(function (thisObj) {
     var SCRIPT_NAME = "scriptConsole";
     var VERSION_NUM = 0.1;
     // consts
@@ -54,7 +54,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
     prefs.setPref("ScriptConsole-FirstRun", false);
 
     initialiseScripts();
-    mainPopUpWindow(SCRIPT_NAME);
+    mainPopUpWindow(SCRIPT_NAME, thisObj);
 
     // functions
     function initialiseScripts() {
@@ -153,10 +153,17 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
 
     // --------------------------------------------Main window --------------------------------------------------------------------
 
-    function mainPopUpWindow(theText) {
+    function mainPopUpWindow(theText, thisObj) {
         // DIALOG
         // ======
-        var dialog = new Window("dialog");
+        var textAndChoiceWidth = 240;
+        var infoWidth = 300;
+        var infoHeight = 120;
+        var dialog = (thisObj instanceof Panel)
+            ? thisObj
+            : new Window("window", this.scriptTitle, undefined, {
+                resizeable: true,
+            });
         dialog.text = "ScriptConsole";
         dialog.orientation = "row";
         dialog.alignChildren = ["left", "top"];
@@ -182,16 +189,17 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         var textInput = group2.add('edittext {properties: { borderless: true}}');
         textInput.helpTip = "Type here!";
         textInput.text = theText;
-        textInput.preferredSize.width = 240;
+        textInput.preferredSize.width = textAndChoiceWidth;
         textInput.preferredSize.height = 26;
         textInput.name = "textInput";
         textInput.default = "script name";
         var initialText = prefs.getPref(textInput);
         textInput.text = initialText || "Search text";
+
         var choiceList_array = ["Scripts here"];
         var choiceList = group2.add("listbox", undefined, undefined, { name: "choiceList", items: choiceList_array });
         choiceList.selection = 0;
-        choiceList.preferredSize.height = 150;
+        choiceList.preferredSize.height = infoHeight;
 
         // GROUP3
         // ======
@@ -201,11 +209,10 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         rightGroup.alignChildren = ["right", "top"];
         rightGroup.spacing = 12;
         rightGroup.margins = 0;
-        rightGroup.backgroundColor = [128, 0, 0, 0];
 
         var descriptionGroup = rightGroup.add("group");
-        descriptionGroup.preferredSize.width = 300;
-        descriptionGroup.preferredSize.height = 100;
+        descriptionGroup.preferredSize.width = infoWidth;
+        descriptionGroup.preferredSize.height = infoHeight - 20;
         descriptionGroup.orientation = "column";
         descriptionGroup.alignment = ["left", "top"];
         descriptionGroup.alignChildren = ["left", "top"];
@@ -218,7 +225,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
             { name: "description", multiline: true, alignment: ['top', 'left'] }
         );
         // scriptInfoStaticText.multiline = true;
-        scriptInfoStaticText.preferredSize = { "width": 280, "height": 100 };
+        scriptInfoStaticText.preferredSize = { "width": infoWidth - 20, "height": infoHeight -20 };
         // description.preferredSize.height = 100; 
         var btnGrp = rightGroup.add('Group', undefined);
         btnGrp.alignment = ['right', 'bottom'];
@@ -284,7 +291,22 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
                 updateInfoPanel(choiceList.selection.payload);
             }
         }
-
+        dialog.onResize = function () {
+            // var dHeight = dialog.bounds.height;
+            if (dialog instanceof Window) {
+                // dialog.layout.layout(true);
+            }
+            var h = Math.max(dialog.bounds.height, 40);
+            choiceList.bounds.height = h  - 60;
+            group2.bounds.height = h;
+            group1.bounds.height = h;
+            rightGroup.bounds.height = h ;
+            scriptInfoStaticText.bounds.height = h - 80;
+            descriptionGroup.bounds.height = h - 80;
+            btnGrp.bounds.top = h - 60;
+            dialog.layout.layout(false);
+            // dialog.bounds.height = dHeight;
+        }
         // ----------- time to show some windows ----------
         updateChoiceListAndInfo(); //initialise the choicelist and infor, according to the last text from prefs
         updateInfoPanel(choiceList.selection ? choiceList.selection.payload : null);
@@ -297,7 +319,12 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         choiceList.onChange = handleChoiceListChange;
         textInput.active = true;
         editInfoBtn.onClick = editTheInfo;
-        dialog.show();
+        if (dialog instanceof Window) {
+            dialog.center();
+            dialog.show();
+        } else {
+            dialog.layout.layout(true);
+        }
     }
 
 
@@ -309,7 +336,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         var TEMPZIPNAME = 'stibsaescripts.zip';
         var TEMPFOLDERNAME = 'StibsAEScriptsDownloadTemp'
 
-        
+
         function getScriptsFromGithub() {
             var tempFolder = new Folder(Folder.temp.fsName);
             var tempZipFile = new File(tempFolder.fullName + '/' + TEMPZIPNAME);
@@ -507,7 +534,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         var scriptConsoleFolder;
 
         if (!installToAE) {
-        //  install to pureandapplied folder in userdata
+            //  install to pureandapplied folder in userdata
             var pnaFolder = new Folder(Folder.userData.fullName + "/PureAndApplied/");
             okToInstall = createPath(pnaFolder);
             scriptConsoleFolder = new Folder(pnaFolder.fullName + "/" + STIBSAESCRIPTS);
@@ -1032,6 +1059,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
         settingsPanel.show();
     }
 
+    // --------------------------------------------preferences ------------------------------------------------------------------------
 
     function myPreferences(SCRIPT_NAME) {
         // look for preferences for this object
@@ -1117,8 +1145,8 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
                         } else {
                             prefType = typeof prefDefault;
                         }
-                        if (prefType !== "undefined"){
-                        // otherwise the default is a string
+                        if (prefType !== "undefined") {
+                            // otherwise the default is a string
                             prefType = "string";
                         }
                     }
@@ -1135,7 +1163,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
     }
 
     /**************************************************************************
-    * Miscellaneous **********************************************************
+    * BattleStyle stuff********************************************************
     **************************************************************************/
 
     /** convert a #ff00ff color string to a normalized RGBA color array
