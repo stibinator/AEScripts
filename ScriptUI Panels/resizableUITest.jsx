@@ -30,7 +30,7 @@
         );
         stretchyBtn.name = "button mcButtFace"
         var stretchyBtn2 = new ResizableUIElement(
-            "button",
+            "staticText",
             pal,
             {
                 "width": "25%",
