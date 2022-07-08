@@ -6,16 +6,45 @@
     var prefs = Preferences(scriptName);
 
     function buildGUI(thisObj) {
-        // thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
         var pal =
             thisObj instanceof Panel
                 ? thisObj
-                : new Window("palette", thisObj.scriptTitle, undefined, {
+                : new Window("dialog", thisObj.scriptTitle, undefined, {
                     resizeable: true,
                 });
+        pal.orientation = "row";
         // ----------------------- UI Elements here ---------------------
-        var stretchyBtn = new ResizableUIElement("button", pal, { "width": "50%", "height": "24px", "min-width": "40px", "max-width": "80px" });
+        var stretchyBtn = new ResizableUIElement(
+            "button",
+            pal,
+            {
+                "width": "75%",
+                "height": "90%",
+                "min-width": "40px",
+                "max-width": "360px",
+                "min-height": 123,
+                "x": "0px", "y": "0px"
+            },
+            "OHAI",
+            { name: "ok" }
+        );
+        stretchyBtn.name = "button mcButtFace"
+        var stretchyBtn2 = new ResizableUIElement(
+            "button",
+            pal,
+            {
+                "width": "25%",
+                "height": "80%",
+                "min-width": "0px",
+                "min-height": 22
+            },
+            "Here be text",
+            { name: "statx txct" }
+        );
+        stretchyBtn.name = "button mcButtFace"
         //------------------------ build the GUI ------------------------
+        // var t = pal.add( "button", undefined, "HELO" );
+        pal.name = "Window"
         if (pal instanceof Window) {
             pal.center();
             pal.show();
@@ -41,35 +70,9 @@
         app.endUndoGroup();
     }
 
-    function ResizableUIElement(elementType, parent, geometry) {
-        // initialise element
-        this.element = parent.add(elementType, undefined, undefined);
-        this.element.bounds = [undefined, undefined, undefined, undefined];
-        
-        this.proportionalDimensions = {};
-        this.minimumDimensions = {};
-        this.maximumDimensions = {};
-        var dimensions = ["x", "y", "width", "height", "left", "top", "right", "bottom"]
-        for (var d in dimensions) {
-            if (geometry[d]) {
-                var units = getUnits(geometry[d]);
-                if (units.proportional) {
-                    this.proportionalDimensions[d] = parseFloat(units.value) / 100;
-                    if (geometry["min-" + d]) {
-                        this.minimumDimensions[d] = parseFloat(geometry["min-" + d]);
-                    }
-                    if (geometry["max-" + d]) {
-                        this.maximumDimensions[d] = parseFloat(geometry["max-" + d]);
-                    }
-                    if (parent.bounds && parent.bounds[d]) {
-                        this.setToSize(d)
-                    }
-                } else {
-                    this.element.bounds[d] = parseInt(units.value);
-                }
-            }
-        }
-
+    function ResizableUIElement(elementType, parent, geometry, text, elementProperties) {
+        this.name = "resizeableUIE_" + elementType;
+        $.writeln("creating new stretchybutton " + this.name);
         this.getUnits = function (s) {
             if (typeof s === "string") {
                 var units = s.match(/(-*[\d.]+)(%|px){0,1}/);
@@ -88,8 +91,18 @@
             }
         }
 
-        this.setToSize = function (d) {
-            var actualDimension = parent.bounds[d] * this.proportionalDimensions[d];
+        this.setToSize = function (d, pos) {
+            $.writeln("setToSize(" + d + ") for: " + this.name);
+            var totalMargins = 0;
+            if (d === "width") {
+                this.element.bounds.left = pos.left;
+                totalMargins = parent.margins.left * parent.proportionalElements.length + parent.margins.right;
+            } else {
+                this.element.bounds.top = pos.top;
+                totalMargins = parent.margins.top * parent.proportionalElements.length + parent.margins.bottom;
+            };
+            
+            var actualDimension = (parent.bounds[d] - totalMargins) * this.proportionalDimensions[d];
             // trim to max and min dimensions if diven
             actualDimension = this.minimumDimensions[d] ?
                 Math.max(this.minimumDimensions[d], actualDimension) :
@@ -100,28 +113,89 @@
 
             this.element.bounds[d] = Math.round(actualDimension);
         }
+        this.resize = function (pos) {
+            for (var d in this.proportionalDimensions) {
+                this.setToSize(d, pos);
+            }
+        }
 
         this.resizeProportionalElements = function () {
+            $.writeln("resizeProportionalElements for " + this.name);
+
             for (var e = 0; e < this.proportionalElements.length; e++) {
-                this.proportionalElements[e].resize();
+                var pos = {
+                    "left": this.margins[0],
+                    "top": this.margins[3]
+                };
+                if (e > 0) {
+                    if (this.orientation === "row") {
+                        pos.left = this.proportionalElements[e - 1].element.bounds.right + this.margins.left;
+                    } else {
+                        pos.top = this.proportionalElements[e - 1].element.bounds.bottom + this.margins.top;
+                    }
+                }
+                this.proportionalElements[e].resize(pos);
             }
+
         }
+
+
+        // initialise element
+        var bounds = {};
+        var preferredSize = {};
+        this.proportionalDimensions = {};
+        this.minimumDimensions = {};
+        this.maximumDimensions = {};
+        var dimensions = ["x", "y", "width", "height", "left", "top", "right", "bottom"]
+        for (var d = 0; d < dimensions.length; d++) {
+            var dim = dimensions[d];
+            if (geometry[dim]) {
+                var units = this.getUnits(geometry[dim]);
+                if (units.proportional) {
+                    this.proportionalDimensions[dim] = parseFloat(units.value) / 100;
+                    if (geometry["min-" + dim]) {
+                        this.minimumDimensions[dim] = parseFloat(geometry["min-" + dim]);
+                    }
+                    if (geometry["max-" + dim]) {
+                        this.maximumDimensions[dim] = parseFloat(geometry["max-" + dim]);
+                    }
+                } else {
+                    bounds[dim] = parseInt(units.value);
+                }
+            }
+            preferredSize[dim] = this.minimumDimensions[dim];
+            bounds[dim] = preferredSize[dim];
+        }
+        this.element = parent.add(elementType, bounds, text, elementProperties);
+        this.element.preferredSize = preferredSize;
 
         if (parent.proportionalElements) {
-            parent.proportionalElements += this;
+            //parent is already proportional aware
+            parent.proportionalElements.push(this);
         } else {
             parent.proportionalElements = [this];
-        }
-        if (parent.onResize) {
-        } else {
-            parent.onResize = this.resizeProportionalElements;
-        }
-
-        this.resize = function () {
-            for (var d in this.proportionalDimensions) {
-                this.setToSize(d);
+            // parent is not proportional aware, 
+            // add this.resizeProportionalElements method to its onResize and onShow callback
+            if (parent.onResize) {
+                var currentCallback = parent.onResize;
+                parent.onResize = function () {
+                    currentCallback();
+                    this.resizeProportionalElements();
+                }
+            } else {
+                parent.onResize = this.resizeProportionalElements;
+            }
+            if (parent.onShow) {
+                var currentCallback = parent.onShow;
+                parent.onShow = function () {
+                    currentCallback();
+                    this.resizeProportionalElements();
+                }
+            } else {
+                parent.onShow = this.resizeProportionalElements;
             }
         }
+
     }
 
 
