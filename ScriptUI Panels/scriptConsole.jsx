@@ -148,6 +148,26 @@
         }
     }
 
+function indexOf(theArray, searchElement, fromIndex) {
+    if (theArray == null) {
+        throw new TypeError('"theArray" is null or not defined');
+    }
+    var len = theArray.length;
+    var n = +fromIndex || 0;
+    if (isNaN(n) || n === Infinity) { n = 0; } // ¿WTF?
+    // if n is negative search from n spaces before the end of the array
+    if (n < 0) { 
+        n = Math.max(len + n, 0)
+    }
+    while (n < len) {
+        if (theArray[n] === searchElement) {
+            return n;
+        }
+        n++;
+    }
+    return -1;
+};
+
     // --------------------------------------------Main window --------------------------------------------------------------------
 
     function mainPopUpWindow(theText, thisObj) {
@@ -591,6 +611,11 @@
         } else {
             this.fsItem = theItem;
         }
+
+        this.toString = function () {
+            return this.info.shortName;
+        }
+
         this.getInfo = function () {
             // look for info in sidecar files or in the prefs.
             this.info = JSON.parse(prefs.getPref("scriptInfo." + this.fsItem.name, JSON.stringify({
@@ -598,7 +623,6 @@
                 "icon": DEFAULT_FILE_ICON,
                 "fsPath": File.decode(this.fsItem.fullName)
             })));
-            $.writeln
             var sidecar = new File(File.decode(this.fsItem.name.replace(/(\.jsx?(bin)*)*$/, "_info.json")));
             // var infoFiles = [];
             if (sidecar.exists) { //get info from sidecar if it exists
@@ -693,7 +717,7 @@
             for (var group = 0; group < letterGroups.length; group++) {
                 var letters = letterGroups[group].split("");
                 for (var i = 0; i < letters.length && canMatch; i++) {
-                    var caseInsensitiveIndex = 1 + this.info.shortName.toLowerCase().indexOf(letters[i].toLowerCase(), lCursor);
+                    var caseInsensitiveIndex = 1 + indexOf(this.info.shortName.toLowerCase(), letters[i].toLowerCase(), lCursor);
                     if (caseInsensitiveIndex) {
                         if (i === 0) { firstMatch = caseInsensitiveIndex }
                         lCursor = caseInsensitiveIndex;
@@ -707,7 +731,7 @@
                 lCursor = 0;
                 var upperCaseLetters = this.info.shortName.match(/(^.|[A-Z]*)/g).join("").toUpperCase(); //select all the capitals and the first letter as an honorary capital
                 for (var i = 0; i < letters.length && canMatch && canMatchUpper; i++) {
-                    var upperCaseIndex = 1 + upperCaseLetters.indexOf(letters[i].toUpperCase(), lCursor);
+                    var upperCaseIndex = 1 + indexOf(upperCaseLetters, letters[i].toUpperCase(), lCursor);
                     if (upperCaseIndex) {
                         if (i === 0) { firstMatch = upperCaseIndex }
                         lCursor = upperCaseIndex;
@@ -722,7 +746,10 @@
                 if (this.info.description && this.info.description.length) {
                     var descriptionLetters = this.info.description.replace("[^a-Z]", "").split(""); //select all the capitals and the first letter as an honorary capital
                     for (var i = 0; i < letters.length && canMatchDesc; i++) {
-                        var descIndex = 1 + descriptionLetters.indexOf(letters[i].toUpperCase(), lCursor);
+                        var descIndex = 0;
+                        if (descriptionLetters.length) {
+                            descIndex = 1 + indexOf(descriptionLetters, letters[i].toUpperCase(), lCursor);
+                        }
                         if (descIndex) {
                             if (i === 0) { firstMatch = descIndex }
                             lCursor = descIndex;
@@ -1178,7 +1205,7 @@
         @parem {url} - string - url
     */
     function visitURL(url) {
-        if ($.os.indexOf("Windows") != -1) {
+        if (indexOf($.os, "Windows") != -1) {
             system.callSystem('cmd /c "' + Folder.commonFiles.parent.fsName + "\\Internet Explorer\\iexplore.exe" + '" ' + url);
         } else {
             system.callSystem('open "' + url + '"');
