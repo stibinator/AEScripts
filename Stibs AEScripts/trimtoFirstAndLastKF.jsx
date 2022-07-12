@@ -96,11 +96,11 @@
         if (!theLayer.locked) {
             for (var p = 0; p < theProps.length; p++) {
                 var prop = theProps[p];
-                 firstTime = Math.min(prop.keyTime(1), firstTime);
-                 theLayer.inPoint = firstTime;
-                 lastTime = Math.max(prop.keyTime(prop.numKeys), lastTime);
-                 theLayer.outPoint = lastTime;
+                firstTime = Math.min(prop.keyTime(1), firstTime);
+                lastTime = Math.max(prop.keyTime(prop.numKeys), lastTime);
             }
+            theLayer.inPoint = firstTime;
+            theLayer.outPoint = lastTime;
         }
         if (theLayer.wasLocked) {
             // put stuff back like we found it
