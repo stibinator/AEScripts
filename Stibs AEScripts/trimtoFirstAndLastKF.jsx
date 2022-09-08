@@ -4,7 +4,6 @@
 // more: https://blob.pureandapplied.com.au
 
 (function () {
-    var doLockedLayers = ScriptUI.environment.keyboardState.shiftKey;
     function traversePropertyGroups(pGroup, inclusive) {
         // walks through property groups, returning properties
         // if inclusive is true, returns property groups as well
@@ -63,7 +62,6 @@
         return props;
     }
 
-
     function doSomethingWithSelectedLayersOrAllIfNoneSelected(doTheThing, theParams) {
         var theComp = app.project.activeItem;
         if (theComp) {
@@ -79,7 +77,8 @@
             }
         }
     }
-    function trimToFirstAndLastKeys(theLayer) {
+    
+    function trimToFirstAndLastKeys(theLayer, doLocked, addLastFrame) {
         var theComp = theLayer.containingComp;
         var compStart = theComp.displayStartTime;
         var compEnd = compStart + theComp.duration;
@@ -89,27 +88,37 @@
         var firstTime = Math.max(theLayer.inPoint, theLayer.outPoint);
         var lastTime = Math.min(theLayer.inPoint, theLayer.outPoint);
 
-        if (theLayer.locked && doLockedLayers) {
+        if (theLayer.locked && doLocked) {
             theLayer.wasLocked = true;
             theLayer.locked = false;
         }
+        
         if (!theLayer.locked) {
             for (var p = 0; p < theProps.length; p++) {
                 var prop = theProps[p];
                 firstTime = Math.min(prop.keyTime(1), firstTime);
                 lastTime = Math.max(prop.keyTime(prop.numKeys), lastTime);
+                if (addLastFrame){
+                    // add a frame if the ctrl key was down
+                    lastTime += theComp.frameDuration;
+                }
             }
             theLayer.inPoint = firstTime;
             theLayer.outPoint = lastTime;
         }
+        
         if (theLayer.wasLocked) {
             // put stuff back like we found it
             theLayer.wasLocked = undefined;
             theLayer.locked = true;
         }
     }
+    //   check for modifyer keys
+    var doLockedLayers = ScriptUI.environment.keyboardState.shiftKey;
+    var includeLastFrame = ScriptUI.environment.keyboardState.ctrlKey;
+    // do the things
     app.beginUndoGroup("Trim to first and last KF");
-    doSomethingWithSelectedLayersOrAllIfNoneSelected(trimToFirstAndLastKeys, null);
+        doSomethingWithSelectedLayersOrAllIfNoneSelected(trimToFirstAndLastKeys, doLockedLayers, includeLastFrame);
     app.endUndoGroup();
 })()
 //
