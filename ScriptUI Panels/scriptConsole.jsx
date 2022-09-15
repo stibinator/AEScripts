@@ -3,12 +3,13 @@
     var VERSION_NUM = 0.1;
     // consts
     // var LATESTRELEASEURL = "https://github.com/stibinator/AEScripts/archive/refs/heads/master.zip"
-    var LATESTRELEASEURL = "https://github.com/stibinator/AEScripts/releases/download/v2.0b/StibsAEScriptsRelease2.0.zip"
-    var SCRIPT_FOLDERS_PREF = "script_folders"
-    var imgsFolder = $.fileName.replace(SCRIPT_NAME + ".jsx", "/images/")
-    var DEFAULT_FILE_ICON = new File(imgsFolder + "scriptIcon.png");
-    var FILE_NOT_FOUND = "The script file was not found."
+    var LATESTRELEASEURL = "https://github.com/stibinator/AEScripts/releases/download/v2.0b/StibsAEScriptsRelease2.0.zip";
+    var SCRIPT_FOLDERS_PREF = "script_folders";
+    var IMGS_FOLDER = $.fileName.replace(SCRIPT_NAME + ".jsx", "/images/");
+    // var DEFAULT_FILE_ICON = new File(IMGS_FOLDER + "scriptIcon.png");
+    var FILE_NOT_FOUND = "The script file was not found.";
     var DEFAULT_INFO_TEXT = SCRIPT_NAME + " v. " + VERSION_NUM;
+    var UI_FLAG = "(UI)"; // added to the name of Script UI files if they're included
     // parameters for the name matching algo
     var upperCaseRankScale = 8;  // higher values rank upper case matches below normal matches
     var contiguousRankScale = 9; // higher values favour contiguous matches later in the search string
@@ -18,9 +19,10 @@
     var scriptConsoleFolders = [];
     // pretty stuff for battlestyle buttons
     var btnColour = {
-        "primary": { "default": "#42717f", "hilite": "#004063" },
-        "secondary": { "default": "#5c7179", "hilite": "#005883" },
-        "cancel": { "default": "#60676a", "hilite": "#005883" }
+        "primary": { "default": "#05495d", "hilite": "#05495d" },
+        "secondary": { "default": "#37545d", "hilite": "#182529" },
+        "tertiary": { "default": "#303638", "hilite": "#191c1e" },
+        "cancel": { "default": "#60676a", "hilite": "#563a3a" }
     }
     var editIcon = [
         "26.13,5.98 21.34,3.59 20,3.63 18.99,4.38 12.12,18.17 11.96,19.25 12.98,25.22 13.33,25.68 13.81,25.71 13.9,25.67 17.48,23.83 17.25,23.12 15.95,23.8 13.27,22.56 12.68,19.13 12.77,18.5 12.93,18.17 14.5,17.65 15.39,18.09 15.88,19.55 16.68,19.95 18.14,19.46 19.03,19.9 19.55,21.47 19.39,21.8 18.94,22.25 17.25,23.12 17.48,23.83 19.28,22.9 20.04,22.12 20.44,21.33 20.44,21.33 26.19,9.78 25.48,9.58 24.96,10.61 20.66,8.47 16.23,17.36 15.96,17.59 15.38,17.33 15.39,16.94 19.82,8.05 18.34,7.31 19.41,5.17 20.89,5.91 21.39,4.9 21.75,4.64 22.2,4.84 22.23,5.31 21.72,6.32 26.03,8.47 25.48,9.58 26.19,9.78 26.91,8.33 27.01,6.99 26.13,5.98",
@@ -148,34 +150,32 @@
         }
     }
 
-function indexOf(theArray, searchElement, fromIndex) {
-    if (theArray == null) {
-        throw new TypeError('"theArray" is null or not defined');
-    }
-    var len = theArray.length;
-    var n = +fromIndex || 0;
-    if (isNaN(n) || n === Infinity) { n = 0; } // ¿WTF?
-    // if n is negative search from n spaces before the end of the array
-    if (n < 0) { 
-        n = Math.max(len + n, 0)
-    }
-    while (n < len) {
-        if (theArray[n] === searchElement) {
-            return n;
+    function indexOf(theArray, searchElement, fromIndex) {
+        if (theArray == null) {
+            throw new TypeError('"theArray" is null or not defined');
         }
-        n++;
-    }
-    return -1;
-};
+        var len = theArray.length;
+        var n = +fromIndex || 0;
+        if (isNaN(n) || n === Infinity) { n = 0; } // ¿WTF?
+        // if n is negative search from n spaces before the end of the array
+        if (n < 0) {
+            n = Math.max(len + n, 0)
+        }
+        while (n < len) {
+            if (theArray[n] === searchElement) {
+                return n;
+            }
+            n++;
+        }
+        return -1;
+    };
 
     // --------------------------------------------Main window --------------------------------------------------------------------
 
     function mainPopUpWindow(theText, thisObj) {
         // DIALOG
         // ======
-        var textAndChoiceWidth = 240;
-        var infoWidth = 300;
-        var infoHeight = 120;
+        var minimumWidthForTwoColumns = 360;
         var dialog = (thisObj instanceof Panel)
             ? thisObj
             : new Window("window", this.scriptTitle, undefined, {
@@ -189,50 +189,47 @@ function indexOf(theArray, searchElement, fromIndex) {
 
         // GROUP1
         // ======
-        var group1 = dialog.add("group", undefined, { name: "group1" });
-        group1.orientation = "row";
-        group1.alignChildren = ["left", "top"];
-        group1.spacing = 12;
-        group1.margins = 0;
+        var mainGroup = dialog.add("group", undefined, { name: "mainGroup" });
+        mainGroup.orientation = "row";
+        mainGroup.spacing = 12;
+        mainGroup.margins = 0;
+        mainGroup.alignment = ["fill", "fill"];
 
         // GROUP2
         // ======
-        var group2 = group1.add("group", undefined, { name: "group2" });
-        group2.orientation = "column";
-        group2.alignChildren = ["fill", "top"];
-        group2.spacing = 6;
-        group2.margins = 0;
+        var leftGroup = mainGroup.add("group", undefined, { name: "leftGroup" });
+        leftGroup.orientation = "column";
+        leftGroup.spacing = 6;
+        leftGroup.margins = 0;
+        leftGroup.alignment = ["fill", "fill"];
 
-        var textInput = group2.add('edittext {properties: { borderless: true}}');
+        var textInput = leftGroup.add('edittext {properties: { borderless: true}}');
         textInput.helpTip = "Type here!";
         textInput.text = theText;
-        textInput.preferredSize.width = textAndChoiceWidth;
-        textInput.preferredSize.height = 26;
         textInput.name = "textInput";
         textInput.default = "script name";
+        textInput.alignment = ["fill", "top"];
+        textInput.preferredSize.width = 200;
+        textInput.minimumSize.width = 160;
         var initialText = prefs.getPref(textInput);
         textInput.text = initialText || "Search text";
 
         var choiceList_array = ["Scripts here"];
-        var choiceList = group2.add("listbox", undefined, undefined, { name: "choiceList", items: choiceList_array });
+        var choiceList = leftGroup.add("listbox", undefined, undefined, { name: "choiceList", items: choiceList_array });
+        choiceList.alignment = ["fill", "fill"];
         choiceList.selection = 0;
-        choiceList.preferredSize.height = infoHeight;
 
-        // GROUP3
-        // ======
-        var rightGroup = group1.add("group", undefined, { name: "rightGroup" });
+        // RIGHT GROUP
+        // ===========
+        var rightGroup = mainGroup.add("group", undefined, { name: "rightGroup" });
         rightGroup.orientation = "column";
-        rightGroup.preferredSize.height = textInput.preferredSize.height + choiceList.preferredSize.height + group2.spacing / 2;
-        rightGroup.alignChildren = ["right", "top"];
         rightGroup.spacing = 12;
         rightGroup.margins = 0;
+        rightGroup.alignment = ["fill", "fill"];
 
         var descriptionGroup = rightGroup.add("group");
-        descriptionGroup.preferredSize.width = infoWidth;
-        descriptionGroup.preferredSize.height = infoHeight - 20;
         descriptionGroup.orientation = "column";
-        descriptionGroup.alignment = ["left", "top"];
-        descriptionGroup.alignChildren = ["left", "top"];
+        descriptionGroup.alignment = ["fill", "fill"];
         descriptionGroup.spacing = 0;
 
         var scriptInfoStaticText = descriptionGroup.add(
@@ -241,26 +238,23 @@ function indexOf(theArray, searchElement, fromIndex) {
             "",
             { name: "description", multiline: true, alignment: ['top', 'left'] }
         );
-        // scriptInfoStaticText.multiline = true;
-        scriptInfoStaticText.preferredSize = { "width": infoWidth - 20, "height": infoHeight - 20 };
-        // description.preferredSize.height = 100; 
+        scriptInfoStaticText.alignment = ["fill", "fill"];
         var btnGrp = rightGroup.add('Group', undefined);
         btnGrp.alignment = ['right', 'bottom'];
-        //var doTheThingsBtn = btnGrp.add('button', [undefined, undefined, 120, 22], "Execute Script")
         var editInfoBtn = buttonColorVector(btnGrp, editIcon, [30, 30], btnColour.secondary.default, btnColour.secondary.hilite);
         editInfoBtn.helpTip = "Edit script display info"
         var setTheSettingsBtn = buttonColorVector(btnGrp, settingsIcon, [30, 30], btnColour.secondary.default, btnColour.secondary.hilite);
         setTheSettingsBtn.helpTip = "Settings";
         var doTheThingsBtn = buttonColorText(btnGrp, "Do the things!", btnColour.primary.default, btnColour.primary.hilite);
         doTheThingsBtn.helpTip = "Execute the script"
-
-        // var setTheSettingsBtn = btnGrp.add('button', [undefined, undefined, 60, 22], "Settings")
         btnGrp.orientation = 'row';
 
         function handleReturn() {
             prefs.setPref(textInput);
             if (choiceList.selection) {
-                dialog.close();
+                if (dialog.close) {
+                    dialog.close();
+                }
                 choiceList.selection.payload.exec();
             }
         }
@@ -280,11 +274,15 @@ function indexOf(theArray, searchElement, fromIndex) {
 
         function updateInfoPanel(selectedScript) {
             if (selectedScript) {
+                var isUIFlag = "";
+                isUIFlag = (selectedScript.info.isUI) ?
+                    " " + UI_FLAG :
+                    "";
                 var desc = (selectedScript && selectedScript.info) ?
-                    selectedScript.info.shortName :
+                    selectedScript.info.shortName + isUIFlag :
                     DEFAULT_INFO_TEXT;
                 if (selectedScript.info.description) {
-                    desc = selectedScript.info.description
+                    desc = selectedScript.info.shortName + isUIFlag + "\n\n" + selectedScript.info.description
                 }
                 scriptInfoStaticText.text = desc + "\n\n" + File.decode(selectedScript.fsItem.path);
             } else {
@@ -308,21 +306,13 @@ function indexOf(theArray, searchElement, fromIndex) {
                 updateInfoPanel(choiceList.selection.payload);
             }
         }
-        dialog.onResize = function () {
-            // var dHeight = dialog.bounds.height;
-            if (dialog instanceof Window) {
-                // dialog.layout.layout(true);
+        dialog.onResizing = dialog.onResize = function () {
+            if (this.size.width < minimumWidthForTwoColumns) {
+                mainGroup.orientation = "column";
+            } else {
+                mainGroup.orientation = "row";
             }
-            var h = Math.max(dialog.bounds.height, 40);
-            choiceList.bounds.height = h - 60;
-            group2.bounds.height = h;
-            group1.bounds.height = h;
-            rightGroup.bounds.height = h;
-            scriptInfoStaticText.bounds.height = h - 80;
-            descriptionGroup.bounds.height = h - 80;
-            btnGrp.bounds.top = h - 60;
-            dialog.layout.layout(false);
-            // dialog.bounds.height = dHeight;
+            this.layout.resize();
         }
         // ----------- time to show some windows ----------
         updateChoiceListAndInfo(); //initialise the choicelist and infor, according to the last text from prefs
@@ -350,9 +340,11 @@ function indexOf(theArray, searchElement, fromIndex) {
     function installStibsAeScripts() {
 
         var STIBSAESCRIPTS = "Stibs AEScripts";
+        var UISCRIPTS = "ScriptUI Panels"
+        var OLDSCRIPTS = "Old Stibs AEScripts"; //name of desktop folder to dump old scripts into
         var TEMPZIPNAME = 'stibsaescripts.zip';
-        var TEMPFOLDERNAME = 'StibsAEScriptsDownloadTemp'
-
+        var TEMPFOLDERNAME = 'StibsAEScriptsDownloadTemp';
+        var PNAFOLDER = "PureAndApplied";
 
         function getScriptsFromGithub() {
             var tempFolder = new Folder(Folder.temp.fsName);
@@ -366,7 +358,6 @@ function indexOf(theArray, searchElement, fromIndex) {
             return tempScriptsFolder
         }
 
-        // system.callSystem('cmd.exe /c "explorer.exe /select,' + outPutFolder.fsName + '"');
         function getAeVersions() {
             var aeUserDataFolder = new Folder(Folder.userData.fullName + "/Adobe/After Effects/")
             var aeUserDataContents = aeUserDataFolder.getFiles();
@@ -388,21 +379,23 @@ function indexOf(theArray, searchElement, fromIndex) {
         function chooseVersion() {
             var aeVersions = getAeVersions();
             var chosenVersions = [];
-            // DIALOG
-            // ======
+
+            // INSTALL DIALOG
+            // ==============
             var installDialog = new Window("dialog");
             installDialog.text = "Choose AE Version to install for";
             installDialog.orientation = "column";
-            installDialog.alignChildren = ["left", "top"];
+            installDialog.alignChildren = ["fill", "top"];
             installDialog.spacing = 10;
             installDialog.margins = 16;
 
-            // PANEL1
-            // ======
+            // LATEST VERSION PANEL
+            // ====================
             var latestPnl = installDialog.add("panel", undefined, undefined, { name: "latestPnl" });
             latestPnl.text = "Latest version";
-            latestPnl.preferredSize.width = 300;
+            // latestPnl.preferredSize.width = 300;
             latestPnl.orientation = "column";
+            latestPnl.alignment = ["fill", "fill"];
             latestPnl.alignChildren = ["left", "center"];
             latestPnl.spacing = 10;
             latestPnl.margins = [10, 16, 10, 4];
@@ -411,55 +404,52 @@ function indexOf(theArray, searchElement, fromIndex) {
             versionCheckBoxes[0].text = "Latest Version: " + aeVersions[0].name;
             versionCheckBoxes[0].value = 1;
 
-            // PANEL2
-            // ======
+            // OLDER VERSIONS PANEL
+            // ====================
             var olderVersnsPnl = installDialog.add("panel", undefined, undefined, { name: "olderVersnsPnl" });
             olderVersnsPnl.text = "Older versions";
-            olderVersnsPnl.preferredSize.width = 300;
             olderVersnsPnl.orientation = "column";
-            olderVersnsPnl.alignChildren = ["left", "center"];
+            olderVersnsPnl.alignChildren = ["fill", "center"];
             olderVersnsPnl.spacing = 10;
             olderVersnsPnl.margins = [10, 16, 10, 4];
 
             for (var v = 1; v < aeVersions.length; v++) {
                 versionCheckBoxes[v] = olderVersnsPnl.add("checkbox", undefined, undefined, { name: "versChkBx" + aeVersions[v].name });
                 versionCheckBoxes[v].text = "Version " + aeVersions[v].name;
+                versionCheckBoxes[v].alignment = ["fill", "fill"];
             }
             // INSTALL TO AE Panel
-            // ======
+            // ===================
             var headlessScriptsPnl = installDialog.add("panel", undefined, undefined, {});
-            headlessScriptsPnl.preferredSize.width = 300;
+            headlessScriptsPnl.alignment = ["fill", "fill"];
             headlessScriptsPnl.orientation = "column";
             headlessScriptsPnl.alignChildren = ["left", "center"];
             headlessScriptsPnl.spacing = 10;
             headlessScriptsPnl.margins = [10, 16, 10, 4];
-            // GROUP1
-            // ======
-            var group1 = installDialog.add("group", undefined, { name: "group1" });
-            group1.orientation = "row";
-            group1.alignChildren = ["right", "center"];
-            group1.spacing = 10;
-            group1.margins = [0, 0, 10, 0];
-            group1.alignment = ["right", "top"];
 
+            // INSTALL BUTTON GROUP
+            // ====================
+            var installBtnGrp = installDialog.add("group", undefined, { name: "installBtnGrp" });
+            installBtnGrp.orientation = "row";
+            installBtnGrp.spacing = 10;
+            installBtnGrp.margins = [0, 0, 10, 0];
+            installBtnGrp.alignment = ["fill", "fill"];
 
             var installToAEChkBx = headlessScriptsPnl.add("checkbox", undefined, undefined, { name: "installToAeChkBx" });
             installToAEChkBx.text = "install UI-less scripts to AE";
-            installToAEChkBx.helpTip = "If checked scripts will be visible in the Scripts menu\notherwise they will only be accessible from ScriptConsole.\nUncheck if you have lots of scripts."
+            installToAEChkBx.helpTip = "If checked stib's scripts will be visible in the usual FILE > SCRIPTS menu\notherwise they will only be accessible from ScriptConsole.\nUncheck if you have lots of scripts."
 
-            var cancelBtn = group1.add("button", undefined, undefined, { name: "cancelBtn" });
+            var cancelBtn = installBtnGrp.add("button", undefined, undefined, { name: "cancelBtn" });
             cancelBtn.helpTip = "Don't install";
             cancelBtn.text = "Cancel";
-            cancelBtn.preferredSize.width = 140;
-            cancelBtn.alignment = ["right", "bottom"];
+            cancelBtn.alignment = ["fill", "fill"];
 
-            var installPNABtn = group1.add("button", undefined, undefined, { name: "installPNABtn" });
+            var installPNABtn = installBtnGrp.add("button", undefined, undefined, { name: "installPNABtn" });
             installPNABtn.helpTip = "Install Stib's AEScripts for selected versions";
             installPNABtn.text = "Install";
-            installPNABtn.preferredSize.width = 140;
-            installPNABtn.alignment = ["right", "bottom"];
-            function getChosenVersions() {
+            installPNABtn.alignment = ["fill", "fill"];
 
+            function getChosenVersions() {
                 for (var v = 0; v < aeVersions.length; v++) {
                     if (versionCheckBoxes[v].value) {
                         chosenVersions.push(aeVersions[v])
@@ -474,59 +464,109 @@ function indexOf(theArray, searchElement, fromIndex) {
 
         }
 
-        function recursivelyCopyFiles(sourceFolder, destinationFolder, excludeMask) {
-            var sourceChildren = sourceFolder.getFiles();
-            var problemFiles = [];
-            var ignoreExcludeMask = typeof excludeMask === "undefined" || excludeMask === null || excludeMask === false;
-            for (var f = 0; f < sourceChildren.length; f++) {
-                var okToCopy = (
-                    ignoreExcludeMask ||
-                    (!(sourceChildren[f].name.match(excludeMask) ||
-                        Folder.decode(sourceChildren[f].name).match(excludeMask))));
-                if (sourceChildren[f] instanceof Folder) {
-                    if (okToCopy) {
-                        var newDestFolder = new Folder(File.decode(destinationFolder.fullName + "/" + sourceChildren[f].name));
-                        createPath(newDestFolder);
-                        problemFiles = problemFiles.concat(
-                            recursivelyCopyFiles(sourceChildren[f], newDestFolder, excludeMask)
-                        )
-                    }
-                } else {
-                    if (okToCopy) {
-                        createPath(destinationFolder);
-                        var copiedOK = sourceChildren[f].copy(
-                            File.decode(destinationFolder.fullName + "/" + sourceChildren[f].name)
-                        );
-                        if (copiedOK) {
-                            $.writeln("copied " + sourceChildren[f].name + " to " + destinationFolder.fsName);
-                        } else {
-                            problemFiles.push(sourceChildren[f].name);
-                        }
-                    }
+        function splitPath(inPath) {
+            var inputAr = [];
+            if (inPath instanceof Array) {
+                for (var i = 0, l = inPath.length; i < l; i++) {
+                    inputAr = inputAr.concat(splitPath(inPath[i]));
                 }
+            } else {
+                inputAr = inputAr.concat(inPath.toString().split("/"))
             }
-            return problemFiles;
-        }
-        function deleteFirstFolderIfContentsInSecondFolder(firstFolder, secondFolder) {
-            if (firstFolder.exists && secondFolder.exists) {
-                var firstFolderFiles = firstFolder.getFiles();
-                for (var f = 0; f < firstFolderFiles.length; f++) {
-                    if (firstFolderFiles[f] instanceof File &&
-                        File(secondFolder.fullName + "/" + firstFolderFiles[f].name).exists) {
-                        firstFolderFiles[f].remove();
-                    } else if (firstFolderFiles[f] instanceof Folder) {
-                        var secondFolderSubFolder = new Folder(secondFolder.fullName + "/" + firstFolderFiles[f].name);
-                        if (secondFolderSubFolder.exists) {
-                            deleteFirstFolderIfContentsInSecondFolder(firstFolderFiles[f], secondFolderSubFolder);
-                            firstFolderFiles[f].remove();
-                        }
-                    }
-                }
-            }
-            return firstFolder.remove();
+            return inputAr;
         }
 
-        function createPath(path) {
+        function joinPath(inPath) {
+            // Split the inputs into an array of folder names            
+            var dirs = splitPath(inPath);
+            var topFolder = Folder(dirs[0]);
+            var newPath = [];
+            for (i = 0; i < dirs.length; i++) {
+                var dir = dirs[i];
+                // Remove leading and trailing slashes
+                // Also remove "." segments
+                if (dir && dir !== ".") {
+                    // Interpret ".." to pop the last segment
+                    if (dir === "..") {
+                        if (newPath.length > 1) {
+                            newPath.pop()
+                        } else {
+                            // reached the top original folder, find its parent
+                            topFolder = topFolder.parent || topFolder;
+                            newPath = topFolder.toString().split("/");
+                        }
+                        // Push new path segments.
+                    } else {
+                        newPath.push(dir)
+                    }
+                }
+            }
+            // Preserve the initial slash if there was one.
+            if (dirs[0] === "") newPath.unshift("");
+            // Turn back into a single string path.
+            return Folder(newPath.join("/") || topFolder.parent);
+        }
+
+        function removeOldFolder(oldFolder, dumpFolderName) {
+            if (oldFolder.exists) {
+                var dumpFolder = createPath(Folder.desktop, OLDSCRIPTS, dumpFolderName);
+                if (dumpFolder) {
+                    recursivelyMoveFolder(oldFolder, dumpFolder);
+                    if (oldFolder.remove()) {
+                        problems.push("Old stib's aescripts folder found\n and moved to desktop")
+                    } else {
+                        problems.push("Couldn't remove old stibs aescripts folder");
+                    }
+                } else {
+                    problems.push("Couldn't remove old stibs aescripts folder");
+                }
+            }
+            // remove the adobePrefs folder from scriptConsolFolders
+            var updatedScriptConsoleFolders = [];
+            for (var f = 0; f < scriptConsoleFolders.length; f++) {
+                if (!(scriptConsoleFolders[f].fullName === oldFolder.fullName)) {
+                    updatedScriptConsoleFolders.push(scriptConsoleFolders[f]);
+                }
+                scriptConsoleFolders = updatedScriptConsoleFolders;
+            }
+        }
+
+        function removeOldScripts(oldFolder, dumpFolderName, newScriptFolder) {
+            var problems = [];
+            if (oldFolder.exists) {
+                var dumpFolder = createPath(Folder.desktop, OLDSCRIPTS, dumpFolderName);
+                if (dumpFolder) {
+                    var scriptList = newScriptFolder.getFiles();
+                    for (var f = 0; f < scriptList.length; f++) {
+                        var oldFile = File(joinPath(oldFolder, scriptList[f].name));
+                        if (oldFile.exists) {
+                            if (oldFile instanceof Folder) {
+                                var dumpSubFolder = joinPath(dumpFolder, oldFile.name);
+                                var newScriptSubFolder = joinPath(newScriptFolder, oldFile.name);
+                                problems = problems.concat(
+                                    removeOldScripts(oldFolder, dumpSubFolder, newScriptSubFolder)
+                                );
+                                if (!oldFile.remove()) {
+                                    problems.push("couldn't remove old script " + oldFile.name)
+                                }
+                            } else {
+                                if (oldFile.copy(joinPath(dumpFolder, oldFile.name))) {
+                                    if (!oldFile.remove()) {
+                                        problems.push("couldn't remove old script " + oldFile.name)
+                                    }
+                                } else {
+                                    problems.push("couldn't move old script " + oldFile.name)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return problems
+        }
+
+        function createPath() {
+            var path = joinPath(Array.prototype.slice.call(arguments));
             var folderObj = new Folder(path);
             // creates a folder and parent path if it doesn't exist
             var allGood = true;
@@ -537,65 +577,98 @@ function indexOf(theArray, searchElement, fromIndex) {
             if (folderObj instanceof Folder && !folderObj.exists) {
                 allGood = folderObj.create();
             }
-            return allGood;
+            return (allGood) ? folderObj : false;
+        }
+
+        function recursivelyMoveFolder(sourceFolder, destinationFolder, dontDelete) {
+            var sourceChildren = sourceFolder.getFiles();
+            var problemFiles = [];
+            for (var f = 0; f < sourceChildren.length; f++) {
+                if (sourceChildren[f] instanceof Folder) {
+                    var newDestFolder = createPath(destinationFolder.fullName, sourceChildren[f].name);
+                    problemFiles = problemFiles.concat(
+                        recursivelyMoveFolder(sourceChildren[f], newDestFolder)
+                    );
+                } else {
+                    createPath(destinationFolder);
+                    var copiedOK = sourceChildren[f].copy(
+                        File.decode(joinPath(destinationFolder.fullName, sourceChildren[f].name))
+                    );
+                    if (copiedOK) {
+                        if (!dontDelete) {
+                            if (!sourceChildren[f].remove()) {
+                                $.writeln("moved " + sourceChildren[f].name + " to " + destinationFolder.fsName);
+                            } else {
+                                problemFiles.push("couldn't remove " + sourceChildren[f])
+                            }
+                        }
+                    } else {
+                        problemFiles.push("couldn't " + ((dontDelete) ? "copy " : "move ") + sourceChildren[f].name);
+                    }
+                }
+            }
+            if (!dontDelete) {
+                if (!sourceFolder.remove()) {
+                    problemFiles.push("couldn't remove folder " + sourceFolder)
+                }
+            }
+            return problemFiles;
+        }
+
+        function installHeadlessScripts(downloadedScriptsFolder) {
+            var problems = [];
+            var headlessScriptsFolder = joinPath(downloadedScriptsFolder, STIBSAESCRIPTS);
+            var targetFolder = joinPath(Folder.userData, PNAFOLDER, STIBSAESCRIPTS);
+
+            // clean up old folders
+            removeOldFolder(targetFolder, STIBSAESCRIPTS);
+
+            // create new folder
+            createPath(targetFolder);
+            if (!targetFolder.exists) {
+                alert("couldn't create a folder for the scripts.\nPlease choose a location to install to.\n(Recommend that this *isn't* in the Adobe Scripts folder)");
+                var alternativeFolder = Folder.selectDialog("Choose a location for scripts");
+                targetFolder = createPath(alternativeFolder, STIBSAESCRIPTS);
+            }
+            problems = problems.concat(
+                recursivelyMoveFolder(headlessScriptsFolder, targetFolder)
+            );
+            scriptConsoleFolders = addToFileArrayIfUnique(scriptConsoleFolders, targetFolder);
+            return problems
+        }
+
+        function installUIScripts(downloadedScriptsFolder) {
+            var problems = [];
+            var uIScriptsFolder = joinPath(downloadedScriptsFolder, UISCRIPTS);
+            for (var v = 0; v < versions.length; v++) {
+                var targetFolder = joinPath(Folder.userData, PNAFOLDER, UISCRIPTS);
+
+                // clean up old folders
+                problems = problems.concat(
+                    removeOldScripts(targetFolder, UISCRIPTS, downloadedScripts)
+                )
+                // create new folder
+                createPath(targetFolder);
+                if (!targetFolder.exists) {
+                    alert("couldn't create a folder for the scripts.\nPlease choose a location to install to.\n(Recommend that this *isn't* in the Adobe Scripts folder)");
+                    var alternativeFolder = Folder.selectDialog("Choose a location for scripts");
+                    targetFolder = createPath(alternativeFolder, STIBSAESCRIPTS);
+                }
+                recursivelyMoveFolder(uIScriptsFolder, targetFolder, true);
+            }
+            scriptConsoleFolders = addToFileArrayIfUnique(scriptConsoleFolders, targetFolder);
+            return problems
         }
 
         // ======================= Install the Scripts ===========================
         var downloadedScriptsFolder = getScriptsFromGithub();
-
         var installSettings = chooseVersion();
         var chosenVersions = installSettings.chosenVersions;
-        var installToAE = installSettings.installToAE;
         var nahWorriesMate = true;
-        var okToInstall = false;
-        var scriptConsoleFolder;
 
-        if (!installToAE) {
-            //  install to pureandapplied folder in userdata
-            var pnaFolder = new Folder(Folder.userData.fullName + "/PureAndApplied/");
-            okToInstall = createPath(pnaFolder);
-            scriptConsoleFolder = new Folder(pnaFolder.fullName + "/" + STIBSAESCRIPTS);
-            okToInstall = createPath(scriptConsoleFolder);
-            var headlessScriptsFolder = new Folder(downloadedScriptsFolder.fullName + "/" + STIBSAESCRIPTS);
-            recursivelyCopyFiles(headlessScriptsFolder, scriptConsoleFolder);
-            addToFileArrayIfUnique(scriptConsoleFolders, scriptConsoleFolder);
-        }
-        for (var v = 0; v < chosenVersions.length; v++) {
-            var userPrefsScriptFolder = new Folder(chosenVersions[v].fsName + "/Scripts/");
-            okToInstall = createPath(userPrefsScriptFolder);
+        installHeadlessScripts(downloadedScriptsFolder);
+        installUIScripts(downloadedScriptsFolder, chosenVersions);
 
-            if (okToInstall) {
-                var problems = [];
-                var excludeMask = (installToAE) ? false : STIBSAESCRIPTS;
-                problems = recursivelyCopyFiles(downloadedScriptsFolder, userPrefsScriptFolder, excludeMask);
-                if (!installToAE) {
-                    // remove stibs aescripts from the AE user prefs folder
-                    var userPrefsPNAFolder = new Folder(userPrefsScriptFolder.fullName + "/" + STIBSAESCRIPTS);
-                    if (!deleteFirstFolderIfContentsInSecondFolder(userPrefsPNAFolder, scriptConsoleFolder)) {
-                        problems.push("Couldn't remove old " + STIBSAESCRIPTS + " folder.");
-
-                    }
-                    if (!problems.length) {
-                        var updatedScriptConsoleFolders = [];
-                        for (var f = 0; f < scriptConsoleFolders.length; f++) {
-                            if (!(scriptConsoleFolders[f].fullName === userPrefsPNAFolder.fullName)) {
-                                updatedScriptConsoleFolders.push(scriptConsoleFolders[f]);
-                            }
-                        }
-                        scriptConsoleFolders = updatedScriptConsoleFolders;
-                    }
-                }
-                if (problems.length) {
-                    alert("Problem copying these files:\n" + problems.join("\n"))
-                }
-                if (installToAE) {
-                    addToFileArrayIfUnique(scriptConsoleFolders, new Folder(userPrefsScriptFolder.fullName + "/" + STIBSAESCRIPTS))
-                };
-            } else {
-                nahWorriesMate = false;
-            }
-        }
-        return (nahWorriesMate);
     }
 
 
@@ -612,16 +685,15 @@ function indexOf(theArray, searchElement, fromIndex) {
             this.fsItem = theItem;
         }
 
-        this.toString = function () {
-            return this.info.shortName;
-        }
 
         this.getInfo = function () {
+            var isUI = (File.decode(this.fsItem.path).match(/ScriptUI Panels/i) !== null);
             // look for info in sidecar files or in the prefs.
             this.info = JSON.parse(prefs.getPref("scriptInfo." + this.fsItem.name, JSON.stringify({
                 "shortName": File.decode(this.fsItem.name).replace("\.jsx*(bin)*$", "", "i"),
-                "icon": DEFAULT_FILE_ICON,
-                "fsPath": File.decode(this.fsItem.fullName)
+                // "icon": DEFAULT_FILE_ICON,
+                "fsPath": File.decode(this.fsItem.fullName),
+                "isUI": isUI
             })));
             var sidecar = new File(File.decode(this.fsItem.name.replace(/(\.jsx?(bin)*)*$/, "_info.json")));
             // var infoFiles = [];
@@ -629,6 +701,16 @@ function indexOf(theArray, searchElement, fromIndex) {
                 this.readInfoFromFile(sidecar);
             }
             prefs.setPref("scriptInfo." + this.fsItem.name, JSON.stringify(this.info));
+        }
+
+        this.toString = function () {
+            infoText = "";
+            if (this.info) {
+                for (var key in this.info) {
+                    infoText += "" + key + ": " + this.info[key] + "\n"
+                }
+            }
+            return infoText;
         }
 
         this.readInfoFromFile = function (theFile) {
@@ -691,9 +773,23 @@ function indexOf(theArray, searchElement, fromIndex) {
             infoText.text = this.info.description || this.fsItem.name;
         }
 
+        this.exportInfo = function () {
+            return (this.info);
+        }
+
+        this.importInfo = function (theInfo) {
+            this.info = {};
+            for (var key in theInfo) {
+                this.info[key] = theInfo[key];
+            }
+            prefs.setPref("scriptInfo." + this.fsItem.name, JSON.stringify(this.info));
+        }
+
         this.rankMatch = function (theString) {
             // text matching algorithm
-            // matches partial and non-sequential string matches similar to the VSCode command pallette
+            // in which I came up with my own version of the Levenshtein Distance Algorithm
+            // because I didn't know it was a thing, and only found out the week after I wrote it.
+            // It matches partial and non-sequential string matches similar to the VSCode command pallette
             // e.g. given the scriptname FozBarFoo:
             //      "foo" wil rank higher than 
             //      "fbf" which will rank higher than 
@@ -816,7 +912,9 @@ function indexOf(theArray, searchElement, fromIndex) {
         }
         if (fsItem instanceof Folder &&
             fsItem.exists &&
-            (!File.decode(fsItem.name).match(/(^\.|^\(.*\)$)/))) {
+            // ignore folders with (brackets) around their name
+            (!File.decode(fsItem.name).match(/(^\.|^\(.*\)$)/))
+        ) {
             var scriptFiles = recursiveScan(fsItem);
             return scriptFiles;
         } else {
@@ -830,11 +928,12 @@ function indexOf(theArray, searchElement, fromIndex) {
         // DIALOG
         // ======
         var dialog = new Window("dialog");
-        dialog.text = "Dialog";
+        dialog.text = "Edit script info";
         dialog.orientation = "column";
         dialog.alignChildren = ["left", "top"];
         dialog.spacing = 10;
         dialog.margins = 16;
+        dialog.resizeable = true;
 
         // PATHPNL
         // =======
@@ -845,40 +944,37 @@ function indexOf(theArray, searchElement, fromIndex) {
         pathPnl.spacing = 10;
         pathPnl.margins = 10;
 
-        // var pathBtn = pathPnl.add("statictext", undefined, undefined, { name: "pathBtn" ,truncate: "middle" });
         var pathBtn = buttonColorText(pathPnl, File.decode(theScript.fsItem), btnColour.secondary.default, btnColour.secondary.hilite)
-        // pathBtn.text = File.decode(theScript.fsItem);
-        // pathBtn.preferredSize.width = 460; 
+        pathBtn.preferredSize.width = 460;
 
         // NAMEPNL
         // =======
         var namePnl = dialog.add("panel", undefined, undefined, { name: "namePnl", borderStyle: "gray" });
         namePnl.text = "Script Short Name";
-        namePnl.preferredSize.width = pathBtn.preferredSize.width + 20;
         namePnl.orientation = "column";
-        namePnl.alignChildren = ["left", "top"];
+        namePnl.alignment = ["fill", "top"];
         namePnl.spacing = 10;
         namePnl.margins = 10;
 
         var shortNameEdTxt = namePnl.add('edittext {properties: {name: "shortName", borderless: true}}');
         shortNameEdTxt.text = theScript.info.shortName;
-        shortNameEdTxt.preferredSize.width = pathBtn.preferredSize.width;
+        shortNameEdTxt.alignment = ["fill", "fill"];
+        // // shortNameEdTxt.preferredSize.width = pathBtn.preferredSize.width;
 
         // DESCPNL
         // =======
         var descPnl = dialog.add("panel", undefined, undefined, { name: "descPnl", borderStyle: "gray" });
         descPnl.text = "Description";
-        descPnl.preferredSize.width = pathBtn.preferredSize.width + 20;
+        // // descPnl.preferredSize.width = pathBtn.preferredSize.width + 20;
         descPnl.orientation = "column";
-        descPnl.alignChildren = ["left", "top"];
+        descPnl.alignment = ["fill", "fill"];
         descPnl.spacing = 10;
         descPnl.margins = 10;
 
         var descriptionEditTxt = descPnl.add('edittext {properties: {name: "descriptionEditTxt", multiline: true, scrollable: true, borderless: true}}');
         descriptionEditTxt.text = theScript.info.description || "Description";
-        descriptionEditTxt.preferredSize.width = pathBtn.preferredSize.width;
-        descriptionEditTxt.preferredSize.height = 120;
-        descriptionEditTxt.alignment = ["left", "top"];
+        descriptionEditTxt.alignment = ["fill", "fill"];
+        descriptionEditTxt.minimumSize.height = 160;
 
         // GROUP1
         // ======
@@ -891,12 +987,12 @@ function indexOf(theArray, searchElement, fromIndex) {
 
         var cancelBtn = group1.add("button", undefined, undefined, { name: "cancelBtn" });
         cancelBtn.text = "Cancel";
-        cancelBtn.preferredSize.width = 140;
+        // cancelBtn.preferredSize.width = 140;
         cancelBtn.alignment = ["right", "bottom"];
 
         var saveDescrBtn = group1.add("button", undefined, undefined, { name: "saveDescrBtn" });
         saveDescrBtn.text = "Save Settings";
-        saveDescrBtn.preferredSize.width = 140;
+        // saveDescrBtn.preferredSize.width = 140;
         saveDescrBtn.alignment = ["right", "bottom"];
 
         function goToFile() {
@@ -913,7 +1009,7 @@ function indexOf(theArray, searchElement, fromIndex) {
 
         function saveDesc() {
             if (shortNameEdTxt.text.length) {
-                theScript.shortName = shortNameEdTxt.text;
+                theScript.info.shortName = shortNameEdTxt.text;
             }
             theScript.info.description = descriptionEditTxt.text;
             prefs.setPref("scriptInfo." + theScript.fsItem.name, JSON.stringify(theScript.info));
@@ -931,7 +1027,7 @@ function indexOf(theArray, searchElement, fromIndex) {
         var settingsPanel = new Window("dialog");
         settingsPanel.text = "ScriptConsole Settings";
         settingsPanel.orientation = "column";
-        settingsPanel.alignChildren = ["left", "top"];
+        settingsPanel.alignChildren = ["fill", "top"];
         settingsPanel.spacing = 10;
         settingsPanel.margins = 16;
 
@@ -964,12 +1060,12 @@ function indexOf(theArray, searchElement, fromIndex) {
         btnGrp.margins = 0;
 
         // var addBtn = btnGrp.add("button", undefined, undefined, { name: "addBtn" });
-        var addBtn = buttonColorText(btnGrp, "Add", btnColour.secondary.default, btnColour.secondary.hilite);
+        var addBtn = buttonColorText(btnGrp, "Add", btnColour.tertiary.default, btnColour.tertiary.hilite);
         // addBtn.text = "Add";
         // addBtn.preferredSize.width = 140;
 
         // var removeBtn = btnGrp.add("button", undefined, undefined, { name: "removeBtn" });
-        var removeBtn = buttonColorText(btnGrp, "Remove", btnColour.secondary.default, btnColour.secondary.hilite);
+        var removeBtn = buttonColorText(btnGrp, "Remove", btnColour.tertiary.default, btnColour.tertiary.hilite);
         // removeBtn.text = "Remove";
         // removeBtn.preferredSize.width = 140;
 
@@ -992,14 +1088,17 @@ function indexOf(theArray, searchElement, fromIndex) {
         // =======
         var stgsPnl = settingsPanel.add("panel", undefined, undefined, { name: "stgsPnl" });
         stgsPnl.text = "Settings";
-        stgsPnl.orientation = "column";
-        stgsPnl.alignChildren = ["left", "top"];
+        stgsPnl.orientation = "row";
+        stgsPnl.alignChildren = ["fill", "center"];
         stgsPnl.spacing = 10;
         stgsPnl.margins = 10;
 
         var searchDescriptionsBtn = stgsPnl.add("checkbox", undefined, undefined, { name: "searchDescriptions" });
         searchDescriptionsBtn.text = "Search Descriptions";
         searchDescriptionsBtn.value = searchDescriptions;
+
+        var exportSettingsBtn = buttonColorText(stgsPnl, "Export Settings", btnColour.secondary.default, btnColour.secondary.hilite);
+        var importSettingsBtn = buttonColorText(stgsPnl, "Import Settings", btnColour.secondary.default, btnColour.secondary.hilite);
 
         // GROUP2
         // ======
@@ -1024,7 +1123,7 @@ function indexOf(theArray, searchElement, fromIndex) {
         saveSettingsBtn.enabled = scriptConsoleFolders.length > 0;
 
         function installPNAScripts() {
-            installStibsAeScripts();
+            scriptConsoleFolders = installStibsAeScripts();
             updateFolderListBox();
         }
 
@@ -1032,7 +1131,7 @@ function indexOf(theArray, searchElement, fromIndex) {
             folderListBox.removeAll();
             for (var f = 0; f < scriptConsoleFolders.length; f++) {
                 var newFolderItem = folderListBox.add("item", Folder.decode(scriptConsoleFolders[f]));
-                newFolderItem.payload = scriptConsoleFolders[f]
+                newFolderItem.payload = scriptConsoleFolders[f];
             }
         }
         function addNewScriptsFolder() {
@@ -1042,6 +1141,7 @@ function indexOf(theArray, searchElement, fromIndex) {
                 addToFileArrayIfUnique(scriptConsoleFolders, newScriptFolder);
             }
             updateFolderListBox();
+            prefs.setPref({ "name": SCRIPT_FOLDERS_PREF, "value": scriptConsoleFolders.join("\n") })
             saveSettingsBtn.enabled = scriptConsoleFolders.length > 0;
         }
 
@@ -1059,6 +1159,7 @@ function indexOf(theArray, searchElement, fromIndex) {
             updateFolderListBox();
             saveSettingsBtn.enabled = scriptConsoleFolders.length > 0;
         }
+
         function saveSettings() {
             prefs.setPref(searchDescriptionsBtn);
             searchDescriptions = searchDescriptionsBtn.value;
@@ -1074,12 +1175,44 @@ function indexOf(theArray, searchElement, fromIndex) {
             scriptConsoleFolders = getFolderList();
             settingsPanel.close();
         }
+
+        function exportSettings() {
+            var exportedFile = File.saveDialog("choose a file to write the prefs to", "JSON:*.json,Text:*.txt,All files:*.*");
+            var info = [];
+            for (var s = 0; s < scriptList.length; s++) {
+                info[s] = scriptList[s].exportInfo();
+            }
+            if (exportedFile.open("w")) {
+                exportedFile.write(JSON.stringify(info))
+                exportedFile.close();
+            }
+
+        }
+
+        function importSettings() {
+            var importFile = File.openDialog("choose a valid json file");
+            if (importFile.open("r")) {
+                var importedInfo = JSON.parse(importFile.read());
+                for (var s = 0; s < scriptList.length; s++) {
+                    for (var i = 0; i < importedInfo.length; i++) {
+                        if (importedInfo[s].fsPath = scriptList[i].info.fsPath) {
+                            scriptList[i].importInfo(importedInfo[s]);
+                        }
+                    }
+                }
+            }
+
+
+        }
+
         // ---------------- initialise and show the window-----------------
         cancelBtn.onClick = cancelSettings;
         updateFolderListBox();
         addBtn.onClick = addNewScriptsFolder;
         removeBtn.onClick = removeScriptsFolder;
         saveSettingsBtn.onClick = saveSettings;
+        exportSettingsBtn.onClick = exportSettings;
+        importSettingsBtn.onClick = importSettings;
         settingsPanel.show();
     }
 
