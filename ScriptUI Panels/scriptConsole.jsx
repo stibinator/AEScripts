@@ -340,19 +340,21 @@
     function installStibsAeScripts() {
 
         var STIBSAESCRIPTS = "Stibs AEScripts";
-        var UISCRIPTS = "ScriptUI Panels"
-        var OLDSCRIPTS = "Old Stibs AEScripts"; //name of desktop folder to dump old scripts into
+        var SCRIPTUIPANELS = "ScriptUI Panels"
+        var SCRIPTS = "Scripts";
         var TEMPZIPNAME = 'stibsaescripts.zip';
         var TEMPFOLDERNAME = 'StibsAEScriptsDownloadTemp';
         var PNAFOLDER = "PureAndApplied";
+        var LOGFILE = joinPath(Folder.desktop, "ScriptConsole install log");
 
-        function getScriptsFromGithub() {
+        function getScriptsFromGithub(log) {
             var tempFolder = new Folder(Folder.temp.fsName);
             var tempZipFile = new File(tempFolder.fullName + '/' + TEMPZIPNAME);
             var tempScriptsFolder = new Folder(tempFolder.fsName + '/' + TEMPFOLDERNAME);
             createPath(tempScriptsFolder);
             var op = system.callSystem('curl -L -o "' + tempZipFile.fsName + '" --url ' + LATESTRELEASEURL);
             $.writeln(op);
+            if (log) { log.log(op) }
             var result = system.callSystem('tar -xf ' + tempZipFile.fsName + ' -C "' + tempScriptsFolder.fsName + '"');
             $.writeln(result);
             return tempScriptsFolder
@@ -444,10 +446,6 @@
             cancelBtn.text = "Cancel";
             cancelBtn.alignment = ["fill", "fill"];
 
-            var installPNABtn = installBtnGrp.add("button", undefined, undefined, { name: "installPNABtn" });
-            installPNABtn.helpTip = "Install Stib's AEScripts for selected versions";
-            installPNABtn.text = "Install";
-            installPNABtn.alignment = ["fill", "fill"];
 
             function getChosenVersions() {
                 for (var v = 0; v < aeVersions.length; v++) {
@@ -460,7 +458,7 @@
             installPNABtn.onClick = getChosenVersions;
 
             installDialog.show();
-            return { "chosenVersions": chosenVersions, "installToAE": installToAEChkBx.value };
+            return chosenVersions;
 
         }
 
@@ -476,8 +474,9 @@
             return inputAr;
         }
 
-        function joinPath(inPath) {
-            // Split the inputs into an array of folder names            
+        function joinPath() {
+            // Split the inputs into an array of folder names
+            var inPath = Array.prototype.slice.call(arguments);
             var dirs = splitPath(inPath);
             var topFolder = Folder(dirs[0]);
             var newPath = [];
@@ -507,64 +506,6 @@
             return Folder(newPath.join("/") || topFolder.parent);
         }
 
-        function removeOldFolder(oldFolder, dumpFolderName) {
-            if (oldFolder.exists) {
-                var dumpFolder = createPath(Folder.desktop, OLDSCRIPTS, dumpFolderName);
-                if (dumpFolder) {
-                    recursivelyMoveFolder(oldFolder, dumpFolder);
-                    if (oldFolder.remove()) {
-                        problems.push("Old stib's aescripts folder found\n and moved to desktop")
-                    } else {
-                        problems.push("Couldn't remove old stibs aescripts folder");
-                    }
-                } else {
-                    problems.push("Couldn't remove old stibs aescripts folder");
-                }
-            }
-            // remove the adobePrefs folder from scriptConsolFolders
-            var updatedScriptConsoleFolders = [];
-            for (var f = 0; f < scriptConsoleFolders.length; f++) {
-                if (!(scriptConsoleFolders[f].fullName === oldFolder.fullName)) {
-                    updatedScriptConsoleFolders.push(scriptConsoleFolders[f]);
-                }
-                scriptConsoleFolders = updatedScriptConsoleFolders;
-            }
-        }
-
-        function removeOldScripts(oldFolder, dumpFolderName, newScriptFolder) {
-            var problems = [];
-            if (oldFolder.exists) {
-                var dumpFolder = createPath(Folder.desktop, OLDSCRIPTS, dumpFolderName);
-                if (dumpFolder) {
-                    var scriptList = newScriptFolder.getFiles();
-                    for (var f = 0; f < scriptList.length; f++) {
-                        var oldFile = File(joinPath(oldFolder, scriptList[f].name));
-                        if (oldFile.exists) {
-                            if (oldFile instanceof Folder) {
-                                var dumpSubFolder = joinPath(dumpFolder, oldFile.name);
-                                var newScriptSubFolder = joinPath(newScriptFolder, oldFile.name);
-                                problems = problems.concat(
-                                    removeOldScripts(oldFolder, dumpSubFolder, newScriptSubFolder)
-                                );
-                                if (!oldFile.remove()) {
-                                    problems.push("couldn't remove old script " + oldFile.name)
-                                }
-                            } else {
-                                if (oldFile.copy(joinPath(dumpFolder, oldFile.name))) {
-                                    if (!oldFile.remove()) {
-                                        problems.push("couldn't remove old script " + oldFile.name)
-                                    }
-                                } else {
-                                    problems.push("couldn't move old script " + oldFile.name)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return problems
-        }
-
         function createPath() {
             var path = joinPath(Array.prototype.slice.call(arguments));
             var folderObj = new Folder(path);
@@ -580,95 +521,98 @@
             return (allGood) ? folderObj : false;
         }
 
-        function recursivelyMoveFolder(sourceFolder, destinationFolder, dontDelete) {
+        function LogFile(logFilePath) {
+            this.logFile = new File(logFilePath);
+            createPath(this.logFile.parent)
+            this.logFile.create();
+            this.log(Date);
+
+            this.log = function () {
+                var messageAr = Array.prototype.slice.call(arguments);
+                this.logFile.open("a");
+                var message = messageAr.join("\n");
+                this.logFile.write(message);
+                this.logFile.close();
+            }
+        }
+
+        function recursivelyMoveFolder(sourceFolder, destinationFolder, deleteOriginals, log) {
             var sourceChildren = sourceFolder.getFiles();
             var problemFiles = [];
             for (var f = 0; f < sourceChildren.length; f++) {
                 if (sourceChildren[f] instanceof Folder) {
                     var newDestFolder = createPath(destinationFolder.fullName, sourceChildren[f].name);
-                    problemFiles = problemFiles.concat(
-                        recursivelyMoveFolder(sourceChildren[f], newDestFolder)
-                    );
+                    if (log) { log.log("created destination Folder: " + newDestFolder) }
+                    recursivelyMoveFolder(sourceChildren[f], newDestFolder)
                 } else {
                     createPath(destinationFolder);
                     var copiedOK = sourceChildren[f].copy(
                         File.decode(joinPath(destinationFolder.fullName, sourceChildren[f].name))
                     );
+
                     if (copiedOK) {
-                        if (!dontDelete) {
-                            if (!sourceChildren[f].remove()) {
-                                $.writeln("moved " + sourceChildren[f].name + " to " + destinationFolder.fsName);
+                        if (deleteOriginals) {
+                            if (sourceChildren[f].exists && sourceChildren[f].remove()) {
+                                if (log) { log.log("moved " + sourceChildren[f].name + " to " + destinationFolder.fsName) };
                             } else {
-                                problemFiles.push("couldn't remove " + sourceChildren[f])
+                                if (log) { log.log(problemFiles.push("couldn't remove original " + sourceChildren[f].name)) }
                             }
                         }
                     } else {
-                        problemFiles.push("couldn't " + ((dontDelete) ? "copy " : "move ") + sourceChildren[f].name);
+                        if (log) { log.log("couldn't " + (deleteOriginals) ? "move " : "copy ") + sourceChildren[f].name) };
                     }
                 }
             }
-            if (!dontDelete) {
+            if (deleteOriginals) {
                 if (!sourceFolder.remove()) {
-                    problemFiles.push("couldn't remove folder " + sourceFolder)
+                    if (log) { log.log("couldn't remove folder " + sourceFolder) }
                 }
             }
-            return problemFiles;
         }
 
-        function installHeadlessScripts(downloadedScriptsFolder) {
-            var problems = [];
+        function installHeadlessScripts(downloadedScriptsFolder, log) {
+            if (log) { log.log("Installing stib's AEScripts") }
             var headlessScriptsFolder = joinPath(downloadedScriptsFolder, STIBSAESCRIPTS);
             var targetFolder = joinPath(Folder.userData, PNAFOLDER, STIBSAESCRIPTS);
 
-            // clean up old folders
-            removeOldFolder(targetFolder, STIBSAESCRIPTS);
-
-            // create new folder
+            // create new folder if need be
             createPath(targetFolder);
             if (!targetFolder.exists) {
                 alert("couldn't create a folder for the scripts.\nPlease choose a location to install to.\n(Recommend that this *isn't* in the Adobe Scripts folder)");
                 var alternativeFolder = Folder.selectDialog("Choose a location for scripts");
                 targetFolder = createPath(alternativeFolder, STIBSAESCRIPTS);
             }
-            problems = problems.concat(
-                recursivelyMoveFolder(headlessScriptsFolder, targetFolder)
-            );
+            if (log) { log.log("Install target: " + targetFolder) }
+            recursivelyMoveFolder(headlessScriptsFolder, targetFolder, true, log)
             scriptConsoleFolders = addToFileArrayIfUnique(scriptConsoleFolders, targetFolder);
-            return problems
         }
 
-        function installUIScripts(downloadedScriptsFolder) {
-            var problems = [];
-            var uIScriptsFolder = joinPath(downloadedScriptsFolder, UISCRIPTS);
+        function installUIScripts(downloadedScriptsFolder, versions, log) {
+            if (log) { log.log("Installing stib's ScriptUI Panels") }
+            var uIScriptsFolder = joinPath(downloadedScriptsFolder, SCRIPTUIPANELS);
             for (var v = 0; v < versions.length; v++) {
-                var targetFolder = joinPath(Folder.userData, PNAFOLDER, UISCRIPTS);
-
-                // clean up old folders
-                problems = problems.concat(
-                    removeOldScripts(targetFolder, UISCRIPTS, downloadedScripts)
-                )
+                var targetFolder = createPath(chosenVersions[v].fsName, SCRIPTS, SCRIPTUIPANELS);
+                if (log) { log.log("Creating ScriptUI Panels folder at " + targetFolder) }
                 // create new folder
-                createPath(targetFolder);
+                deleteSource = v === versions.length - 1; //delete the source folder on the last version
                 if (!targetFolder.exists) {
-                    alert("couldn't create a folder for the scripts.\nPlease choose a location to install to.\n(Recommend that this *isn't* in the Adobe Scripts folder)");
-                    var alternativeFolder = Folder.selectDialog("Choose a location for scripts");
+                    alert("couldn't Access the Adobe ScriptUI Panels Folder");
+                    if (log) { log("couldn't Access the Adobe ScriptUI Panels Folder at " + targetFolder); }
+                    var alternativeFolder = Folder.selectDialog("Choose a location for the scriptUI panels");
                     targetFolder = createPath(alternativeFolder, STIBSAESCRIPTS);
                 }
-                recursivelyMoveFolder(uIScriptsFolder, targetFolder, true);
+                recursivelyMoveFolder(uIScriptsFolder, targetFolder, deleteSource, log);
             }
             scriptConsoleFolders = addToFileArrayIfUnique(scriptConsoleFolders, targetFolder);
-            return problems
         }
 
         // ======================= Install the Scripts ===========================
-        var downloadedScriptsFolder = getScriptsFromGithub();
-        var installSettings = chooseVersion();
-        var chosenVersions = installSettings.chosenVersions;
-        var nahWorriesMate = true;
+        var log = new LogFile(LOGFILE);
+        var downloadedScriptsFolder = getScriptsFromGithub(log);
+        var chosenVersions = chooseVersion();
 
-        installHeadlessScripts(downloadedScriptsFolder);
-        installUIScripts(downloadedScriptsFolder, chosenVersions);
-
+        installHeadlessScripts(downloadedScriptsFolder, log);
+        installUIScripts(downloadedScriptsFolder, chosenVersions, log);
     }
 
 
@@ -1217,6 +1161,7 @@
     }
 
     // --------------------------------------------preferences ------------------------------------------------------------------------
+
 
     function myPreferences(SCRIPT_NAME) {
         // look for preferences for this object
