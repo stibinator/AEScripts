@@ -5,8 +5,6 @@
     // var LATESTRELEASEURL = "https://github.com/stibinator/AEScripts/archive/refs/heads/master.zip"
     var LATESTRELEASEURL = "https://github.com/stibinator/AEScripts/releases/download/v2.0b/StibsAEScriptsRelease2.0.zip";
     var SCRIPT_FOLDERS_PREF = "script_folders";
-    var IMGS_FOLDER = $.fileName.replace(SCRIPT_NAME + ".jsx", "/images/");
-    // var DEFAULT_FILE_ICON = new File(IMGS_FOLDER + "scriptIcon.png");
     var FILE_NOT_FOUND = "The script file was not found.";
     var DEFAULT_INFO_TEXT = SCRIPT_NAME + " v. " + VERSION_NUM;
     var UI_FLAG = "(UI)"; // added to the name of Script UI files if they're included
@@ -438,15 +436,20 @@
             installBtnGrp.margins = [0, 0, 10, 0];
             installBtnGrp.alignment = ["fill", "fill"];
 
-            var installToAEChkBx = headlessScriptsPnl.add("checkbox", undefined, undefined, { name: "installToAeChkBx" });
-            installToAEChkBx.text = "install UI-less scripts to AE";
-            installToAEChkBx.helpTip = "If checked stib's scripts will be visible in the usual FILE > SCRIPTS menu\notherwise they will only be accessible from ScriptConsole.\nUncheck if you have lots of scripts."
+            // var installToAEChkBx = headlessScriptsPnl.add("checkbox", undefined, undefined, { name: "installToAeChkBx" });
+            // installToAEChkBx.text = "install UI-less scripts to AE";
+            // installToAEChkBx.helpTip = "If checked stib's scripts will be visible in the usual FILE > SCRIPTS menu\notherwise they will only be accessible from ScriptConsole.\nUncheck if you have lots of scripts."
 
             var cancelBtn = installBtnGrp.add("button", undefined, undefined, { name: "cancelBtn" });
             cancelBtn.helpTip = "Don't install";
             cancelBtn.text = "Cancel";
             cancelBtn.alignment = ["fill", "fill"];
 
+            var installPNABtn = installBtnGrp.add("button", undefined, undefined, { name: "installPNABtn" });
+            installPNABtn.helpTip = "Install Stib's AEScripts for selected versions";
+            installPNABtn.text = "Install";
+            installPNABtn.preferredSize.width = 140;
+            installPNABtn.alignment = ["right", "bottom"];
 
             function getChosenVersions() {
                 for (var v = 0; v < aeVersions.length; v++) {
@@ -523,24 +526,24 @@
         }
 
         function LogFile(logFilePath) {
-            this.logFile = new File(logFilePath);
-            createPath(this.logFile.parent)
-            if (this.logFile.create()) {
-                this.log = function () {
-                    var messageAr = Array.prototype.slice.call(arguments);
-                    this.logFile.open("a");
-                    var message = messageAr.join("\n");
-                    this.logFile.write(message);
-                    this.logFile.close();
-                }
-                this.log(Date);
-            } else {
-                this.log = function () {
-                    var messageAr = Array.prototype.slice.call(arguments);
-                    var message = messageAr.join("\n");
-                    $.writeln(message);
-                }
+            if (logFilePath instanceof Folder || logFilePath.toString().match(/[\/\\]$/)) {
+                logFilePath = logFilePath.toString() + SCRIPT_NAME + "_log.txt"
             }
+            if (!logFilePath.toString().match(/\.txt$/)) {
+                logFilePath = logFilePath.toString() + ".txt"
+            }
+            var logFile = new File(logFilePath);
+            createPath(logFile.parent);
+            this.log = function () {
+                var messageAr = Array.prototype.slice.call(arguments);
+                var message = messageAr.join("\n");
+                if (logFile.open("a")) {
+                    logFile.write(message);
+                    logFile.close();
+                }
+                $.writeln(message);
+            }
+            this.log(Date());
         }
 
         function recursivelyMoveFolder(sourceFolder, destinationFolder, deleteOriginals, log) {

@@ -1,10 +1,17 @@
-function joinPath(/* path segments */) {
-    // Split the inputs into a list of path commands.
-    var dirs = [];
-    for (var i = 0, l = arguments.length; i < l; i++) {
-        var subParts = arguments[i].toString().split("/");
-        dirs = dirs.concat(subParts);
+function splitPath(inPath) {
+    var inputAr = [];
+    if (inPath instanceof Array) {
+        for (var i = 0, l = inPath.length; i < l; i++) {
+            inputAr = inputAr.concat(splitPath(inPath[i]));
+        }
+    } else {
+        inputAr = inputAr.concat(inPath.toString().split("/"))
     }
+    return inputAr;
+}
+function joinPath(inPath) {
+    // Split the inputs into an array of folder names            
+    var dirs = splitPath(inPath);
     var topFolder = Folder(dirs[0]);
     var newPath = [];
     for (i = 0; i < dirs.length; i++) {
@@ -18,7 +25,7 @@ function joinPath(/* path segments */) {
                     newPath.pop()
                 } else {
                     // reached the top original folder, find its parent
-                    topFolder = topFolder.parent || topFolder; 
+                    topFolder = topFolder.parent || topFolder;
                     newPath = topFolder.toString().split("/");
                 }
                 // Push new path segments.
@@ -33,8 +40,19 @@ function joinPath(/* path segments */) {
     return newPath.join("/") || topFolder.parent;
 }
 
-$.writeln(joinPath("foo", "baz", "../bar")); // => foo/bar
-$.writeln(joinPath("~", "..")); // /Users or /c/Users <--NB. only if user's home dir is in default location
-$.writeln(joinPath("~", "../../../../../../../../../../")); // / or /c
-$.writeln(joinPath(Folder.desktop, "../Downloads")); // ~/Downloads
-$.writeln(joinPath(Folder.userData, "/Adobe/")); // /users/yurname/Library/Adobe or /c/users/yourname/appdata/Roaming/adobe
+function createPath() {
+    var path = joinPath(Array.prototype.slice.call(arguments));
+    var folderObj = new Folder(path);
+    // creates a folder and parent path if it doesn't exist
+    var allGood = true;
+    var parent = new Folder(folderObj.path);
+    if (!parent.exists) {
+        allGood = createPath(parent);
+    }
+    if (folderObj instanceof Folder && !folderObj.exists) {
+        allGood = folderObj.create();
+    }
+    return (allGood) ? folderObj : false;
+}
+
+createPath("~", "foo", "/bar/faz")

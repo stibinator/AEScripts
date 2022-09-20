@@ -4,6 +4,9 @@
 (function () {
     app.beginUndoGroup("Add new shape layer");
     var curComp = app.project.activeItem;
+    var shiftDown = ScriptUI.environment.keyboardState.shiftKey;
+    var ctrlDown = ScriptUI.environment.keyboardState.ctrlKey;
+    var altDown = ScriptUI.environment.keyboardState.altKey;
     if (curComp) {
         var shapeLayer = curComp.layers.addShape();
         var shapeGroup = shapeLayer.property("Contents").addProperty("ADBE Vector Group");
@@ -12,10 +15,20 @@
         // myRect.property("ADBE Vector Star Points").setValue(6);
         var size = myRect.property("ADBE Vector Rect Size");
         size.setValue([curComp.width, curComp.height]);
-        var rectFill = shapeGroup.property("Contents").addProperty("ADBE Vector Graphic - Fill");
-        rectFill.property("Color").setValue([Math.random(), Math.random(), Math.random(), 1])
-        // var rectStroke = shapeGroup.property("Contents").addProperty("ADBE Vector Graphic - Stroke");
-        // rectStroke.property("Color").setValue([Math.random(), Math.random(), Math.random(), 1])
+        if (!altDown) {
+            var rectFill = shapeGroup.property("Contents").addProperty("ADBE Vector Graphic - Fill");
+            if (! shiftDown) {
+                rectFill.property("Color").setValue([Math.random(), Math.random(), Math.random(), 1]);
+            }
+        }
+        if (ctrlDown || altDown) {
+            var rectStroke = shapeGroup.property("Contents").addProperty("ADBE Vector Graphic - Stroke");
+            if (! shiftDown) {
+                rectStroke.property("Color").setValue([Math.random(), Math.random(), Math.random(), 1]);
+            }
+            rectStroke.property("Composite").setValue(2); //composite above fill
+            rectStroke.property("Stroke Width").setValue(Math.max(2, Math.round(curComp.width / 100))); //sane default?
+        }
     }
     app.endUndoGroup();
 })()

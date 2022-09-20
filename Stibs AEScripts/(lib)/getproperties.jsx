@@ -2,6 +2,18 @@
 // license below
 // more: https://blob.pureandapplied.com.au
 // eslint-disable-next-line no-unused-vars
+
+function findLayer(theProperty) {
+// gets the layer a property is on
+    var p = theProperty;
+    var pa = theProperty.parentProperty;
+    while (pa) {
+        p = pa;
+        pa = pa.parentProperty;
+    }
+    return p
+}
+
 function getIndividualProperties(theProps) {
     // recursively extracts individual properties from a property group.
     var props = [];
