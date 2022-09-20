@@ -8,6 +8,9 @@
     var FILE_NOT_FOUND = "The script file was not found.";
     var DEFAULT_INFO_TEXT = SCRIPT_NAME + " v. " + VERSION_NUM;
     var UI_FLAG = "(UI)"; // added to the name of Script UI files if they're included
+    var LOGFILEPATH = joinPath(Folder.desktop, "ScriptConsole install log");
+
+
     // parameters for the name matching algo
     var upperCaseRankScale = 8;  // higher values rank upper case matches below normal matches
     var contiguousRankScale = 9; // higher values favour contiguous matches later in the search string
@@ -44,6 +47,9 @@
 
     // do the hoo-hah
     var prefs = new myPreferences(SCRIPT_NAME);
+    var logFile = new LogFile(LOGFILEPATH);
+    var log = logFile.log;
+
     var firstRun = prefs.getPref("ScriptConsole-FirstRun", true);
     if (firstRun === true) {
         installStibsAeScripts()
@@ -343,10 +349,8 @@
         var TEMPZIPNAME = 'stibsaescripts.zip';
         var TEMPFOLDERNAME = 'StibsAEScriptsDownloadTemp';
         var PNAFOLDER = "PureAndApplied";
-        var LOGFILE = joinPath(Folder.desktop, "ScriptConsole install log");
 
         function getScriptsFromGithub(log) {
-            log = log.log;
             var tempFolder = new Folder(Folder.temp.fsName);
             var tempZipFile = new File(tempFolder.fullName + '/' + TEMPZIPNAME);
             var tempScriptsFolder = new Folder(tempFolder.fsName + '/' + TEMPFOLDERNAME);
@@ -466,88 +470,8 @@
 
         }
 
-        function splitPath(inPath) {
-            var inputAr = [];
-            if (inPath instanceof Array) {
-                for (var i = 0, l = inPath.length; i < l; i++) {
-                    inputAr = inputAr.concat(splitPath(inPath[i]));
-                }
-            } else {
-                inputAr = inputAr.concat(inPath.toString().split("/"))
-            }
-            return inputAr;
-        }
-
-        function joinPath() {
-            // Split the inputs into an array of folder names
-            var inPath = Array.prototype.slice.call(arguments);
-            var dirs = splitPath(inPath);
-            var topFolder = Folder(dirs[0]);
-            var newPath = [];
-            for (i = 0; i < dirs.length; i++) {
-                var dir = dirs[i];
-                // Remove leading and trailing slashes
-                // Also remove "." segments
-                if (dir && dir !== ".") {
-                    // Interpret ".." to pop the last segment
-                    if (dir === "..") {
-                        if (newPath.length > 1) {
-                            newPath.pop()
-                        } else {
-                            // reached the top original folder, find its parent
-                            topFolder = topFolder.parent || topFolder;
-                            newPath = topFolder.toString().split("/");
-                        }
-                        // Push new path segments.
-                    } else {
-                        newPath.push(dir)
-                    }
-                }
-            }
-            // Preserve the initial slash if there was one.
-            if (dirs[0] === "") newPath.unshift("");
-            // Turn back into a single string path.
-            return Folder(newPath.join("/") || topFolder.parent);
-        }
-
-        function createPath() {
-            var path = joinPath(Array.prototype.slice.call(arguments));
-            var folderObj = new Folder(path);
-            // creates a folder and parent path if it doesn't exist
-            var allGood = true;
-            var parent = new Folder(folderObj.path);
-            if (!parent.exists) {
-                allGood = createPath(parent);
-            }
-            if (folderObj instanceof Folder && !folderObj.exists) {
-                allGood = folderObj.create();
-            }
-            return (allGood) ? folderObj : false;
-        }
-
-        function LogFile(logFilePath) {
-            if (logFilePath instanceof Folder || logFilePath.toString().match(/[\/\\]$/)) {
-                logFilePath = logFilePath.toString() + SCRIPT_NAME + "_log.txt"
-            }
-            if (!logFilePath.toString().match(/\.txt$/)) {
-                logFilePath = logFilePath.toString() + ".txt"
-            }
-            var logFile = new File(logFilePath);
-            createPath(logFile.parent);
-            this.log = function () {
-                var messageAr = Array.prototype.slice.call(arguments);
-                var message = messageAr.join("\n");
-                if (logFile.open("a")) {
-                    logFile.write(message);
-                    logFile.close();
-                }
-                $.writeln(message);
-            }
-            this.log(Date());
-        }
 
         function recursivelyMoveFolder(sourceFolder, destinationFolder, deleteOriginals, log) {
-            log = log.log;
             var sourceChildren = sourceFolder.getFiles();
             for (var f = 0; f < sourceChildren.length; f++) {
                 if (sourceChildren[f] instanceof Folder) {
@@ -581,7 +505,6 @@
         }
 
         function recursivelyUpdateScripts(sourceFolder, mainTargetFolder, secondTargetFolder, log) {
-            log = log.log;
 
             var sourceChildren = sourceFolder.getFiles();
             var targetFolder;
@@ -598,7 +521,7 @@
                     }
                 }
                 target = joinPath(targetFolder, sourceChildren[f].name);
-                if (sourceChildren[f].copy(target)) {
+                if (sourceChildren[f].copy(target)) {//TODO: Folder has no copy function
                     sourceChildren[f].remove();
                 } else {
 
@@ -609,12 +532,11 @@
             }
         }
 
-        function installHeadlessScripts(downloadedScriptsFolder, versions, log) {
-            log = log.log;
+        function installHeadlessScripts(downloadedScriptsFolder) {
             log("Installing stib's AEScripts");
             var headlessScriptsFolder = joinPath(downloadedScriptsFolder, STIBSAESCRIPTS);
             var targetFolder = joinPath(Folder.userData, PNAFOLDER, STIBSAESCRIPTS);
-            var adobePrefsScriptsFolder = joinPathh(chosenVersions[chosenVersions.length - 1].fsName, SCRIPTS, STIBSAESCRIPTS);
+            var adobePrefsScriptsFolder = joinPath(chosenVersions[chosenVersions.length - 1].fsName, SCRIPTS, STIBSAESCRIPTS);
             // create new folder if need be
             createPath(targetFolder);
             var keepGoing = true;
@@ -631,7 +553,7 @@
                 }
             }
             if (targetFolder.exists) {
-                log("Install target: " + targetFolder);
+                log("Install target: " + targetFolder.toString());
                 recursivelyUpdateScripts(headlessScriptsFolder, targetFolder, adobePrefsScriptsFolder, log);
                 scriptConsoleFolders = addToFileArrayIfUnique(scriptConsoleFolders, targetFolder);
                 return true;
@@ -639,8 +561,7 @@
             return false;
         }
 
-        function installUIScripts(downloadedScriptsFolder, versions, log) {
-            log = log.log;
+        function installUIScripts(downloadedScriptsFolder, versions) {
             log("Installing stib's ScriptUI Panels");
             var uIScriptsFolder = joinPath(downloadedScriptsFolder, SCRIPTUIPANELS);
             var noProblems = true;
@@ -674,7 +595,7 @@
         }
 
         // ======================= Install the Scripts ===========================
-        var log = new LogFile(LOGFILE);
+
         var noProblems = true;
         var downloadedScriptsFolder = getScriptsFromGithub(log);
         if (downloadedScriptsFolder.exists) {
@@ -1233,7 +1154,89 @@
         importSettingsBtn.onClick = importSettings;
         settingsPanel.show();
     }
+    // --------------------------------------------Path operations ------------------------------------------------------------------------
+    
+    function splitPath(inPath) {
+        var inputAr = [];
+        if (inPath instanceof Array) {
+            for (var i = 0, l = inPath.length; i < l; i++) {
+                inputAr = inputAr.concat(splitPath(inPath[i]));
+            }
+        } else {
+            inputAr = inputAr.concat(inPath.toString().split("/"))
+        }
+        return inputAr;
+    }
 
+    function joinPath() {
+        // Split the inputs into an array of folder names
+        var inPath = Array.prototype.slice.call(arguments);
+        var dirs = splitPath(inPath);
+        var topFolder = Folder(dirs[0]);
+        var newPath = [];
+        for (i = 0; i < dirs.length; i++) {
+            var dir = dirs[i];
+            // Remove leading and trailing slashes
+            // Also remove "." segments
+            if (dir && dir !== ".") {
+                // Interpret ".." to pop the last segment
+                if (dir === "..") {
+                    if (newPath.length > 1) {
+                        newPath.pop()
+                    } else {
+                        // reached the top original folder, find its parent
+                        topFolder = topFolder.parent || topFolder;
+                        newPath = topFolder.toString().split("/");
+                    }
+                    // Push new path segments.
+                } else {
+                    newPath.push(dir)
+                }
+            }
+        }
+        // Preserve the initial slash if there was one.
+        if (dirs[0] === "") newPath.unshift("");
+        // Turn back into a single string path.
+        return Folder(newPath.join("/") || topFolder.parent);
+    }
+
+    function createPath() {
+        var path = joinPath(Array.prototype.slice.call(arguments));
+        var folderObj = new Folder(path);
+        // creates a folder and parent path if it doesn't exist
+        var allGood = true;
+        var parent = new Folder(folderObj.path);
+        if (!parent.exists) {
+            allGood = createPath(parent);
+        }
+        if (folderObj instanceof Folder && !folderObj.exists) {
+            allGood = folderObj.create();
+        }
+        return (allGood) ? folderObj : false;
+    }
+    
+    // --------------------------------------------Log File ------------------------------------------------------------------------
+    
+    function LogFile(logFilePath) {
+        if (logFilePath instanceof Folder || logFilePath.toString().match(/[\/\\]$/)) {
+            logFilePath = logFilePath.toString() + SCRIPT_NAME + "_log.txt"
+        }
+        if (!logFilePath.toString().match(/\.txt$/)) {
+            logFilePath = logFilePath.toString() + ".txt"
+        }
+        var logFile = new File(logFilePath);
+        createPath(logFile.parent);
+        this.log = function () {
+            var messageAr = Array.prototype.slice.call(arguments);
+            var message = messageAr.join("\n");
+            if (logFile.open("a")) {
+                logFile.write(message);
+                logFile.close();
+            }
+            $.writeln(message);
+        }
+        this.log(Date());
+    }
     // --------------------------------------------preferences ------------------------------------------------------------------------
 
 
