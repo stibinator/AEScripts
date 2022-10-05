@@ -44,6 +44,11 @@
             [undefined, undefined, 180, 22],
             "median"
         );
+        var afterExpChkBx = pal.add(
+            "checkbox",
+            [undefined, undefined, 180, 22],
+            "After expressions"
+        );
 
         var precision = TextSlider(
             (container = pal),
@@ -59,7 +64,9 @@
                     minChkBx.value,
                     avChkBx.value,
                     medChkBx.value,
-                    this.getVal())
+                    this.getVal(),
+                    afterExpChkBx.value
+                )
             }),
             (precision = 1),
             (dimensions = {
@@ -80,10 +87,10 @@
 
         // ---------- UI Call backs -------------------
         methodDD.onChange =
-            maxChkBx.onChange =
-            minChkBx.onChange =
-            avChkBx.onChange =
-            medChkBx.onChange =
+            maxChkBx.onClick =
+            minChkBx.onClick =
+            avChkBx.onClick =
+            medChkBx.onClick =
             doTheThingsBtn.onClick =
             function () {
                 prefs.setPref(this);
@@ -93,7 +100,9 @@
                     minChkBx.value,
                     avChkBx.value,
                     medChkBx.value,
-                    precision.getVal())
+                    precision.getVal(),
+                    afterExpChkBx.value
+                )
             };
 
         //------------------------ build the GUI ------------------------
@@ -112,7 +121,8 @@
         doMin,
         doAv,
         doMed,
-        precision
+        precision,
+        afterExpressions
     ) {
         app.beginUndoGroup(scriptName);
 
@@ -120,8 +130,8 @@
         if (theComp) {
             var theProps = theComp.selectedProperties;
             for (var p = 0; p < theProps.length; p++) {
-                var timeSpan = calculateTimeSpan(method, theProps[p], theComp, precision);
-                var stats = Stats(theComp, theProps, timeSpan, );
+                var timeSpan = calculateTimeSpan(method, theProps[p], theComp);
+                var stats = Stats(theComp, theProps[p], timeSpan, precision, afterExpressions);
                 alert(
                     ((doMax) ? "max " + stats.max : "") +
                     ((doMin) ? "\nmin: " + stats.min : "") +
@@ -163,74 +173,80 @@
         }
     }
 
-    function Stats(theComp, theProperty, timeSpan, precision) {
-        var valueType = theProperty[0].propertyValueType;
-        try {
-            switch (valueType) {
-                case PropertyValueType.ThreeD_SPATIAL:
-                // Array of three floating-point positional values. For example, an Anchor Point value might be [10.0, 20.2, 0.0]
-                case PropertyValueType.ThreeD:
-                    // Array of three floating-point quantitative values. For example, a Scale value might be [100.0, 20.2, 0.0]
-                    this.dimensions = 3;
-                    break;
-                case PropertyValueType.TwoD_SPATIAL:
-                // Array of 2 floating-point positional values. For example, an Anchor Point value might be [5.1, 10.0]
-                case PropertyValueType.TwoD:
-                    // Array of 2 floating-point quantitative values. For example, a Scale value might be [5.1, 100.0]
-                    this.dimensions = 2;
-                    break;
-                case PropertyValueType.OneD:
-                // A floating-point value.
-                case PropertyValueType.LAYER_INDEX:
-                // Integer; a value of 0 means no layer.
-                case PropertyValueType.MASK_INDEX:
-                    // Integer; a value of 0 means no mask.
-                    this.dimensions = 1
-                    break;
-                case PropertyValueType.COLOR:
-                //Array of 4 floating-point values in the range [0.0..1.0]. For example, [0.8, 0.3, 0.1, 1.0]
-                case PropertyValueType.NO_VALUE:
-                // Stores no data.
-                case PropertyValueType.CUSTOM_VALUE:
-                // Custom property value, such as the Histogram property for the Levels effect.
-                case PropertyValueType.MARKER:
-                // MarkerValue object
-                case PropertyValueType.SHAPE:
-                // Shape object
-                case PropertyValueType.TEXT_DOCUMENT:
-                    // TextDocument object
-                    this.dimensions = 0;
-            }
-            if (this.dimensions > 0) {
-                this.values = [];
-                for (var t = timeSpan.start; t < timeSpan.end; t += theComp.frameDuration / precision) {
-                    this.values.push(
-                        (this.dimensions > 1) ?
-                            theProperty.valueAtTime(t) :
-                            [theProperty.valueAtTime(t)]
-                    );
-                }
-                this.max = this.values[0];
-                this.min = this.values[0];
-                this.average = this.values[0];
-                this.cumulative = this.values[0] * 0;
-                for (var d = 0; d < this.dimensions; d++) {
-                    for (var v = 0; v < this.values.length; v++) {
-                        this.max[d] = Math.max(this.max[d], this.values[v][d]);
-                        this.min[d] = Math.min(this.min[d], this.values[v][d]);
-                        this.cumulative[d] += this.values[v][d];
-                    }
-                    this.average[d] = this.cumulative[d] / this.values.length;
-                    this.median[d] = this.values[Math.round(this.values.length / 2)];
-                }
-                this.status = "Stats updated"
-            } else {
-                this.min = this.max = this.average = this.median = null;
-                this.status = "Cannot calculate stats for this kind of property."
-            }
-        } catch (e) {
-            this.status = "Error: " + e;
+    function Stats(theComp, theProperty, timeSpan, precision, afterExpressions) {
+        var valueType = theProperty.propertyValueType;
+        // try {
+        switch (valueType) {
+            case PropertyValueType.ThreeD_SPATIAL:
+            // Array of three floating-point positional values. For example, an Anchor Point value might be [10.0, 20.2, 0.0]
+            case PropertyValueType.ThreeD:
+                // Array of three floating-point quantitative values. For example, a Scale value might be [100.0, 20.2, 0.0]
+                this.dimensions = 3;
+                break;
+            case PropertyValueType.TwoD_SPATIAL:
+            // Array of 2 floating-point positional values. For example, an Anchor Point value might be [5.1, 10.0]
+            case PropertyValueType.TwoD:
+                // Array of 2 floating-point quantitative values. For example, a Scale value might be [5.1, 100.0]
+                this.dimensions = 2;
+                break;
+            case PropertyValueType.OneD:
+            // A floating-point value.
+            case PropertyValueType.LAYER_INDEX:
+            // Integer; a value of 0 means no layer.
+            case PropertyValueType.MASK_INDEX:
+                // Integer; a value of 0 means no mask.
+                this.dimensions = 1
+                break;
+            case PropertyValueType.COLOR:
+            //Array of 4 floating-point values in the range [0.0..1.0]. For example, [0.8, 0.3, 0.1, 1.0]
+            case PropertyValueType.NO_VALUE:
+            // Stores no data.
+            case PropertyValueType.CUSTOM_VALUE:
+            // Custom property value, such as the Histogram property for the Levels effect.
+            case PropertyValueType.MARKER:
+            // MarkerValue object
+            case PropertyValueType.SHAPE:
+            // Shape object
+            case PropertyValueType.TEXT_DOCUMENT:
+                // TextDocument object
+                this.dimensions = 0;
         }
+        if (this.dimensions > 0) {
+            this.values = [];
+            for (var t = timeSpan.start; t < timeSpan.end; t += theComp.frameDuration / precision) {
+                this.values.push(
+                    (this.dimensions > 1) ?
+                        theProperty.valueAtTime(t, afterExpressions) :
+                        [theProperty.valueAtTime(t, afterExpressions)]
+                );
+            }
+            this.max = [];
+            this.min = [];
+            this.average = [];
+            this.cumulative = [];
+            this.median = [];
+            for (var d = 0; d < this.dimensions; d++) {
+                this.max = this.values[d];
+                this.min = this.values[d];
+                this.average = this.values[d];
+                this.cumulative[d] = 0;
+
+                for (var v = d; v < this.values.length; v += this.dimensions) {
+                    this.max[d] = Math.max(this.max[d], this.values[d]);
+                    this.min[d] = Math.min(this.min[d], this.values[d]);
+                    this.cumulative[d] += this.values[d];
+                }
+                this.average[d] = this.cumulative[d] / this.values.length;
+                this.median[d] = this.values[Math.round(this.values.length / 2)];
+            }
+            this.status = "Stats updated"
+        } else {
+            this.min = this.max = this.average = this.median = null;
+            this.status = "Cannot calculate stats for this kind of property."
+        }
+        // } catch (e) {
+        //     this.status = "Error: " + e;
+        // }
         return this;
     }
     // -----------------Text Slider------------------------------------------
