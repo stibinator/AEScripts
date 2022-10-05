@@ -504,31 +504,34 @@
             }
         }
 
-        function recursivelyUpdateScripts(sourceFolder, mainTargetFolder, secondTargetFolder, log) {
-
+        function recursivelyUpdateScripts(sourceFolder, mainTargetFolder, adobePrefsScriptsFolder, log) {
+            // adobePrefsScriptsFolder for when headless scripts have been moved to the Adobe folder
             var sourceChildren = sourceFolder.getFiles();
             var targetFolder;
             for (var f = 0; f < sourceChildren.length; f++) {
                 if (sourceChildren[f] instanceof Folder) {
                     var mainTargetSubFolder = createPath(mainTargetFolder, sourceChildren[f].name);
-                    var secondTargetSubFolder = joinPath(secondTargetFolder, sourceChildren[f].name);
+                    var secondTargetSubFolder = joinPath(adobePrefsScriptsFolder, sourceChildren[f].name);
                     recursivelyUpdateScripts(sourceChildren[f], mainTargetSubFolder, secondTargetSubFolder, log);
+                    if (! sourceChildren[f].remove()){log("Couldn't remove downloaded folder: "+sourceChildren[f].name)}
                 } else {
-                    if (secondTargetFolder.exists && (joinPath(secondTargetFolder, sourceChildren[f].name).exists)) {
-                        targetFolder = secondTargetFolder;
+                    // object is a file
+                    if (adobePrefsScriptsFolder.exists && (joinPath(adobePrefsScriptsFolder, sourceChildren[f].name).exists)) {
+                        // script is in the adobe folder
+                        targetFolder = adobePrefsScriptsFolder;
                     } else {
                         targetFolder = mainTargetFolder;
                     }
-                }
-                target = joinPath(targetFolder, sourceChildren[f].name);
-                if (sourceChildren[f].copy(target)) {//TODO: Folder has no copy function
-                    sourceChildren[f].remove();
-                } else {
-
+                    target = joinPath(targetFolder, sourceChildren[f].name);
+                    if (sourceChildren[f].copy(target)) {
+                        sourceChildren[f].remove();
+                    } else {
+                        if (! sourceChildren[f].remove()){log("Couldn't remove downloaded file: "+sourceChildren[f].name)}
+                    }
                 }
             }
             if (!sourceFolder.remove()) {
-                if (log) { log.log("couldn't remove downloaded folder") }
+                if (log) { log.log("couldn't remove download folder: " + sourceFolder.name) }
             }
         }
 
