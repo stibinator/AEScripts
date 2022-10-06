@@ -1,8 +1,35 @@
 //@target aftereffects
 (function (thisObj) {
     var scriptName = "facts-n-figures";
+    var SCRIPT_ID = "*FnF*";
     var versionNum = 0.1;
     var prefs = Preferences(scriptName);
+    var CONTROL_TYPES = [
+        "ADBE Slider Control",
+        "ADBE Point Control",
+        "ADBE Point3D Control",
+        "ADBE Color Control"
+    ];
+
+    var LOCALISED_NAMES = {
+        // localise these bois
+        en: {
+            max: "Maximum",
+            min: "Minimum",
+            av: "Average",
+            med: "Median",
+            afterEx: "After Expressions",
+            prec: "Precision",
+            calc: "Calculate"
+        }
+    }
+
+    var language = app.isoLanguage.split("_")[0];
+    if (language in LOCALISED_NAMES) {
+        lang = language;
+    } else {
+        lang = "en"
+    }
 
     function buildGUI(thisObj) {
         // thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
@@ -27,32 +54,32 @@
         var maxChkBx = pal.add(
             "checkbox",
             [undefined, undefined, 180, 22],
-            "max"
+            LOCALISED_NAMES[lang].max
         );
         var minChkBx = pal.add(
             "checkbox",
             [undefined, undefined, 180, 22],
-            "min"
+            LOCALISED_NAMES[lang].min
         );
         var avChkBx = pal.add(
             "checkbox",
             [undefined, undefined, 180, 22],
-            "average"
+            LOCALISED_NAMES[lang].av
         );
         var medChkBx = pal.add(
             "checkbox",
             [undefined, undefined, 180, 22],
-            "median"
+            LOCALISED_NAMES[lang].med
         );
         var afterExpChkBx = pal.add(
             "checkbox",
             [undefined, undefined, 180, 22],
-            "After expressions"
+            LOCALISED_NAMES[lang].afterEx
         );
 
         var precision = TextSlider(
             (container = pal),
-            (name = "precision"),
+            (name = LOCALISED_NAMES[lang].prec),
             (val = 1),
             (min = 0.1),
             (max = 100),
@@ -82,7 +109,7 @@
         var doTheThingsBtn = pal.add(
             "button",
             [undefined, undefined, 180, 22],
-            "Calculate"
+            LOCALISED_NAMES[lang].calc
         );
 
         // ---------- UI Call backs -------------------
@@ -130,17 +157,34 @@
         if (theComp) {
             var theProps = theComp.selectedProperties;
             for (var p = 0; p < theProps.length; p++) {
-                var timeSpan = calculateTimeSpan(method, theProps[p], theComp);
-                var stats = Stats(theComp, theProps[p], timeSpan, precision, afterExpressions);
-                alert(
-                    ((doMax) ? "max " + stats.max : "") +
-                    ((doMin) ? "\nmin: " + stats.min : "") +
-                    ((doAv) ? "\nav: " + stats.average : "") +
-                    ((doMed) ? "\nmed: " + stats.median : "")
-                )
+                if (theProps[p] instanceof Property) {
+                    var theLayer = findLayer(theProps[p]);
+                    var timeSpan = calculateTimeSpan(method, theLayer, theComp);
+                    var stats = getStats(theComp, theProps[p], timeSpan, precision, afterExpressions);
+
+                    if (doMax) {
+                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].max, stats.maxVal)
+                    }
+                    if (doMin) {
+                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].min, stats.minVal)
+                    }
+                    if (doAv) {
+                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].av, stats.average)
+                    }
+                    if (doMed) {
+                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].med, stats.median)
+                    }
+
+                }
             }
         }
         app.endUndoGroup();
+    }
+
+    function makeExpressionControl(theLayer, propName, controlName, controlVal) {
+        var newControl = theLayer.property("ADBE Effect Parade").addProperty(CONTROL_TYPES[controlVal.length - 1]);
+        newControl.name =[SCRIPT_ID, propName, controlName].join(" ");
+        newControl.value = controlVal;
     }
 
     function findLayer(theProperty) {
@@ -154,11 +198,11 @@
         return p
     }
 
-    function calculateTimeSpan(method, prop, theComp) {
+    function calculateTimeSpan(method, theLayer, theComp) {
         //  methods = ["Layer bounds", "Comp bounds", "Work area", "First and last KFs"];
         switch (method) {
             case 0:
-                var theLayer = findLayer(prop);
+
                 return { start: theLayer.inPoint, end: theLayer.outPoint };
             case 1:
                 return { start: 0, end: theComp.duration };
@@ -173,21 +217,26 @@
         }
     }
 
-    function Stats(theComp, theProperty, timeSpan, precision, afterExpressions) {
+    function getStats(theComp, theProperty, timeSpan, precision, afterExpressions) {
         var valueType = theProperty.propertyValueType;
         // try {
+        var propDimensions;
         switch (valueType) {
+            case PropertyValueType.COLOR:
+                //Array of 4 floating-point values in the range [0.0..1.0]. For example, [0.8, 0.3, 0.1, 1.0]
+                propDimensions = 4;
+                break;
             case PropertyValueType.ThreeD_SPATIAL:
             // Array of three floating-point positional values. For example, an Anchor Point value might be [10.0, 20.2, 0.0]
             case PropertyValueType.ThreeD:
                 // Array of three floating-point quantitative values. For example, a Scale value might be [100.0, 20.2, 0.0]
-                this.dimensions = 3;
+                propDimensions = 3;
                 break;
             case PropertyValueType.TwoD_SPATIAL:
             // Array of 2 floating-point positional values. For example, an Anchor Point value might be [5.1, 10.0]
             case PropertyValueType.TwoD:
                 // Array of 2 floating-point quantitative values. For example, a Scale value might be [5.1, 100.0]
-                this.dimensions = 2;
+                propDimensions = 2;
                 break;
             case PropertyValueType.OneD:
             // A floating-point value.
@@ -195,10 +244,8 @@
             // Integer; a value of 0 means no layer.
             case PropertyValueType.MASK_INDEX:
                 // Integer; a value of 0 means no mask.
-                this.dimensions = 1
+                propDimensions = 1
                 break;
-            case PropertyValueType.COLOR:
-            //Array of 4 floating-point values in the range [0.0..1.0]. For example, [0.8, 0.3, 0.1, 1.0]
             case PropertyValueType.NO_VALUE:
             // Stores no data.
             case PropertyValueType.CUSTOM_VALUE:
@@ -209,45 +256,59 @@
             // Shape object
             case PropertyValueType.TEXT_DOCUMENT:
                 // TextDocument object
-                this.dimensions = 0;
+                propDimensions = 0;
         }
-        if (this.dimensions > 0) {
-            this.values = [];
+        if (propDimensions > 0) {
+            var values = [];
             for (var t = timeSpan.start; t < timeSpan.end; t += theComp.frameDuration / precision) {
-                this.values.push(
-                    (this.dimensions > 1) ?
+                values.push(
+                    (propDimensions > 1) ?
                         theProperty.valueAtTime(t, afterExpressions) :
                         [theProperty.valueAtTime(t, afterExpressions)]
                 );
             }
-            this.max = [];
-            this.min = [];
-            this.average = [];
-            this.cumulative = [];
-            this.median = [];
-            for (var d = 0; d < this.dimensions; d++) {
-                this.max = this.values[d];
-                this.min = this.values[d];
-                this.average = this.values[d];
-                this.cumulative[d] = 0;
-
-                for (var v = d; v < this.values.length; v += this.dimensions) {
-                    this.max[d] = Math.max(this.max[d], this.values[d]);
-                    this.min[d] = Math.min(this.min[d], this.values[d]);
-                    this.cumulative[d] += this.values[d];
-                }
-                this.average[d] = this.cumulative[d] / this.values.length;
-                this.median[d] = this.values[Math.round(this.values.length / 2)];
+            var cumulative = values[0] * 0; //create array of zeros with the right dimensions
+            var median = [];
+            var minVal = [];
+            var maxVal = [];
+            // Don't declare arrays by assigning them to other arrays or weirdness awaits
+            for (var d = 0; d < propDimensions; d++) {
+                minVal[d] = values[0][d];
+                maxVal[d] = values[0][d];
             }
-            this.status = "Stats updated"
+            // calculate maxVal and minVal and create cumulative total
+            for (var v = 0; v < values.length; v++) {
+                for (var d = 0; d < propDimensions; d++) {
+                    maxVal[d] = Math.max(maxVal[d], values[v][d]);
+                    minVal[d] = Math.min(minVal[d], values[v][d]);
+                    $.writeln("min: " + minVal[d] + " max " + maxVal[d]);
+                }
+                cumulative += values[v];
+            }
+            // calcula
+            var average = cumulative / values.length;
+            var sortedValues = [];
+            for (var d = 0; d < propDimensions; d++) {
+                for (var v = 0; v < values.length; v++) {
+                    sortedValues.push(values[v][d]);
+                }
+                sortedValues.sort(function (a, b) { return a - b })
+                var middleVal = Math.floor(values.length / 2);
+                median[d] = (values.length % 2) ?
+                    (sortedValues[middleVal] + sortedValues[middleVal + 1]) / 2 :
+                    sortedValues[middleVal];
+            }
         } else {
-            this.min = this.max = this.average = this.median = null;
-            this.status = "Cannot calculate stats for this kind of property."
+            minVal = maxVal = average = median = null;
         }
         // } catch (e) {
-        //     this.status = "Error: " + e;
         // }
-        return this;
+        return {
+            maxVal: maxVal,
+            minVal: minVal,
+            average: average,
+            median: median
+        };
     }
     // -----------------Text Slider------------------------------------------
     //slider with textBox + bells + whistles
