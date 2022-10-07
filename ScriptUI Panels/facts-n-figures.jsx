@@ -20,7 +20,8 @@
             med: "Median",
             afterEx: "After Expressions",
             prec: "Precision",
-            calc: "Calculate"
+            calc: "Calculate",
+            make: "Make Expression Ctrls"
         }
     }
 
@@ -44,94 +45,165 @@
         var methods = ["Layer bounds", "Comp bounds", "Work area", "First and last KFs"];
         var methodDD = pal.add(
             "dropdownlist",
-            [undefined, undefined, 180, 22],
+            [undefined, undefined, 220, 22],
             methods
         );
         methodDD.name = "Calculation duration";
         methodDD.selection = prefs.getPref(methodDD);
 
         //-----------CheckBox-----------------------
-        var maxChkBx = pal.add(
+        var chkbxGrp = pal.add("group");
+        chkbxGrp.orientation = "column";
+        chkbxGrp.spacing = 2;
+        var chkBxSize = { x: 8, y: 36, width: 20, height: 20 };
+        var et = { x: 30, y: 8, w: 40, h: 24, m: 4 };
+        var editTextSize = [
+            { x: et.x, y: et.y, width: et.w, height: et.h },
+            { x: et.x + (et.w + et.m), y: et.y, width: et.w, height: et.h },
+            { x: et.x + (et.w + et.m) * 2, y: et.y, width: et.w, height: et.h },
+            { x: et.x + (et.w + et.m) * 3, y: et.y, width: et.w, height: et.h }
+        ];//{ left: chkBxSize.width + 12, top: chkBxSize.y - 2, right: panelSize.width - 12, bottom: panelSize.height - 16 };
+        var maxChkBxGrp = chkbxGrp.add("panel");
+        maxChkBxGrp.text = LOCALISED_NAMES[lang].max;
+        maxChkBxGrp.orientation = "row";
+        maxChkBxGrp.alignChildren = "center";
+        var maxChkBx = maxChkBxGrp.add(
             "checkbox",
-            [undefined, undefined, 180, 22],
-            LOCALISED_NAMES[lang].max
+            chkBxSize
         );
-        var minChkBx = pal.add(
+        var maxTxt = [
+            maxChkBxGrp.add("edittext", editTextSize[0], ""),
+            maxChkBxGrp.add("edittext", editTextSize[1], ""),
+            maxChkBxGrp.add("edittext", editTextSize[2], ""),
+            maxChkBxGrp.add("edittext", editTextSize[3], "")
+        ];
+        var minChkBxGrp = chkbxGrp.add("panel");
+        minChkBxGrp.text = LOCALISED_NAMES[lang].min;
+        minChkBxGrp.orientation = "row";
+        minChkBxGrp.alignChildren = "center";
+        var minChkBx = minChkBxGrp.add(
             "checkbox",
-            [undefined, undefined, 180, 22],
-            LOCALISED_NAMES[lang].min
+            chkBxSize
         );
-        var avChkBx = pal.add(
+        var minTxt = [
+            minChkBxGrp.add("edittext", editTextSize[0], ""),
+            minChkBxGrp.add("edittext", editTextSize[1], ""),
+            minChkBxGrp.add("edittext", editTextSize[2], ""),
+            minChkBxGrp.add("edittext", editTextSize[3], "")
+        ];
+        var avChkBxGrp = chkbxGrp.add("panel");
+        avChkBxGrp.text = LOCALISED_NAMES[lang].av;
+        avChkBxGrp.orientation = "row";
+        avChkBxGrp.alignChildren = "center";
+        var avChkBx = avChkBxGrp.add(
             "checkbox",
-            [undefined, undefined, 180, 22],
-            LOCALISED_NAMES[lang].av
+            chkBxSize
         );
-        var medChkBx = pal.add(
+        var avTxt = [
+            avChkBxGrp.add("edittext", editTextSize[0], ""),
+            avChkBxGrp.add("edittext", editTextSize[1], ""),
+            avChkBxGrp.add("edittext", editTextSize[2], ""),
+            avChkBxGrp.add("edittext", editTextSize[3], "")
+        ];
+        var medChkBxGrp = chkbxGrp.add("panel");
+        medChkBxGrp.text = LOCALISED_NAMES[lang].med;
+        medChkBxGrp.orientation = "row";
+        medChkBxGrp.alignChildren = "center";
+        var medChkBx = medChkBxGrp.add(
             "checkbox",
-            [undefined, undefined, 180, 22],
-            LOCALISED_NAMES[lang].med
+            chkBxSize
         );
-        var afterExpChkBx = pal.add(
+        var medTxt = [
+            medChkBxGrp.add("edittext", editTextSize[0], ""),
+            medChkBxGrp.add("edittext", editTextSize[1], ""),
+            medChkBxGrp.add("edittext", editTextSize[2], ""),
+            medChkBxGrp.add("edittext", editTextSize[3], "")
+        ];
+        var settingsPanel = pal.add("panel");
+        settingsPanel.text = "Settings";
+        settingsPanel.spacing = 4;
+        var afterExpChkBx = settingsPanel.add(
             "checkbox",
-            [undefined, undefined, 180, 22],
+            [undefined, undefined, 220, 22],
             LOCALISED_NAMES[lang].afterEx
         );
-
+        var precisionPanel = settingsPanel.add("panel");
+        precisionPanel.text = "Precision (samples per frame)";
         var precision = TextSlider(
-            (container = pal),
-            (name = LOCALISED_NAMES[lang].prec),
-            (val = 1),
-            (min = 0.1),
-            (max = 100),
-            (callback = function () {
-                prefs.setPref(this);
-                doTheThings(
+            container = precisionPanel,
+            name = LOCALISED_NAMES[lang].prec,
+            val = 1,
+            min = 0.1,
+            max = 100,
+            callback = function () {
+                // prefs.setPref(this);
+                calculateStats(
                     methodDD.selection,
-                    maxChkBx.value,
-                    minChkBx.value,
-                    avChkBx.value,
-                    medChkBx.value,
                     this.getVal(),
                     afterExpChkBx.value
                 )
-            }),
-            (precision = 1),
-            (dimensions = {
-                width: 180,
+            },
+            precision = 2,
+            dimensions = {
+                width: 186,
                 height: 22,
                 sliderHeight: 12,
                 sliderProportion: 0.5,
-            }),
-            (prefs = prefs)
+            },
+            prefs = prefs
         );
 
         //-----------Button-------------------------
-        var doTheThingsBtn = pal.add(
+        var btnGrp = pal.add("group");
+        btnGrp.orientation = "row";
+        var calculateStatsBtn = btnGrp.add(
             "button",
-            [undefined, undefined, 180, 22],
+            [undefined, undefined, 122, 22],
             LOCALISED_NAMES[lang].calc
         );
+        var makeExprControlsBtn = btnGrp.add(
+            "button",
+            [undefined, undefined, 122, 22],
+            LOCALISED_NAMES[lang].make
+        );
 
+        function updateEditText(stats) {
+            for (var d = 0; d < 4; d++) {
+                maxTxt[d].text = (d < stats.dimensions) ? stats.maxVal[d] : "-";
+                minTxt[d].text = (d < stats.dimensions) ? stats.minVal[d] : "-";
+                avTxt[d].text = (d < stats.dimensions) ? stats.average[d] : "-";
+                medTxt[d].text = (d < stats.dimensions) ? stats.median[d] : "-";
+            }
+        }
         // ---------- UI Call backs -------------------
         methodDD.onChange =
-            maxChkBx.onClick =
-            minChkBx.onClick =
-            avChkBx.onClick =
-            medChkBx.onClick =
-            doTheThingsBtn.onClick =
+            afterExpChkBx.onClick =
+            calculateStatsBtn.onClick =
             function () {
                 prefs.setPref(this);
-                doTheThings(
+                var stats = calculateStats(
                     methodDD.selection.index,
-                    maxChkBx.value,
-                    minChkBx.value,
-                    avChkBx.value,
-                    medChkBx.value,
                     precision.getVal(),
                     afterExpChkBx.value
                 )
+                updateEditText(stats.statistics);
             };
 
+        makeExprControlsBtn.onClick = function () {
+            var switches = {
+                doMax: maxChkBx.value,
+                doMin: minChkBx.value,
+                doAv: avChkBx.value,
+                doMed: medChkBx.value,
+            }
+            var stats = calculateStats(
+                methodDD.selection.index,
+                precision.getVal(),
+                afterExpChkBx.value
+            )
+            updateEditText(stats.statistics);
+            applyStats(stats, switches);
+        }
         //------------------------ build the GUI ------------------------
         if (pal instanceof Window) {
             pal.center();
@@ -139,52 +211,63 @@
         } else {
             pal.layout.layout(true);
         }
+        return pal;
     }
 
     //---------------------------- functions n shit ---------------------
-    function doTheThings(
+    function calculateStats(
         method,
-        doMax,
-        doMin,
-        doAv,
-        doMed,
         precision,
         afterExpressions
     ) {
-        app.beginUndoGroup(scriptName);
-
+        var stats = {
+            minVal: ["☠", "☠", "☠", "☠"],
+            maxVal: ["☠", "☠", "☠", "☠"],
+            average: ["☠", "☠", "☠", "☠"],
+            median: ["☠", "☠", "☠", "☠"],
+        }
         var theComp = app.project.activeItem;
         if (theComp) {
             var theProps = theComp.selectedProperties;
-            for (var p = 0; p < theProps.length; p++) {
-                if (theProps[p] instanceof Property) {
-                    var theLayer = findLayer(theProps[p]);
-                    var timeSpan = calculateTimeSpan(method, theLayer, theComp);
-                    var stats = getStats(theComp, theProps[p], timeSpan, precision, afterExpressions);
-
-                    if (doMax) {
-                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].max, stats.maxVal)
-                    }
-                    if (doMin) {
-                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].min, stats.minVal)
-                    }
-                    if (doAv) {
-                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].av, stats.average)
-                    }
-                    if (doMed) {
-                        makeExpressionControl(theLayer, theProps[p].name, LOCALISED_NAMES[lang].med, stats.median)
-                    }
-
-                }
+            var p = 0;
+            while (p < theProps.length && !theProps[p] instanceof Property) {
+                p++
+            }
+            if (theProps[p] instanceof Property) {
+                var theLayer = findLayer(theProps[p]);
+                var timeSpan = calculateTimeSpan(method, theLayer, theComp);
+                stats = getStats(theComp, theProps[p], timeSpan, precision, afterExpressions)
             }
         }
-        app.endUndoGroup();
+        return { statistics: stats, lyr: theLayer, prop: theProps[p] }
     }
 
-    function makeExpressionControl(theLayer, propName, controlName, controlVal) {
-        var newControl = theLayer.property("ADBE Effect Parade").addProperty(CONTROL_TYPES[controlVal.length - 1]);
-        newControl.name =[SCRIPT_ID, propName, controlName].join(" ");
-        newControl.value = controlVal;
+
+    function applyStats(stats, switches) {
+        if (stats.prop && stats.lyr) {
+            if (switches.doMax) {
+                makeExpressionControl(stats.lyr, stats.prop, LOCALISED_NAMES[lang].max, stats.statistics.maxVal)
+            }
+            if (switches.doMin) {
+                makeExpressionControl(stats.lyr, stats.prop, LOCALISED_NAMES[lang].min, stats.statistics.minVal)
+            }
+            if (switches.doAv) {
+                makeExpressionControl(stats.lyr, stats.prop, LOCALISED_NAMES[lang].av, stats.statistics.average)
+            }
+            if (switches.doMed) {
+                makeExpressionControl(stats.lyr, stats.prop, LOCALISED_NAMES[lang].med, stats.statistics.median)
+            }
+        }
+    }
+
+    function makeExpressionControl(theLayer, prop, controlName, controlVal) {
+        var newControlName = SCRIPT_ID + ": " + [((prop.propertyDepth > 1) ? [prop.parentProperty.name, prop.name].join(">") : prop.name), controlName].join(">");
+        var newControl = theLayer.property("ADBE Effect Parade").property(newControlName);
+        if (!newControl) {
+            newControl = theLayer.property("ADBE Effect Parade").addProperty(CONTROL_TYPES[controlVal.length - 1]);
+            newControl.name = newControlName;
+        }
+        newControl.property(1).setValue(controlVal);
     }
 
     function findLayer(theProperty) {
@@ -216,36 +299,29 @@
                 }
         }
     }
-
-    function getStats(theComp, theProperty, timeSpan, precision, afterExpressions) {
+    function getDimensions(theProperty) {
         var valueType = theProperty.propertyValueType;
-        // try {
-        var propDimensions;
         switch (valueType) {
             case PropertyValueType.COLOR:
                 //Array of 4 floating-point values in the range [0.0..1.0]. For example, [0.8, 0.3, 0.1, 1.0]
-                propDimensions = 4;
-                break;
+                return 4;
             case PropertyValueType.ThreeD_SPATIAL:
             // Array of three floating-point positional values. For example, an Anchor Point value might be [10.0, 20.2, 0.0]
             case PropertyValueType.ThreeD:
                 // Array of three floating-point quantitative values. For example, a Scale value might be [100.0, 20.2, 0.0]
-                propDimensions = 3;
-                break;
+                return 3;
             case PropertyValueType.TwoD_SPATIAL:
             // Array of 2 floating-point positional values. For example, an Anchor Point value might be [5.1, 10.0]
             case PropertyValueType.TwoD:
                 // Array of 2 floating-point quantitative values. For example, a Scale value might be [5.1, 100.0]
-                propDimensions = 2;
-                break;
+                return 2;
             case PropertyValueType.OneD:
             // A floating-point value.
             case PropertyValueType.LAYER_INDEX:
             // Integer; a value of 0 means no layer.
             case PropertyValueType.MASK_INDEX:
                 // Integer; a value of 0 means no mask.
-                propDimensions = 1
-                break;
+                return 1
             case PropertyValueType.NO_VALUE:
             // Stores no data.
             case PropertyValueType.CUSTOM_VALUE:
@@ -256,8 +332,14 @@
             // Shape object
             case PropertyValueType.TEXT_DOCUMENT:
                 // TextDocument object
-                propDimensions = 0;
+                return 0;
         }
+    }
+
+    function getStats(theComp, theProperty, timeSpan, precision, afterExpressions) {
+        // try {
+        var propDimensions = getDimensions(theProperty);
+
         if (propDimensions > 0) {
             var values = [];
             for (var t = timeSpan.start; t < timeSpan.end; t += theComp.frameDuration / precision) {
@@ -285,8 +367,13 @@
                 }
                 cumulative += values[v];
             }
-            // calcula
+            // calculate average
             var average = cumulative / values.length;
+            // one dimensional number arrays get turned into scalars by the calculation,
+            // force them back into arrays
+            if (!average.length) {
+                average = [average];
+            }
             var sortedValues = [];
             for (var d = 0; d < propDimensions; d++) {
                 for (var v = 0; v < values.length; v++) {
@@ -307,7 +394,8 @@
             maxVal: maxVal,
             minVal: minVal,
             average: average,
-            median: median
+            median: median,
+            dimensions: propDimensions
         };
     }
     // -----------------Text Slider------------------------------------------
