@@ -394,23 +394,23 @@
     function getStats(theComp, theProperty, timeSpan, precision, afterExpressions, onlyOnKFs) {
         // try {
         var propDimensions = getDimensions(theProperty);
-
+        var preExpressions = !afterExpressions;
         if (propDimensions > 0) {
             var values = [];
             if (onlyOnKFs) {
                 for (var k = 1; k <= theProperty.numKeys; k++) {
                     values.push(
                         (propDimensions > 1) ?
-                            theProperty.valueAtTime(theProperty.keyTime(k), afterExpressions) :
-                            [theProperty.valueAtTime(theProperty.keyTime(k), afterExpressions)]
+                            theProperty.valueAtTime(theProperty.keyTime(k), preExpressions) :
+                            [theProperty.valueAtTime(theProperty.keyTime(k), preExpressions)]
                     );
                 }
             } else {
                 for (var t = timeSpan.start; t < timeSpan.end; t += theComp.frameDuration / precision) {
                     values.push(
                         (propDimensions > 1) ?
-                            theProperty.valueAtTime(t, afterExpressions) :
-                            [theProperty.valueAtTime(t, afterExpressions)]
+                            theProperty.valueAtTime(t, preExpressions) :
+                            [theProperty.valueAtTime(t, preExpressions)]
                     );
                 }
             }
