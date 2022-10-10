@@ -244,7 +244,6 @@
             medChkBx.onClick =
             avChkBx.onClick =
             afterExpChkBx.onClick =
-            onlyKFsChkBx.onClick =
             function () {
                 toggleMakeEXPBtn();
                 prefs.setPref(this);
