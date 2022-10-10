@@ -21,7 +21,8 @@
             afterEx: "After Expressions",
             prec: "Precision",
             calc: "Calculate",
-            make: "Make Expression Ctrls"
+            make: "Make Expression Ctrls",
+            onlyKFs: "Only on Keyframes"
         }
     }
 
@@ -71,6 +72,7 @@
             "checkbox",
             chkBxSize
         );
+        maxChkBx.name = "maxChkBx"
         var maxTxt = [
             maxChkBxGrp.add("edittext", editTextSize[0], ""),
             maxChkBxGrp.add("edittext", editTextSize[1], ""),
@@ -85,6 +87,7 @@
             "checkbox",
             chkBxSize
         );
+        minChkBx.name = "minChkBx"
         var minTxt = [
             minChkBxGrp.add("edittext", editTextSize[0], ""),
             minChkBxGrp.add("edittext", editTextSize[1], ""),
@@ -99,6 +102,7 @@
             "checkbox",
             chkBxSize
         );
+        avChkBx.name = "avChkBx"
         var avTxt = [
             avChkBxGrp.add("edittext", editTextSize[0], ""),
             avChkBxGrp.add("edittext", editTextSize[1], ""),
@@ -113,6 +117,7 @@
             "checkbox",
             chkBxSize
         );
+        medChkBx.name = "medChkBx"
         var medTxt = [
             medChkBxGrp.add("edittext", editTextSize[0], ""),
             medChkBxGrp.add("edittext", editTextSize[1], ""),
@@ -127,6 +132,13 @@
             [undefined, undefined, 220, 22],
             LOCALISED_NAMES[lang].afterEx
         );
+        afterExpChkBx.name = "afterExpChkBx"
+        var onlyKFsChkBx = settingsPanel.add(
+            "checkbox",
+            [undefined, undefined, 220, 22],
+            LOCALISED_NAMES[lang].onlyKFs
+        );
+        onlyKFsChkBx.name = "onlyKFsChkBx"
         var precisionPanel = settingsPanel.add("panel");
         precisionPanel.text = "Precision (samples per frame)";
         var precision = TextSlider(
@@ -140,10 +152,11 @@
                 calculateStats(
                     methodDD.selection,
                     this.getVal(),
-                    afterExpChkBx.value
+                    afterExpChkBx.value,
+                    onlyKFsChkBx.value
                 )
             },
-            precision = 2,
+            decimalPlaces = 2,
             dimensions = {
                 width: 186,
                 height: 22,
@@ -184,11 +197,11 @@
                 var stats = calculateStats(
                     methodDD.selection.index,
                     precision.getVal(),
-                    afterExpChkBx.value
+                    afterExpChkBx.value,
+                    onlyKFsChkBx.value
                 )
                 updateEditText(stats.statistics);
             };
-
         makeExprControlsBtn.onClick = function () {
             var switches = {
                 doMax: maxChkBx.value,
@@ -196,14 +209,53 @@
                 doAv: avChkBx.value,
                 doMed: medChkBx.value,
             }
+
             var stats = calculateStats(
                 methodDD.selection.index,
                 precision.getVal(),
-                afterExpChkBx.value
+                afterExpChkBx.value,
+                onlyKFsChkBx.value
             )
             updateEditText(stats.statistics);
             applyStats(stats, switches);
         }
+
+        function togglePrecisionSlider() {
+            // disable the precision slider if only using KFs
+            precision.slidr.enabled =
+                precision.editText.enabled =
+                !onlyKFsChkBx.value;
+        }
+        onlyKFsChkBx.onClick = function () {
+            togglePrecisionSlider()
+            prefs.setPref(this)
+        }
+
+        function toggleMakeEXPBtn() {
+            // disable the make expressions button if no checkboxes are lit
+            makeExprControlsBtn.enabled =
+                maxChkBx.value ||
+                minChkBx.value ||
+                avChkBx.value ||
+                medChkBx.value
+        }
+        maxChkBx.onClick =
+            minChkBx.onClick =
+            medChkBx.onClick =
+            avChkBx.onClick =
+            afterExpChkBx.onClick =
+            onlyKFsChkBx.onClick =
+            function () {
+                toggleMakeEXPBtn();
+                prefs.setPref(this);
+            }
+
+        onlyKFsChkBx.value = prefs.getPref(onlyKFsChkBx);
+        maxChkBx.value = prefs.getPref(maxChkBx);
+        minChkBx.value = prefs.getPref(minChkBx);
+        medChkBx.value = prefs.getPref(medChkBx);
+        avChkBx.value = prefs.getPref(avChkBx);
+
         //------------------------ build the GUI ------------------------
         if (pal instanceof Window) {
             pal.center();
@@ -211,6 +263,8 @@
         } else {
             pal.layout.layout(true);
         }
+        togglePrecisionSlider();
+        toggleMakeEXPBtn();
         return pal;
     }
 
@@ -218,7 +272,8 @@
     function calculateStats(
         method,
         precision,
-        afterExpressions
+        afterExpressions,
+        onlyOnKFs
     ) {
         var stats = {
             minVal: ["☠", "☠", "☠", "☠"],
@@ -233,13 +288,14 @@
             while (p < theProps.length && !theProps[p] instanceof Property) {
                 p++
             }
-            if (theProps[p] instanceof Property) {
+            theProp = (p < theProps.length && theProps[p] instanceof Property) ? theProps[p] : null;
+            if (theProp) {
                 var theLayer = findLayer(theProps[p]);
                 var timeSpan = calculateTimeSpan(method, theLayer, theComp);
-                stats = getStats(theComp, theProps[p], timeSpan, precision, afterExpressions)
+                statistics = getStats(theComp, theProp, timeSpan, precision, afterExpressions, onlyOnKFs)
             }
         }
-        return { statistics: stats, lyr: theLayer, prop: theProps[p] }
+        return { statistics: statistics, lyr: theLayer, prop: theProp }
     }
 
 
@@ -336,18 +392,28 @@
         }
     }
 
-    function getStats(theComp, theProperty, timeSpan, precision, afterExpressions) {
+    function getStats(theComp, theProperty, timeSpan, precision, afterExpressions, onlyOnKFs) {
         // try {
         var propDimensions = getDimensions(theProperty);
 
         if (propDimensions > 0) {
             var values = [];
-            for (var t = timeSpan.start; t < timeSpan.end; t += theComp.frameDuration / precision) {
-                values.push(
-                    (propDimensions > 1) ?
-                        theProperty.valueAtTime(t, afterExpressions) :
-                        [theProperty.valueAtTime(t, afterExpressions)]
-                );
+            if (onlyOnKFs) {
+                for (var k = 1; k <= theProperty.numKeys; k++) {
+                    values.push(
+                        (propDimensions > 1) ?
+                            theProperty.valueAtTime(theProperty.keyTime(k), afterExpressions) :
+                            [theProperty.valueAtTime(theProperty.keyTime(k), afterExpressions)]
+                    );
+                }
+            } else {
+                for (var t = timeSpan.start; t < timeSpan.end; t += theComp.frameDuration / precision) {
+                    values.push(
+                        (propDimensions > 1) ?
+                            theProperty.valueAtTime(t, afterExpressions) :
+                            [theProperty.valueAtTime(t, afterExpressions)]
+                    );
+                }
             }
             var cumulative = values[0] * 0; //create array of zeros with the right dimensions
             var median = [];
@@ -407,7 +473,7 @@
         min,
         max,
         callback,
-        precision,
+        decimalPlaces,
         dimensions,
         prefs
     ) {
@@ -428,25 +494,25 @@
         this.slidr.preferredSize.width =
             dimensions.width * dimensions.sliderProportion - 10;
         this.slidr.preferredSize.height = dimensions.sliderHeight;
-        this.editText = grp.add("edittext", undefined, val.toFixed(precision));
+        this.editText = grp.add("edittext", undefined, val.toFixed(decimalPlaces));
         this.editText.preferredSize.width =
             dimensions.width * (1 - dimensions.sliderProportion);
         this.editText.preferredSize.height = dimensions.height;
-        this.editText.precision = precision;
+        this.editText.decimalPlaces = decimalPlaces;
         this.editText.slider = this.slidr;
         this.slidr.editText = this.editText;
         this.slidr.prefs = prefs;
         if (prefs) {
             this.slidr.value = prefs.getPref(this.slidr) || val;
             this.editText.text = this.slidr.value.toFixed(
-                this.editText.precision
+                this.editText.decimalPlaces
             );
         }
         this.editText.onChange = function () {
             try {
                 var newVal = parseFloat(this.text);
                 if (isNaN(newVal)) {
-                    this.text = this.slider.value.toFixed(this.precision);
+                    this.text = this.slider.value.toFixed(this.decimalPlaces);
                 } else {
                     this.slider.value = newVal;
                 }
@@ -461,10 +527,10 @@
             }
         };
         this.slidr.onChanging = function () {
-            this.editText.text = this.value.toFixed(this.editText.precision);
+            this.editText.text = this.value.toFixed(this.editText.decimalPlaces);
         };
         this.slidr.onChange = function () {
-            this.editText.text = this.value.toFixed(this.editText.precision);
+            this.editText.text = this.value.toFixed(this.editText.decimalPlaces);
             if (this.prefs) {
                 this.prefs.setPref(this);
             }
@@ -474,7 +540,7 @@
         };
         this.setVal = function (val) {
             this.slidr.value = val;
-            this.editText.text = val.toFixed(this.precision);
+            this.editText.text = val.toFixed(this.decimalPlaces);
         };
         this.getVal = function () {
             return this.slidr.value;
@@ -511,7 +577,10 @@
                     currentVal = anObject.selection.index;
                 } else if (anObject instanceof EditText) {
                     currentVal = anObject.text;
-                } else {
+                } else if (anObject instanceof TextSlider) {
+                    currentVal = anObject.getVal();
+                }
+                else {
                     throw "objects must have a 'text' or 'value' property to set preferences";
                 }
 
