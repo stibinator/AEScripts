@@ -605,7 +605,7 @@
             var uIScriptsFolder = joinPath(downloadedScriptsFolder, SCRIPTUIPANELS);
             for (var v = 0; v < chosenVersions.length; v++) {
                 var targetFolder = createPath(chosenVersions[v].fsName, SCRIPTS, SCRIPTUIPANELS);
-                if (log) { log("Creating ScriptUI Panels folder at " + targetFolder) }
+                if (log) { log("Creating ScriptUI Panels folder at " + targetFolder.fullName) }
                 // create new folder
                 deleteSource = v === chosenVersions.length - 1; //delete the source folder on the last version
                 var keepGoing = true;
@@ -622,7 +622,7 @@
                     }
                 }
                 if (targetFolder.exists) {
-                    if (log) { log("Install target: " + targetFolder) }
+                    if (log) { log("Install target: " + targetFolder.fullName) }
                     recursivelyMoveFolder(uIScriptsFolder, targetFolder, deleteSource, log);
                     scriptConsoleFolders = addToFileArrayIfUnique(scriptConsoleFolders, targetFolder);
                 } else {
@@ -1262,7 +1262,7 @@
             var messageAr = Array.prototype.slice.call(arguments);
             var message = messageAr.join("\n");
             if (logFile.open("a")) {
-                logFile.write(message);
+                logFile.write(message + "\n");
                 logFile.close();
             }
             $.writeln(message);
