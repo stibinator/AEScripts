@@ -69,11 +69,11 @@
     // functions
     function checkFileSystemAccess() {
         if (app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY") === 0) {
-            if (confirm(ASKABOUTPREFS)){
-                    app.executeCommand(app.findMenuCommandId('Scripting & Expressions...'));
+            if (confirm(ASKABOUTPREFS)) {
+                app.executeCommand(app.findMenuCommandId('Scripting & Expressions...'));
             }
         }
-        return(app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY"));
+        return (app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY"));
     }
 
     function initialiseScripts() {
@@ -512,7 +512,7 @@
             for (var f = 0; f < sourceChildren.length; f++) {
                 if (sourceChildren[f] instanceof Folder) {
                     var newDestFolder = createPath(destinationFolder.fullName, sourceChildren[f].name);
-                    if (log) { log("created destination Folder: " + newDestFolder) }
+                    if (log) { log("created destination Folder: " + newDestFolder.fullName) }
                     recursivelyMoveFolder(sourceChildren[f], newDestFolder)
                 } else {
                     createPath(destinationFolder);
@@ -535,7 +535,7 @@
             }
             if (deleteOriginals) {
                 if (!sourceFolder.remove()) {
-                    if (log) { log("couldn't remove folder " + sourceFolder) }
+                    if (log) { log("couldn't remove folder " + sourceFolder.fullName) }
                 }
             }
         }
@@ -560,8 +560,9 @@
                     }
                     target = joinPath(targetFolder, sourceChildren[f].name);
                     if (sourceChildren[f].copy(target)) {
-                        sourceChildren[f].remove();
+                        if (!sourceChildren[f].remove()) { log("Couldn't remove downloaded file: " + sourceChildren[f].name) }
                     } else {
+                        log("Couldn't copy downloaded file: " + sourceChildren[f].name + " to " + target.name)
                         if (!sourceChildren[f].remove()) { log("Couldn't remove downloaded file: " + sourceChildren[f].name) }
                     }
                 }
