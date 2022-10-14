@@ -10,6 +10,9 @@
     var UI_FLAG = "(UI)"; // added to the name of Script UI files if they're included
     var LOGFILEPATH = joinPath(Folder.desktop, "ScriptConsole install log");
     var ASKABOUTPREFS = "You need to enable file and network access for scripts in order for this script to work.\nWould yould like to open the preferences to do that now?"
+    var STIBSAESCRIPTS = "Stibs AEScripts";
+    var SCRIPTUIPANELS = "ScriptUI Panels"
+    var SCRIPTS = "Scripts";
 
     // parameters for the name matching algo
     var upperCaseRankScale = 8;  // higher values rank upper case matches below normal matches
@@ -56,11 +59,6 @@
     // do the hoo-hah
     var prefs = new myPreferences(SCRIPT_NAME);
 
-    var firstRun = prefs.getPref("ScriptConsole-FirstRun", true);
-    if (firstRun === true) {
-        installStibsAeScripts()
-    };
-    prefs.setPref("ScriptConsole-FirstRun", false);
 
     initialiseScripts();
     mainPopUpWindow(SCRIPT_NAME, thisObj);
@@ -77,6 +75,11 @@
     }
 
     function initialiseScripts() {
+        var firstRun = prefs.getPref("first run", true);
+        if (firstRun === true) {
+            installStibsAeScripts()
+        };
+        prefs.setPref("first run", false);
         scriptConsoleFolders = getFolderList();
         if (scriptConsoleFolders.length < 1) {
             settingsWindow();
@@ -335,6 +338,7 @@
             }
             this.layout.resize();
         }
+        
         // ----------- time to show some windows ----------
         updateChoiceListAndInfo(); //initialise the choicelist and infor, according to the last text from prefs
         updateInfoPanel(choiceList.selection ? choiceList.selection.payload : null);
@@ -357,18 +361,138 @@
 
 
     // --------------------------------------------Installer  --------------------------------------------------------------------
+    function getAeVersions() {
+        var aeUserDataFolder = new Folder(Folder.userData.fullName + "/Adobe/After Effects/")
+        var aeUserDataContents = aeUserDataFolder.getFiles();
+        aeVersions = [];
+        for (var v = 0; v < aeUserDataContents.length; v++) {
+            if (Folder.decode(aeUserDataContents[v].name).match(/^\d+\.*\d*$/)) {
+                aeVersions.push(aeUserDataContents[v]);
+            }
+        }
+
+        if (aeVersions) {
+            aeVersions = aeVersions.sort(function (a, b) {
+                return parseFloat(b.name) - parseFloat(a.name);
+            })
+        }
+        return aeVersions;
+    }
+
+    function chooseVersion(log) {
+        var aeVersions = getAeVersions();
+        var chosenVersions = [];
+        if (log) { log("AE versions available:" + aeVersions.join(", ")) };
+        // INSTALL DIALOG
+        // ==============
+        var installDialog = new Window("dialog");
+        installDialog.text = "Choose AE Version to install for";
+        installDialog.orientation = "column";
+        installDialog.alignChildren = ["fill", "top"];
+        installDialog.spacing = 10;
+        installDialog.margins = 16;
+
+        // LATEST VERSION PANEL
+        // ====================
+        var latestPnl = installDialog.add("panel", undefined, undefined, { name: "latestPnl" });
+        latestPnl.text = "Latest version";
+        // latestPnl.preferredSize.width = 300;
+        latestPnl.orientation = "column";
+        latestPnl.alignment = ["fill", "fill"];
+        latestPnl.alignChildren = ["left", "center"];
+        latestPnl.spacing = 10;
+        latestPnl.margins = [10, 16, 10, 4];
+
+        var versionCheckBoxes = [latestPnl.add("checkbox", undefined, undefined, { name: "versChkBx" + aeVersions[0].name })];
+        versionCheckBoxes[0].text = "Latest Version: " + aeVersions[0].name;
+        versionCheckBoxes[0].value = 1;
+
+        // OLDER VERSIONS PANEL
+        // ====================
+        var olderVersnsPnl = installDialog.add("panel", undefined, undefined, { name: "olderVersnsPnl" });
+        olderVersnsPnl.text = "Older versions";
+        olderVersnsPnl.orientation = "column";
+        olderVersnsPnl.alignChildren = ["fill", "center"];
+        olderVersnsPnl.spacing = 10;
+        olderVersnsPnl.margins = [10, 16, 10, 4];
+
+        for (var v = 1; v < aeVersions.length; v++) {
+            versionCheckBoxes[v] = olderVersnsPnl.add("checkbox", undefined, undefined, { name: "versChkBx" + aeVersions[v].name });
+            versionCheckBoxes[v].text = "Version " + aeVersions[v].name;
+            versionCheckBoxes[v].alignment = ["fill", "fill"];
+        }
+        // INSTALL TO AE Panel
+        // ===================
+        var headlessScriptsPnl = installDialog.add("panel", undefined, undefined, {});
+        headlessScriptsPnl.alignment = ["fill", "fill"];
+        headlessScriptsPnl.orientation = "column";
+        headlessScriptsPnl.alignChildren = ["left", "center"];
+        headlessScriptsPnl.spacing = 10;
+        headlessScriptsPnl.margins = [10, 16, 10, 4];
+
+        // INSTALL BUTTON GROUP
+        // ====================
+        var installBtnGrp = installDialog.add("group", undefined, { name: "installBtnGrp" });
+        installBtnGrp.orientation = "row";
+        installBtnGrp.spacing = 10;
+        installBtnGrp.margins = [0, 0, 10, 0];
+        installBtnGrp.alignment = ["fill", "fill"];
+
+        // var installToAEChkBx = headlessScriptsPnl.add("checkbox", undefined, undefined, { name: "installToAeChkBx" });
+        // installToAEChkBx.text = "install UI-less scripts to AE";
+        // installToAEChkBx.helpTip = "If checked stib's scripts will be visible in the usual FILE > SCRIPTS menu\notherwise they will only be accessible from ScriptConsole.\nUncheck if you have lots of scripts."
+
+        var cancelBtn = installBtnGrp.add("button", undefined, undefined, { name: "cancelBtn" });
+        cancelBtn.helpTip = "Don't install";
+        cancelBtn.text = "Cancel";
+        cancelBtn.alignment = ["fill", "fill"];
+
+        var installPNABtn = installBtnGrp.add("button", undefined, undefined, { name: "installPNABtn" });
+        installPNABtn.helpTip = "Install Stib's AEScripts for selected versions";
+        installPNABtn.text = "Install";
+        installPNABtn.preferredSize.width = 140;
+        installPNABtn.alignment = ["right", "bottom"];
+
+        function updateInstallBtn() {
+            var atLeastOneVersionSelected = false;
+            for (var v = 0; v < aeVersions.length; v++) {
+                if (versionCheckBoxes[v]) { atLeastOneVersionSelected = true }
+            }
+            installPNABtn.enabled = atLeastOneVersionSelected;
+        }
+
+
+        function getChosenVersions() {
+            for (var v = 0; v < aeVersions.length; v++) {
+                if (versionCheckBoxes[v].value) {
+                    chosenVersions.push(aeVersions[v])
+                }
+                if (log) { log("Chosen AE versions: " + chosenVersions.join(", ")) }
+                installDialog.close();
+            }
+        }
+
+        // callbacks
+        for (var v = 0; v < aeVersions.length; v++) {
+            versionCheckBoxes[v].onClick = updateInstallBtn;
+        }
+        installPNABtn.onClick = getChosenVersions;
+        cancelBtn.onclick = function () {
+            chosenVersions = [];
+            if (log) { log("Installation cancelled by user") }
+            installDialog.close();
+        }
+        updateInstallBtn();
+        installDialog.show();
+        return chosenVersions;
+    }
+
 
     function installStibsAeScripts() {
 
-        var STIBSAESCRIPTS = "Stibs AEScripts";
-        var SCRIPTUIPANELS = "ScriptUI Panels"
-        var SCRIPTS = "Scripts";
         var TEMPZIPNAME = 'stibsaescripts.zip';
         var TEMPFOLDERNAME = 'StibsAEScriptsDownloadTemp';
         var PNAFOLDER = "PureAndApplied";
-
-        var logFile = new LogFile(LOGFILEPATH);
-        var log = logFile.log;
 
         function getScriptsFromGithub(log) {
             var tempFolder = new Folder(Folder.temp.fsName);
@@ -382,130 +506,6 @@
             $.writeln(result);
             return tempScriptsFolder
         }
-
-        function getAeVersions() {
-            var aeUserDataFolder = new Folder(Folder.userData.fullName + "/Adobe/After Effects/")
-            var aeUserDataContents = aeUserDataFolder.getFiles();
-            aeVersions = [];
-            for (var v = 0; v < aeUserDataContents.length; v++) {
-                if (Folder.decode(aeUserDataContents[v].name).match(/^\d+\.*\d*$/)) {
-                    aeVersions.push(aeUserDataContents[v]);
-                }
-            }
-
-            if (aeVersions) {
-                aeVersions = aeVersions.sort(function (a, b) {
-                    return parseFloat(b.name) - parseFloat(a.name);
-                })
-            }
-            return aeVersions;
-        }
-
-        function chooseVersion(log) {
-            var aeVersions = getAeVersions();
-            var chosenVersions = [];
-            if (log) { log("AE versions available:" + aeVersions.join(", ")) };
-            // INSTALL DIALOG
-            // ==============
-            var installDialog = new Window("dialog");
-            installDialog.text = "Choose AE Version to install for";
-            installDialog.orientation = "column";
-            installDialog.alignChildren = ["fill", "top"];
-            installDialog.spacing = 10;
-            installDialog.margins = 16;
-
-            // LATEST VERSION PANEL
-            // ====================
-            var latestPnl = installDialog.add("panel", undefined, undefined, { name: "latestPnl" });
-            latestPnl.text = "Latest version";
-            // latestPnl.preferredSize.width = 300;
-            latestPnl.orientation = "column";
-            latestPnl.alignment = ["fill", "fill"];
-            latestPnl.alignChildren = ["left", "center"];
-            latestPnl.spacing = 10;
-            latestPnl.margins = [10, 16, 10, 4];
-
-            var versionCheckBoxes = [latestPnl.add("checkbox", undefined, undefined, { name: "versChkBx" + aeVersions[0].name })];
-            versionCheckBoxes[0].text = "Latest Version: " + aeVersions[0].name;
-            versionCheckBoxes[0].value = 1;
-
-            // OLDER VERSIONS PANEL
-            // ====================
-            var olderVersnsPnl = installDialog.add("panel", undefined, undefined, { name: "olderVersnsPnl" });
-            olderVersnsPnl.text = "Older versions";
-            olderVersnsPnl.orientation = "column";
-            olderVersnsPnl.alignChildren = ["fill", "center"];
-            olderVersnsPnl.spacing = 10;
-            olderVersnsPnl.margins = [10, 16, 10, 4];
-
-            for (var v = 1; v < aeVersions.length; v++) {
-                versionCheckBoxes[v] = olderVersnsPnl.add("checkbox", undefined, undefined, { name: "versChkBx" + aeVersions[v].name });
-                versionCheckBoxes[v].text = "Version " + aeVersions[v].name;
-                versionCheckBoxes[v].alignment = ["fill", "fill"];
-            }
-            // INSTALL TO AE Panel
-            // ===================
-            var headlessScriptsPnl = installDialog.add("panel", undefined, undefined, {});
-            headlessScriptsPnl.alignment = ["fill", "fill"];
-            headlessScriptsPnl.orientation = "column";
-            headlessScriptsPnl.alignChildren = ["left", "center"];
-            headlessScriptsPnl.spacing = 10;
-            headlessScriptsPnl.margins = [10, 16, 10, 4];
-
-            // INSTALL BUTTON GROUP
-            // ====================
-            var installBtnGrp = installDialog.add("group", undefined, { name: "installBtnGrp" });
-            installBtnGrp.orientation = "row";
-            installBtnGrp.spacing = 10;
-            installBtnGrp.margins = [0, 0, 10, 0];
-            installBtnGrp.alignment = ["fill", "fill"];
-
-            // var installToAEChkBx = headlessScriptsPnl.add("checkbox", undefined, undefined, { name: "installToAeChkBx" });
-            // installToAEChkBx.text = "install UI-less scripts to AE";
-            // installToAEChkBx.helpTip = "If checked stib's scripts will be visible in the usual FILE > SCRIPTS menu\notherwise they will only be accessible from ScriptConsole.\nUncheck if you have lots of scripts."
-
-            var cancelBtn = installBtnGrp.add("button", undefined, undefined, { name: "cancelBtn" });
-            cancelBtn.helpTip = "Don't install";
-            cancelBtn.text = "Cancel";
-            cancelBtn.alignment = ["fill", "fill"];
-
-            var installPNABtn = installBtnGrp.add("button", undefined, undefined, { name: "installPNABtn" });
-            installPNABtn.helpTip = "Install Stib's AEScripts for selected versions";
-            installPNABtn.text = "Install";
-            installPNABtn.preferredSize.width = 140;
-            installPNABtn.alignment = ["right", "bottom"];
-
-            function updateInstallBtn() {
-                var atLeastOneVersionSelected = false;
-                for (var v = 0; v < aeVersions.length; v++) {
-                    if (versionCheckBoxes[v]) { atLeastOneVersionSelected = true }
-                }
-                installPNABtn.enabled = atLeastOneVersionSelected;
-            }
-
-
-            function getChosenVersions() {
-                for (var v = 0; v < aeVersions.length; v++) {
-                    if (versionCheckBoxes[v].value) {
-                        chosenVersions.push(aeVersions[v])
-                    }
-                    if (log) { log("Chosen AE versions: " + chosenVersions.join(", ")) }
-                    installDialog.close();
-                }
-            }
-
-            // callbacks
-            for (var v = 0; v < aeVersions.length; v++) {
-                versionCheckBoxes[v].onClick = updateInstallBtn;
-            }
-            installPNABtn.onClick = getChosenVersions;
-
-            updateInstallBtn();
-            installDialog.show();
-            return chosenVersions;
-
-        }
-
 
         function recursivelyMoveFolder(sourceFolder, destinationFolder, deleteOriginals, log) {
             var sourceChildren = sourceFolder.getFiles();
@@ -634,16 +634,33 @@
 
         // ======================= Install the Scripts ===========================
 
+        var logFile = new LogFile(LOGFILEPATH);
+        var log = logFile.log;
+
         var downloadedScriptsFolder = getScriptsFromGithub(log);
         if (downloadedScriptsFolder.exists) {
-            var chosenVersions = chooseVersion();
-            installHeadlessScripts(downloadedScriptsFolder, log)
-            installUIScripts(downloadedScriptsFolder, chosenVersions, log);
+            var chosenVersions = chooseVersion(log);
+            if (chosenVersions.length) {
+                installHeadlessScripts(downloadedScriptsFolder, log)
+                installUIScripts(downloadedScriptsFolder, chosenVersions, log);
+            }
         } else {
+            if (log) { log("couldn't find the downloaded scripts") }
         }
     }
 
-
+    function installScript(theScript, chosenVersion, log) {
+        var problem = false;
+        var source = theScript.fsItem;
+        var dest = createPath(chosenVersion.fsName, SCRIPTS);
+        if (source.copy(File.decode(joinPath(dest.fullName,  source.name)))) {
+            if (log){log("Copied " + source.fullName + " to " + dest.fullName)}
+        } else {
+            problem = "couldn't copy " + source.fullName + " to " + dest.fullName;
+            if (log) { log(problem) }
+        }
+        return {problem: problem};
+    }
     // --------------------------------------------ScriptFile object --------------------------------------------------------------------
 
     function ScriptFile(theItem) {
@@ -899,17 +916,17 @@
     function editScriptDescWindow(theScript) {
         // DIALOG
         // ======
-        var dialog = new Window("dialog");
-        dialog.text = "Edit script info";
-        dialog.orientation = "column";
-        dialog.alignChildren = ["left", "top"];
-        dialog.spacing = 10;
-        dialog.margins = 16;
-        dialog.resizeable = true;
+        var editScriptDialog = new Window("dialog");
+        editScriptDialog.text = "Edit script info";
+        editScriptDialog.orientation = "column";
+        editScriptDialog.alignChildren = ["left", "top"];
+        editScriptDialog.spacing = 10;
+        editScriptDialog.margins = 16;
+        editScriptDialog.resizeable = true;
 
         // PATHPNL
         // =======
-        var pathPnl = dialog.add("panel", undefined, undefined, { name: "pathPnl", borderStyle: "gray" });
+        var pathPnl = editScriptDialog.add("panel", undefined, undefined, { name: "pathPnl", borderStyle: "gray" });
         pathPnl.text = "Script file";
         pathPnl.orientation = "column";
         pathPnl.alignChildren = ["left", "top"];
@@ -921,7 +938,7 @@
 
         // NAMEPNL
         // =======
-        var namePnl = dialog.add("panel", undefined, undefined, { name: "namePnl", borderStyle: "gray" });
+        var namePnl = editScriptDialog.add("panel", undefined, undefined, { name: "namePnl", borderStyle: "gray" });
         namePnl.text = "Script Short Name";
         namePnl.orientation = "column";
         namePnl.alignment = ["fill", "top"];
@@ -935,7 +952,7 @@
 
         // DESCPNL
         // =======
-        var descPnl = dialog.add("panel", undefined, undefined, { name: "descPnl", borderStyle: "gray" });
+        var descPnl = editScriptDialog.add("panel", undefined, undefined, { name: "descPnl", borderStyle: "gray" });
         descPnl.text = "Description";
         // // descPnl.preferredSize.width = pathBtn.preferredSize.width + 20;
         descPnl.orientation = "column";
@@ -948,21 +965,32 @@
         descriptionEditTxt.alignment = ["fill", "fill"];
         descriptionEditTxt.minimumSize.height = 160;
 
-        // GROUP1
+        // bottom row
+        var editScriptBottomRow = editScriptDialog.add("group", undefined, { name: "editScriptBottomRow" });
+        editScriptBottomRow.orientation = "row";
+        editScriptBottomRow.alignment = ["fill", "fill"];
+        editScriptBottomRow.alignChildren = ["fill", "center"];
+        
+        // move script button
+        var moveToScriptsMenu = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
+        moveToScriptsMenu.text = "Move to File>Scripts menu";
+        var spacer = editScriptBottomRow.add("statictext");
+        spacer.alignment = ["fill", "fill"];
+        // close and cancel buttons
         // ======
-        var group1 = dialog.add("group", undefined, { name: "group1" });
-        group1.orientation = "row";
-        group1.alignChildren = ["right", "center"];
-        group1.spacing = 10;
-        group1.margins = [0, 0, 10, 0];
-        group1.alignment = ["right", "top"];
+        var EditScriptActionButtons = editScriptBottomRow.add("group", undefined, { name: "EditScriptActionButtons" });
+        EditScriptActionButtons.orientation = "row";
+        EditScriptActionButtons.alignChildren = ["right", "center"];
+        EditScriptActionButtons.spacing = 10;
+        EditScriptActionButtons.margins = [0, 0, 10, 0];
+        EditScriptActionButtons.alignment = ["right", "top"];
 
-        var cancelBtn = group1.add("button", undefined, undefined, { name: "cancelBtn" });
+        var cancelBtn = EditScriptActionButtons.add("button", undefined, undefined, { name: "cancelBtn" });
         cancelBtn.text = "Cancel";
         // cancelBtn.preferredSize.width = 140;
         cancelBtn.alignment = ["right", "bottom"];
 
-        var saveDescrBtn = group1.add("button", undefined, undefined, { name: "saveDescrBtn" });
+        var saveDescrBtn = EditScriptActionButtons.add("button", undefined, undefined, { name: "saveDescrBtn" });
         saveDescrBtn.text = "Save Settings";
         // saveDescrBtn.preferredSize.width = 140;
         saveDescrBtn.alignment = ["right", "bottom"];
@@ -985,11 +1013,32 @@
             }
             theScript.info.description = descriptionEditTxt.text;
             prefs.setPref("scriptInfo." + theScript.fsItem.name, JSON.stringify(theScript.info));
-            dialog.close();
+            editScriptDialog.close();
         }
+
+        function moveToAEScriptsFolder(chosenScript) {
+            var log = LogFile(LOGFILEPATH);
+            var chosenVersions = chooseVersion(log);
+            var problems = [];
+            for (var v = 0; v < chosenVersions.length; v++){
+                var installResult = installScript(chosenScript, chosenVersions[v], log);
+                if (installResult.problem) {
+                    problems.push(installResult.problem);
+                }
+            }
+            if (problems.length) {
+                alert("Error" + ((problems.length > 1) ? "s " : " ") + "when installing the scrips:\n" + problems.join("\n"));
+            }
+            alert("you need to restart AE for the scripts\nto appear in the File > Scripts menu");
+        }
+
+        // callbacks
         pathBtn.onClick = goToFile;
         saveDescrBtn.onClick = saveDesc;
-        dialog.show();
+        moveToScriptsMenu.onClick = moveToAEScriptsFolder(theScript);
+
+        // do the thing
+        editScriptDialog.show();
     }
 
     // --------------------------------------------Settings window --------------------------------------------------------------------
