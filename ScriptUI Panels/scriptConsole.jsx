@@ -651,15 +651,18 @@
 
     function installScript(theScript, chosenVersion, log) {
         var problem = false;
+        var result = false;
         var source = theScript.fsItem;
         var dest = createPath(chosenVersion.fsName, SCRIPTS);
-        if (source.copy(File.decode(joinPath(dest.fullName,  source.name)))) {
-            if (log){log("Copied " + source.fullName + " to " + dest.fullName)}
+        var targetPath = File.decode(joinPath(dest.fullName, source.name);
+        if (source.copy(targetPath))) {
+            if (log) { log("Copied " + source.fullName + " to " + dest.fullName) }
+            result = new File(targetPath);
         } else {
             problem = "couldn't copy " + source.fullName + " to " + dest.fullName;
             if (log) { log(problem) }
         }
-        return {problem: problem};
+        return {problem: problem, result: result};
     }
     // --------------------------------------------ScriptFile object --------------------------------------------------------------------
 
@@ -972,8 +975,10 @@
         editScriptBottomRow.alignChildren = ["fill", "center"];
         
         // move script button
-        var moveToScriptsMenu = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
-        moveToScriptsMenu.text = "Move to File>Scripts menu";
+        var moveToScriptsMenuBtn = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
+        moveToScriptsMenuBtn.text = "Move to AE Scripts menu";
+        var moveToPnABtn = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
+        moveToPnABtn.text = "Move to scriptConsole";
         var spacer = editScriptBottomRow.add("statictext");
         spacer.alignment = ["fill", "fill"];
         // close and cancel buttons
@@ -1018,12 +1023,40 @@
 
         function moveToAEScriptsFolder(chosenScript) {
             var log = LogFile(LOGFILEPATH);
+            // TODO: delete choose versions - use currently running version of AE
             var chosenVersions = chooseVersion(log);
             var problems = [];
             for (var v = 0; v < chosenVersions.length; v++){
                 var installResult = installScript(chosenScript, chosenVersions[v], log);
                 if (installResult.problem) {
                     problems.push(installResult.problem);
+                } else {
+                    if (installResult.result && installResult.result.exists) {
+                        if (!chosenVersions[v].remove()) {
+                            problems.push("Couldn't remove " + chosenVersions[v].name)
+                        }
+                    }
+                }
+            }
+            if (problems.length) {
+                alert("Error" + ((problems.length > 1) ? "s " : " ") + "when installing the scrips:\n" + problems.join("\n"));
+            }
+            alert("you need to restart AE for the scripts\nto appear in the File > Scripts menu");
+        }
+
+        function moveToPnAFolder(chosenScript) {
+            var log = LogFile(LOGFILEPATH);
+            var problems = [];
+            for (var v = 0; v < chosenVersions.length; v++){
+                var installResult = installScript(chosenScript, chosenVersions[v], log);
+                if (installResult.problem) {
+                    problems.push(installResult.problem);
+                } else {
+                    if (installResult.result && installResult.result.exists) {
+                        if (!chosenVersions[v].remove()) {
+                            problems.push("Couldn't remove " + chosenVersions[v].name)
+                        }
+                    }
                 }
             }
             if (problems.length) {
@@ -1035,7 +1068,7 @@
         // callbacks
         pathBtn.onClick = goToFile;
         saveDescrBtn.onClick = saveDesc;
-        moveToScriptsMenu.onClick = moveToAEScriptsFolder(theScript);
+        moveToScriptsMenuBtn.onClick = moveToAEScriptsFolder(theScript);
 
         // do the thing
         editScriptDialog.show();
