@@ -13,7 +13,9 @@
     var STIBSAESCRIPTS = "Stibs AEScripts";
     var SCRIPTUIPANELS = "ScriptUI Panels"
     var SCRIPTS = "Scripts";
-
+    var PNAFOLDER = "PureAndApplied";
+    var PNA_HEADLESS_SCRIPTS_FOLDER = joinPath(Folder.userData, PNAFOLDER, STIBSAESCRIPTS);
+    var PNA_UISCRIPTS_FOLDER =  joinPath(Folder.userData, PNAFOLDER, SCRIPTUIPANELS);
     // parameters for the name matching algo
     var upperCaseRankScale = 8;  // higher values rank upper case matches below normal matches
     var contiguousRankScale = 9; // higher values favour contiguous matches later in the search string
@@ -492,7 +494,6 @@
 
         var TEMPZIPNAME = 'stibsaescripts.zip';
         var TEMPFOLDERNAME = 'StibsAEScriptsDownloadTemp';
-        var PNAFOLDER = "PureAndApplied";
 
         function getScriptsFromGithub(log) {
             var tempFolder = new Folder(Folder.temp.fsName);
@@ -575,7 +576,7 @@
         function installHeadlessScripts(downloadedScriptsFolder, log) {
             if (log) { log("Installing stib's AEScripts") }
             var headlessScriptsFolder = joinPath(downloadedScriptsFolder, STIBSAESCRIPTS);
-            var targetFolder = joinPath(Folder.userData, PNAFOLDER, STIBSAESCRIPTS);
+            var targetFolder = PNA_HEADLESS_SCRIPTS_FOLDER;
             var adobePrefsScriptsFolder = joinPath(chosenVersions[chosenVersions.length - 1].fsName, SCRIPTS, STIBSAESCRIPTS);
             // create new folder if need be
             createPath(targetFolder);
@@ -654,8 +655,8 @@
         var result = false;
         var source = theScript.fsItem;
         var dest = createPath(chosenVersion.fsName, SCRIPTS);
-        var targetPath = File.decode(joinPath(dest.fullName, source.name);
-        if (source.copy(targetPath))) {
+        var targetPath = File.decode(joinPath(dest.fullName, source.name));
+        if (source.copy(targetPath)) {
             if (log) { log("Copied " + source.fullName + " to " + dest.fullName) }
             result = new File(targetPath);
         } else {
@@ -1021,11 +1022,21 @@
             editScriptDialog.close();
         }
 
-        function moveToAEScriptsFolder(chosenScript) {
+
+        function swapFolders(chosenScript) {
             var log = LogFile(LOGFILEPATH);
+            var problems = [];
+            var aeCurrentScriptsFolder = joinPath(
+                Folder.userData.fullName,
+                "/Adobe/After Effects/",
+                app.version.split("x")[0]
+            );
+            var isInstalled = chosenScript.fsItem.path.toString.match(aeCurrentScriptsFolder.fullName.toString());
+            var isUI = chosenScript.info.isUI;
+        }
+        function moveToAEScriptsFolder(chosenScript) {
             // TODO: delete choose versions - use currently running version of AE
             var chosenVersions = chooseVersion(log);
-            var problems = [];
             for (var v = 0; v < chosenVersions.length; v++){
                 var installResult = installScript(chosenScript, chosenVersions[v], log);
                 if (installResult.problem) {
