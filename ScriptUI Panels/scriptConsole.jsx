@@ -15,7 +15,7 @@
     var SCRIPTS = "Scripts";
     var PNAFOLDER = "PureAndApplied";
     var PNA_HEADLESS_SCRIPTS_FOLDER = joinPath(Folder.userData, PNAFOLDER, STIBSAESCRIPTS);
-    var PNA_UISCRIPTS_FOLDER =  joinPath(Folder.userData, PNAFOLDER, SCRIPTUIPANELS);
+    var PNA_UISCRIPTS_FOLDER = joinPath(Folder.userData, PNAFOLDER, SCRIPTUIPANELS);
     // parameters for the name matching algo
     var upperCaseRankScale = 8;  // higher values rank upper case matches below normal matches
     var contiguousRankScale = 9; // higher values favour contiguous matches later in the search string
@@ -340,7 +340,7 @@
             }
             this.layout.resize();
         }
-        
+
         // ----------- time to show some windows ----------
         updateChoiceListAndInfo(); //initialise the choicelist and infor, according to the last text from prefs
         updateInfoPanel(choiceList.selection ? choiceList.selection.payload : null);
@@ -650,21 +650,6 @@
         }
     }
 
-    function installScript(theScript, chosenVersion, log) {
-        var problem = false;
-        var result = false;
-        var source = theScript.fsItem;
-        var dest = createPath(chosenVersion.fsName, SCRIPTS);
-        var targetPath = File.decode(joinPath(dest.fullName, source.name));
-        if (source.copy(targetPath)) {
-            if (log) { log("Copied " + source.fullName + " to " + dest.fullName) }
-            result = new File(targetPath);
-        } else {
-            problem = "couldn't copy " + source.fullName + " to " + dest.fullName;
-            if (log) { log(problem) }
-        }
-        return {problem: problem, result: result};
-    }
     // --------------------------------------------ScriptFile object --------------------------------------------------------------------
 
     function ScriptFile(theItem) {
@@ -680,14 +665,33 @@
 
 
         this.getInfo = function () {
-            var isUI = (File.decode(this.fsItem.path).match(/ScriptUI Panels/i) !== null);
+            var userDataRegEx = new RegExp(
+                Folder.decode(
+                    joinPath(
+                        Folder.userData.fullName,
+                        "Adobe", "After Effects"
+                    ).fullName + "[\\d\\.]/Scripts")
+            );
+            var appRgXp = new RegExp(
+                Folder.decode(Folder.appPackage).replace(
+                    /Adobe After Effects 20\d\d/,
+                    "Adobe After Effects 20\\d\\d"
+                )
+            )
+            var isInstalled = (
+                Folder.decode(this.fsItem.path).match(userDataRegEx) !== null ||
+                Folder.decode(this.fsItem.path).match(appRgXp) !== null
+            );
+            var isUI = isInstalled && (Folder.decode(this.fsItem.path).match(/ScriptUI Panels$/i) !== null);
             // look for info in sidecar files or in the prefs.
             this.info = JSON.parse(prefs.getPref("scriptInfo." + this.fsItem.name, JSON.stringify({
-                "shortName": File.decode(this.fsItem.name).replace("\.jsx*(bin)*$", "", "i"),
-                // "icon": DEFAULT_FILE_ICON,
-                "fsPath": File.decode(this.fsItem.fullName),
-                "isUI": isUI
+                shortName: File.decode(this.fsItem.name).replace("\.jsx*(bin)*$", "", "i"),
+                // icon: DEFAULT_FILE_ICON,
+                fsPath: File.decode(this.fsItem.fullName),
+                isUI: isUI,
+                isInstalled: isInstalled
             })));
+
             var sidecar = new File(File.decode(this.fsItem.name.replace(/(\.jsx?(bin)*)*$/, "_info.json")));
             // var infoFiles = [];
             if (sidecar.exists) { //get info from sidecar if it exists
@@ -974,12 +978,15 @@
         editScriptBottomRow.orientation = "row";
         editScriptBottomRow.alignment = ["fill", "fill"];
         editScriptBottomRow.alignChildren = ["fill", "center"];
-        
+
         // move script button
-        var moveToScriptsMenuBtn = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
-        moveToScriptsMenuBtn.text = "Move to AE Scripts menu";
-        var moveToPnABtn = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
-        moveToPnABtn.text = "Move to scriptConsole";
+        var swapFoldersBtn = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
+        swapFoldersBtn.text = theScript.info.isInstalled ?
+            "Move to scriptConsole" :
+            theScript.info.isUI ?
+                "Move to AE Window menu" :
+                "Move to AE Scripts menu"
+
         var spacer = editScriptBottomRow.add("statictext");
         spacer.alignment = ["fill", "fill"];
         // close and cancel buttons
@@ -1022,64 +1029,97 @@
             editScriptDialog.close();
         }
 
+        function chooseDestination(chosenScript) {
+            var destinations = [];
+            if (chosenScript.info.isUI) {
+                destinations = [
+                    PNA_UISCRIPTS_FOLDER,
+                    joinPath(
+                        Folder.userData,
+                        "Adobe", "After Effects",
+                        parseFloat(app.version),
+                        SCRIPTUIPANELS
+                    ),
+                    joinPath(Folder.appPackage, SCRIPTUIPANELS)
+                ]
+            } else {
+                destinations = [
+                    PNA_HEADLESS_SCRIPTS_FOLDER,
+                    joinPath(
+                        Folder.userData,
+                        "Adobe", "After Effects",
+                        parseFloat(app.version),
+                        SCRIPTS
+                    ),
+                    joinPath(Folder.appPackage, SCRIPTUIPANELS)
+                ]
+            }
+            for (var i = 0; i < scriptConsoleFolders.length; i++) {
+                var alreadyInDestinations = false;
+                for (var d = 0; d < destinations.length; d++) {
+                    if (scriptConsoleFolders[i].fullName === destinations[d].fullName) {
+                        alreadyInDestinations = true;
+                    }
+                }
+                if (!alreadyInDestinations) {
+                    destinations[destinations.length] = scriptConsoleFolders[i];
+                }
+            }
+            return askForDestination(destinations);
+        }
+
+        function askForDestination(destinations) {
+            var destinationChooserDialog = new Window("dialog");
+            destinationChooserDialog.text = "Edit script info";
+            destinationChooserDialog.orientation = "column";
+            destinationChooserDialog.alignChildren = ["left", "top"];
+            destinationChooserDialog.spacing = 10;
+            destinationChooserDialog.margins = 16;
+            destinationChooserDialog.resizeable = true;
+            var destBtnGrp = destinationChooserDialog.add('Group', undefined);
+            destBtnGrp.alignment = ['fill', 'top'];
+            destBtnGrp.orientation = "column";
+            var destination;
+            var destinationButtons = [];
+            for (var d = 0; d < destinations.length; d++) {
+                destinationButtons[d] = buttonColorText(
+                    destBtnGrp,
+                    destinations[d].path,
+                    btnColour.primary.default,
+                    btnColour.primary.hilite
+                );
+                destinationButtons[d].payload = destinations[d];
+                destinationButtons[d].onClick = function () {
+                    destination = this.payload;
+                    destinationChooserDialog.close();
+                };
+            }
+            if (destinationChooserDialog instanceof Window) {
+                destinationChooserDialog.center();
+                destinationChooserDialog.show();
+            } else {
+                destinationChooserDialog.layout.layout(true);
+            }
+            return destination;
+        }
 
         function swapFolders(chosenScript) {
-            var log = LogFile(LOGFILEPATH);
+            var log = new LogFile(LOGFILEPATH);
             var problems = [];
-            var aeCurrentScriptsFolder = joinPath(
-                Folder.userData.fullName,
-                "/Adobe/After Effects/",
-                app.version.split("x")[0]
-            );
-            var isInstalled = chosenScript.fsItem.path.toString.match(aeCurrentScriptsFolder.fullName.toString());
-            var isUI = chosenScript.info.isUI;
-        }
-        function moveToAEScriptsFolder(chosenScript) {
-            // TODO: delete choose versions - use currently running version of AE
-            var chosenVersions = chooseVersion(log);
-            for (var v = 0; v < chosenVersions.length; v++){
-                var installResult = installScript(chosenScript, chosenVersions[v], log);
-                if (installResult.problem) {
-                    problems.push(installResult.problem);
-                } else {
-                    if (installResult.result && installResult.result.exists) {
-                        if (!chosenVersions[v].remove()) {
-                            problems.push("Couldn't remove " + chosenVersions[v].name)
-                        }
-                    }
-                }
-            }
-            if (problems.length) {
-                alert("Error" + ((problems.length > 1) ? "s " : " ") + "when installing the scrips:\n" + problems.join("\n"));
-            }
-            alert("you need to restart AE for the scripts\nto appear in the File > Scripts menu");
+            var destination = chooseDestination(chosenScript);
+
+            if (chosenScript.fsItem.copy(destination)) {
+                chosenScript.fsItem.remove();
+                chosenScript.fsItem = File(joinPath(destination, chosenScript.fsItem.name));
+                chosenScript.info.isInstalled = !chosenScript.info.isInstalled;
+            };
         }
 
-        function moveToPnAFolder(chosenScript) {
-            var log = LogFile(LOGFILEPATH);
-            var problems = [];
-            for (var v = 0; v < chosenVersions.length; v++){
-                var installResult = installScript(chosenScript, chosenVersions[v], log);
-                if (installResult.problem) {
-                    problems.push(installResult.problem);
-                } else {
-                    if (installResult.result && installResult.result.exists) {
-                        if (!chosenVersions[v].remove()) {
-                            problems.push("Couldn't remove " + chosenVersions[v].name)
-                        }
-                    }
-                }
-            }
-            if (problems.length) {
-                alert("Error" + ((problems.length > 1) ? "s " : " ") + "when installing the scrips:\n" + problems.join("\n"));
-            }
-            alert("you need to restart AE for the scripts\nto appear in the File > Scripts menu");
-        }
 
         // callbacks
         pathBtn.onClick = goToFile;
         saveDescrBtn.onClick = saveDesc;
-        moveToScriptsMenuBtn.onClick = moveToAEScriptsFolder(theScript);
+        swapFoldersBtn.onClick = swapFolders(theScript);
 
         // do the thing
         editScriptDialog.show();
@@ -1222,6 +1262,7 @@
                 scriptConsoleFolders = newFolderAr;
             }
             updateFolderListBox();
+            prefs.setPref({ "name": SCRIPT_FOLDERS_PREF, "value": scriptConsoleFolders.join("\n") })
             saveSettingsBtn.enabled = scriptConsoleFolders.length > 0;
         }
 
@@ -1344,24 +1385,25 @@
     // --------------------------------------------Log File ------------------------------------------------------------------------
 
     function LogFile(logFilePath) {
-        if (logFilePath instanceof Folder || logFilePath.toString().match(/[\/\\]$/)) {
-            logFilePath = logFilePath.toString() + SCRIPT_NAME + "_log.txt"
-        }
-        if (!logFilePath.toString().match(/\.txt$/)) {
-            logFilePath = logFilePath.toString() + ".txt"
-        }
-        var logFile = new File(logFilePath);
-        createPath(logFile.parent);
-        this.log = function () {
-            var messageAr = Array.prototype.slice.call(arguments);
-            var message = messageAr.join("\n");
-            if (logFile.open("a")) {
-                logFile.write(message + "\n");
-                logFile.close();
+        this.logFile = new File(logFilePath);
+        if (createPath(this.logFile.parent)) {
+            this.log = function () {
+                var messageAr = Array.prototype.slice.call(arguments);
+                var message = messageAr.join("\n");
+                if (this.logFile.open("a")) {
+                    this.logFile.write(message + "\n");
+                    this.logFile.close();
+                }
+                $.writeln(message);
             }
-            $.writeln(message);
+            this.openLog = function () {
+                this.logFile.execute()
+            }
+        } else {
+            this.log = $.writeln;
         }
         this.log(Date());
+        return this
     }
     // --------------------------------------------preferences ------------------------------------------------------------------------
 
