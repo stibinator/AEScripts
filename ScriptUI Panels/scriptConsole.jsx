@@ -1078,21 +1078,29 @@
             destinationChooserDialog.resizeable = true;
             var destBtnGrp = destinationChooserDialog.add('Group', undefined);
             destBtnGrp.alignment = ['fill', 'top'];
-            destBtnGrp.orientation = "column";
+            destBtnGrp.orientation = "row";
             var destination;
             var destinationButtons = [];
+            var destBtnChckBxGrp = destBtnGrp.add("group", undefined);
+            destBtnChckBxGrp.orientation = "column";
+            var destTextGrp = destBtnGrp.add("group", undefined);
+            destTextGrp.orientation = "column";
             for (var d = 0; d < destinations.length; d++) {
-                destinationButtons[d] = buttonColorText(
-                    destBtnGrp,
-                    destinations[d].path,
-                    btnColour.primary.default,
-                    btnColour.primary.hilite
-                );
+                destinationButtons[d] = destBtnChckBxGrp.add("checkbox", [undefined, undefined, 24, 24])
                 destinationButtons[d].payload = destinations[d];
-                destinationButtons[d].onClick = function () {
-                    destination = this.payload;
-                    destinationChooserDialog.close();
-                };
+                destTextGrp.add("statictext", [undefined, undefined, 440,24], Folder.decode(destinations[d].fullName));
+            }
+            var actionBtnGrp = destinationChooserDialog.add("group", undefined);
+            actionBtnGrp.orientation = "row";
+            var choseBtn = buttonColorText(actionBtnGrp, "Move script", btnColour.primary.default, btnColour.primary.hilite);
+            var cancelBtn = buttonColorText(actionBtnGrp, "Cancel", btnColour.cancel.default, btnColour.cancel.hilite);
+            choseBtn.onClick = function () {
+                destination = this.payload;
+                destinationChooserDialog.close();
+            };
+            cancelBtn.onclick = function () {
+                destinationChooserDialog.close();
+                destination = false;
             }
             if (destinationChooserDialog instanceof Window) {
                 destinationChooserDialog.center();
@@ -1103,23 +1111,24 @@
             return destination;
         }
 
-        function swapFolders(chosenScript) {
-            var log = new LogFile(LOGFILEPATH);
-            var problems = [];
-            var destination = chooseDestination(chosenScript);
-
-            if (chosenScript.fsItem.copy(destination)) {
-                chosenScript.fsItem.remove();
-                chosenScript.fsItem = File(joinPath(destination, chosenScript.fsItem.name));
-                chosenScript.info.isInstalled = !chosenScript.info.isInstalled;
-            };
+        function swapFolders() {
+            // var log = new LogFile(LOGFILEPATH);
+            // var problems = [];
+            var destination = chooseDestination(theScript);
+            if (destination && destination.exists) {
+                if (theScript.fsItem.copy(destination)) {
+                    theScript.fsItem.remove();
+                    theScript.fsItem = File(joinPath(destination, theScript.fsItem.name));
+                    theScript.info.isInstalled = !theScript.info.isInstalled;
+                }
+            }
         }
 
 
         // callbacks
         pathBtn.onClick = goToFile;
         saveDescrBtn.onClick = saveDesc;
-        swapFoldersBtn.onClick = swapFolders(theScript);
+        swapFoldersBtn.onClick = swapFolders;
 
         // do the thing
         editScriptDialog.show();
