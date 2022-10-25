@@ -24,6 +24,19 @@
     // globals
     var scriptList, searchDescriptions;
     var scriptConsoleFolders = [];
+    var userDataRegEx = new RegExp(
+        Folder.decode(
+            joinPath(
+                Folder.userData.fullName,
+                "Adobe", "After Effects"
+            ).fullName + "[\\d\\.]/Scripts")
+    );
+    var appRgXp = new RegExp(
+        Folder.decode(Folder.appPackage).replace(
+            /Adobe After Effects 20\d\d/,
+            "Adobe After Effects 20\\d\\d"
+        )
+    )
 
     // pretty stuff for battlestyle buttons
     var btnColour = {
@@ -665,19 +678,6 @@
 
 
         this.getInfo = function () {
-            var userDataRegEx = new RegExp(
-                Folder.decode(
-                    joinPath(
-                        Folder.userData.fullName,
-                        "Adobe", "After Effects"
-                    ).fullName + "[\\d\\.]/Scripts")
-            );
-            var appRgXp = new RegExp(
-                Folder.decode(Folder.appPackage).replace(
-                    /Adobe After Effects 20\d\d/,
-                    "Adobe After Effects 20\\d\\d"
-                )
-            )
             var isInstalled = (
                 Folder.decode(this.fsItem.path).match(userDataRegEx) !== null ||
                 Folder.decode(this.fsItem.path).match(appRgXp) !== null
@@ -1065,10 +1065,10 @@
                     destinations[destinations.length] = scriptConsoleFolders[i];
                 }
             }
-            return askForDestination(destinations);
+            return askForDestination(destinations, theScript);
         }
 
-        function askForDestination(destinations) {
+        function askForDestination(destinations, theScript) {
             var destinationChooserDialog = new Window("dialog");
             destinationChooserDialog.text = "Edit script info";
             destinationChooserDialog.orientation = "column";
@@ -1086,8 +1086,9 @@
             var destTextGrp = destBtnGrp.add("group", undefined);
             destTextGrp.orientation = "column";
             for (var d = 0; d < destinations.length; d++) {
-                destinationButtons[d] = destBtnChckBxGrp.add("checkbox", [undefined, undefined, 24, 24])
+                destinationButtons[d] = destBtnChckBxGrp.add("radiobutton", [undefined, undefined, 24, 24])
                 destinationButtons[d].payload = destinations[d];
+                destinationButtons[d].value = theScript.fsItem.fullName === theScript.fsItem.fullName;
                 destTextGrp.add("statictext", [undefined, undefined, 440,24], Folder.decode(destinations[d].fullName));
             }
             var actionBtnGrp = destinationChooserDialog.add("group", undefined);
@@ -1095,8 +1096,12 @@
             var choseBtn = buttonColorText(actionBtnGrp, "Move script", btnColour.primary.default, btnColour.primary.hilite);
             var cancelBtn = buttonColorText(actionBtnGrp, "Cancel", btnColour.cancel.default, btnColour.cancel.hilite);
             choseBtn.onClick = function () {
-                destination = this.payload;
-                destinationChooserDialog.close();
+                for (var d = 0; d < destinations.length; d++){
+                    if (destinationButtons[d].value) {
+                        destination = destinationButtons[d].payload
+                    };
+                    destinationChooserDialog.close();
+                }
             };
             cancelBtn.onclick = function () {
                 destinationChooserDialog.close();
