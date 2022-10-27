@@ -18,7 +18,7 @@
         }
     }
 
-    function setMatteTOPrevLayer(theLayer, trackMatteTypes) {
+    function setMatteToPrevLayer(theLayer, trackMatteTypes) {
         if (theLayer.index > 1) {
             var trackMatteLayer = theLayer.containingComp.layer(theLayer.index - 1)
             theLayer.setTrackMatte(trackMatteLayer, trackMatteTypes)
@@ -33,7 +33,7 @@
         TrackMatteType.ALPHA_INVERTED,
         TrackMatteType.LUMA,
         TrackMatteType.LUMA_INVERTED][inverted + luma]
-    doSomethingWithSelectedLayersOrAllIfNoneSelected(setMatteTOPrevLayer, myTrackMatteType)
+    doSomethingWithSelectedLayersOrAllIfNoneSelected(setMatteToPrevLayer, myTrackMatteType)
     app.endUndoGroup();
 })()
 
