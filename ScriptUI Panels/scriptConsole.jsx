@@ -16,6 +16,13 @@
     var PNAFOLDER = "PureAndApplied";
     var PNA_HEADLESS_SCRIPTS_FOLDER = joinPath(Folder.userData, PNAFOLDER, STIBSAESCRIPTS);
     var PNA_UISCRIPTS_FOLDER = joinPath(Folder.userData, PNAFOLDER, SCRIPTUIPANELS);
+    // names for the various default folders
+    var PNA_UISCRIPTS_FOLDER_NAME = "Stibs UI Scripts"
+    var AE_USERDATA_UISCRIPTS_FOLDER_NAME = "AE user prefs UI Scripts"
+    var PROGRAM_UISCRIPTS_FOLDER_NAME = "AE Program folder UI Scripts (admin)"
+    var PNA_HEADLESS_SCRIPTS_FOLDER_NAME = "Stibs AE Scripts"
+    var AE_USERDATA_HEADLESS_FOLDER_NAME = "AE user prefs scripts"
+    var PROGRAM_HEADLESS_FOLDER_NAME = "AE Program folder scripts"
     // parameters for the name matching algo
     var upperCaseRankScale = 8;  // higher values rank upper case matches below normal matches
     var contiguousRankScale = 9; // higher values favour contiguous matches later in the search string
@@ -981,11 +988,7 @@
 
         // move script button
         var swapFoldersBtn = editScriptBottomRow.add("button", undefined, undefined, { name: "moveToScriptsFolder" });
-        swapFoldersBtn.text = theScript.info.isInstalled ?
-            "Move to scriptConsole" :
-            theScript.info.isUI ?
-                "Move to AE Window menu" :
-                "Move to AE Scripts menu"
+        swapFoldersBtn.text = "Move Script"
 
         var spacer = editScriptBottomRow.add("statictext");
         spacer.alignment = ["fill", "fill"];
@@ -1033,31 +1036,60 @@
             var destinations = [];
             if (chosenScript.info.isUI) {
                 destinations = [
-                    PNA_UISCRIPTS_FOLDER,
-                    joinPath(
-                        Folder.userData,
-                        "Adobe", "After Effects",
-                        parseFloat(app.version),
-                        SCRIPTUIPANELS
-                    ),
-                    joinPath(Folder.appPackage, SCRIPTUIPANELS)
+                    {
+                        folderName: PNA_UISCRIPTS_FOLDER_NAME,
+                        path: PNA_UISCRIPTS_FOLDER
+                    },
+                    {
+                        folderName: AE_USERDATA_UISCRIPTS_FOLDER_NAME,
+                        path: joinPath(
+                            Folder.userData,
+                            "Adobe", "After Effects",
+                            parseFloat(app.version),
+                            SCRIPTS,
+                            SCRIPTUIPANELS
+                        )
+                    },
+                    {
+                        folderName: PROGRAM_UISCRIPTS_FOLDER_NAME,
+                        path: joinPath(
+                            Folder.appPackage,
+                            SCRIPTS,
+                            SCRIPTUIPANELS
+                        )
+                    }
                 ]
             } else {
                 destinations = [
-                    PNA_HEADLESS_SCRIPTS_FOLDER,
-                    joinPath(
-                        Folder.userData,
-                        "Adobe", "After Effects",
-                        parseFloat(app.version),
-                        SCRIPTS
-                    ),
-                    joinPath(Folder.appPackage, SCRIPTUIPANELS)
+                    {
+                        folderName: PNA_HEADLESS_SCRIPTS_FOLDER_NAME,
+                        path: PNA_HEADLESS_SCRIPTS_FOLDER
+                    },
+                    {
+                        folderName: AE_USERDATA_HEADLESS_FOLDER_NAME,
+                        path: joinPath(
+                            Folder.userData,
+                            "Adobe", "After Effects",
+                            parseFloat(app.version),
+                            SCRIPTS
+                        )
+                    },
+                    {
+                        folderName: PROGRAM_HEADLESS_FOLDER_NAME,
+                        path: joinPath(
+                            Folder.appPackage,
+                            SCRIPTS
+                        )
+                    }
                 ]
             }
             for (var i = 0; i < scriptConsoleFolders.length; i++) {
                 var alreadyInDestinations = false;
                 for (var d = 0; d < destinations.length; d++) {
-                    if (scriptConsoleFolders[i].fullName === destinations[d].fullName) {
+                    if (
+                        Folder.decode(scriptConsoleFolders[i].fullName) ===
+                        Folder.decode(destinations[d].path.fullName)
+                    ) {
                         alreadyInDestinations = true;
                     }
                 }
@@ -1082,24 +1114,58 @@
             var destination;
             var destinationButtons = [];
             var destBtnChckBxGrp = destBtnGrp.add("group", undefined);
+            destBtnChckBxGrp.alignChildren = ['left', 'top'];
             destBtnChckBxGrp.orientation = "column";
-            var destTextGrp = destBtnGrp.add("group", undefined);
-            destTextGrp.orientation = "column";
             for (var d = 0; d < destinations.length; d++) {
-                destinationButtons[d] = destBtnChckBxGrp.add("radiobutton", [undefined, undefined, 24, 24])
-                destinationButtons[d].payload = destinations[d];
-                destinationButtons[d].value = theScript.fsItem.fullName === theScript.fsItem.fullName;
-                destTextGrp.add("statictext", [undefined, undefined, 440,24], Folder.decode(destinations[d].fullName));
+                destinationButtons[d] = destBtnChckBxGrp.add("radiobutton", undefined);
+                destinationButtons[d].payload = destinations[d].path;
+                destinationButtons[d].value =
+                    Folder.decode(destinationButtons[d].payload.fullname) ===
+                    Folder.decode(theScript.fsItem.fullName);
+                destinationButtons[d].text = Folder.decode(
+                    destinations[d].folderName ||
+                    destinations[d].fullName
+                );
             }
+            var customLocationGroup = destBtnChckBxGrp.add("group", undefined);
+            customLocationGroup.orientation = "row";
+            customLocationGroup.alignment = "left";
+            var customLocationButton = buttonColorText(customLocationGroup, "Another folder", btnColour.secondary.default, btnColour.secondary.hilite);
+            
+            var choose = destinationButtons.length;
+            destinationButtons[choose] = destBtnChckBxGrp.add("radiobutton", undefined)
+            destinationButtons[choose].text = " … ";
+            destinationButtons[choose].payload = false;
+            destinationButtons[choose].value = false;
+            function chooseCustomLocation() {
+                var customFolder = Folder.selectDialog('Choose a destination for the script');
+                if (customFolder) {
+                    destinationButtons[choose].payload = customFolder;
+                    destinationButtons[choose].text = (Folder.decode(customFolder));
+                    destinationChooserDialog.layout.layout(true);
+                }
+            }
+            destinationButtons[choose].onClick = function () {
+                //if user clicks the radio button and no folder selected
+                if (!this.payload) { chooseCustomLocation() }
+            }
+            customLocationButton.onClick = chooseCustomLocation;
             var actionBtnGrp = destinationChooserDialog.add("group", undefined);
-            actionBtnGrp.orientation = "row";
+            actionBtnGrp.orientation = "fill";
+            actionBtnGrp.alignChildren = ["fill", "center"];
             var choseBtn = buttonColorText(actionBtnGrp, "Move script", btnColour.primary.default, btnColour.primary.hilite);
             var cancelBtn = buttonColorText(actionBtnGrp, "Cancel", btnColour.cancel.default, btnColour.cancel.hilite);
+            var addFolderToScriptConsoleFoldersBtn = destinationChooserDialog.add("checkbox", undefined);
+            addFolderToScriptConsoleFoldersBtn.text = "Add destination folder to ScriptConsole";
+
             choseBtn.onClick = function () {
-                for (var d = 0; d < destinations.length; d++){
+                for (var d = 0; d < destinations.length; d++) {
                     if (destinationButtons[d].value) {
-                        destination = destinationButtons[d].payload
+                        destination = (!destinationButtons[d].payload) ?
+                            destinationButtons[d].payload :
+                            Folder.selectDialog('Choose a destination for the script')
                     };
+                } if (destination){
                     destinationChooserDialog.close();
                 }
             };
@@ -1121,6 +1187,7 @@
             // var problems = [];
             var destination = chooseDestination(theScript);
             if (destination && destination.exists) {
+
                 if (theScript.fsItem.copy(destination)) {
                     theScript.fsItem.remove();
                     theScript.fsItem = File(joinPath(destination, theScript.fsItem.name));
