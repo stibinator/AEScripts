@@ -1127,45 +1127,54 @@
                     destinations[d].fullName
                 );
             }
-            var customLocationGroup = destBtnChckBxGrp.add("group", undefined);
-            customLocationGroup.orientation = "row";
-            customLocationGroup.alignment = "left";
-            var customLocationButton = buttonColorText(customLocationGroup, "Another folder", btnColour.secondary.default, btnColour.secondary.hilite);
-            
             var choose = destinationButtons.length;
+            // var dividr = destBtnChckBxGrp.add("panel", undefined);
+            // dividr.alignment = ["fill", "top"];
+            // dividr.preferredSize.height = 1;
             destinationButtons[choose] = destBtnChckBxGrp.add("radiobutton", undefined)
-            destinationButtons[choose].text = " … ";
-            destinationButtons[choose].payload = false;
-            destinationButtons[choose].value = false;
+            // destinationButtons[choose].preferredSize = [22,22];
+            var dbc = destinationButtons[choose];
+            dbc.text = "choose a custom destination"
+            dbc.payload = false;
+            dbc.value = false;
+            dbc.alignment = ["fill", "top"]
+
+            var customLocationButton = buttonColorText(destBtnChckBxGrp, "Another folder", btnColour.secondary.default, btnColour.secondary.hilite);
+
             function chooseCustomLocation() {
                 var customFolder = Folder.selectDialog('Choose a destination for the script');
                 if (customFolder) {
-                    destinationButtons[choose].payload = customFolder;
-                    destinationButtons[choose].text = (Folder.decode(customFolder));
-                    destinationChooserDialog.layout.layout(true);
+                    dbc.payload = customFolder;
+                    dbc.text = "" + (Folder.decode(customFolder));
+                    dbc.value = true;
                 }
             }
-            destinationButtons[choose].onClick = function () {
+            dbc.onClick = function () {
                 //if user clicks the radio button and no folder selected
                 if (!this.payload) { chooseCustomLocation() }
             }
             customLocationButton.onClick = chooseCustomLocation;
-            var actionBtnGrp = destinationChooserDialog.add("group", undefined);
-            actionBtnGrp.orientation = "fill";
-            actionBtnGrp.alignChildren = ["fill", "center"];
+            var actionBtnGrpContainer = destinationChooserDialog.add("group", undefined);
+            actionBtnGrpContainer.orientation = "row";
+            actionBtnGrpContainer.alignment = "right"
+            actionBtnGrpContainer.alignChildren = ["right", "center"];
+            var actionBtnGrp = actionBtnGrpContainer.add("group", undefined);
+            actionBtnGrp.orientation = "row";
+            actionBtnGrp.alignChildren = ["right", "center"];
             var choseBtn = buttonColorText(actionBtnGrp, "Move script", btnColour.primary.default, btnColour.primary.hilite);
             var cancelBtn = buttonColorText(actionBtnGrp, "Cancel", btnColour.cancel.default, btnColour.cancel.hilite);
             var addFolderToScriptConsoleFoldersBtn = destinationChooserDialog.add("checkbox", undefined);
             addFolderToScriptConsoleFoldersBtn.text = "Add destination folder to ScriptConsole";
 
             choseBtn.onClick = function () {
-                for (var d = 0; d < destinations.length; d++) {
+                for (var d = 0; d < destinationButtons.length; d++) {
                     if (destinationButtons[d].value) {
                         destination = (!destinationButtons[d].payload) ?
                             destinationButtons[d].payload :
                             Folder.selectDialog('Choose a destination for the script')
                     };
-                } if (destination){
+                }
+                if (destination) {
                     destinationChooserDialog.close();
                 }
             };
@@ -1179,19 +1188,21 @@
             } else {
                 destinationChooserDialog.layout.layout(true);
             }
-            return destination;
+            return { path: destination, addFolder: addFolderToScriptConsoleFoldersBtn.value };
         }
 
         function swapFolders() {
             // var log = new LogFile(LOGFILEPATH);
             // var problems = [];
             var destination = chooseDestination(theScript);
-            if (destination && destination.exists) {
-
-                if (theScript.fsItem.copy(destination)) {
+            if (destination && destination.path.exists) {
+                if (theScript.fsItem.copy(destination.path)) {
                     theScript.fsItem.remove();
                     theScript.fsItem = File(joinPath(destination, theScript.fsItem.name));
                     theScript.info.isInstalled = !theScript.info.isInstalled;
+                    if (destination.addFolder) {
+                        addToFileArrayIfUnique(scriptConsoleFolders, destination.path);
+                    }
                 }
             }
         }
