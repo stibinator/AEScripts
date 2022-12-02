@@ -5,28 +5,33 @@
 // trims the selected layer(s)
 // to match the length of the layers below them
 // and sets them as layer mattes
+// or if ctrl is held down trims layers to match their mattes
 (function () {
     var INVERTED = ScriptUI.environment.keyboardState.shiftKey;
     var LUMA = ScriptUI.environment.keyboardState.altKey;
+    var TRIM2MATTE = ScriptUI.environment.keyboardState.ctrlKey;
 
     var scriptName = "trimToLayerBelowAndSetAsAlphaMatte";
     app.beginUndoGroup(scriptName);
     var theComp = app.project.activeItem;
     if (theComp) {
         for (var i = 0; i < theComp.selectedLayers.length; i++) {
-            theLayer = theComp.selectedLayers[i];
+            var theLayer = theComp.selectedLayers[i];
             if (theComp.numLayers > theLayer.index) {
-                var targetLayer = theComp.layer(theLayer.index + 1);
-                theLayer.inPoint = targetLayer.inPoint;
-                theLayer.outPoint = targetLayer.outPoint;
-                if (LUMA) {
-                    targetLayer.trackMatteType = (INVERTED) ? TrackMatteType.LUMA_INVERTED : TrackMatteType.LUMA
-                } else {
-                    targetLayer.trackMatteType = (INVERTED) ? TrackMatteType.ALPHA_INVERTED : TrackMatteType.ALPHA
+                var targetLayer = theComp.layer(theLayer.index + TRIM2MATTE); 
+                var sourceLayer = theComp.layer(theLayer.index + 1 - TRIM2MATTE);
+                targetLayer.inPoint = sourceLayer.inPoint;
+                targetLayer.outPoint = sourceLayer.outPoint;
+                if (!TRIM2MATTE) {
+                    if (LUMA) {
+                        targetLayer.trackMatteType = (INVERTED) ? TrackMatteType.LUMA_INVERTED : TrackMatteType.LUMA
+                    } else {
+                        targetLayer.trackMatteType = (INVERTED) ? TrackMatteType.ALPHA_INVERTED : TrackMatteType.ALPHA
+                    }
                 }
 
             }
-            
+
         }
     }
     app.endUndoGroup();
